@@ -7,11 +7,18 @@ interface HeaderProps {
   onMenuToggle?: () => void;
 }
 
+const navLinks = [
+  { href: '/backend', label: 'Backend', color: '#7C4DFF', bg: 'rgba(124,77,255,0.2)', border: 'rgba(124,77,255,0.4)' },
+  { href: '/frontend', label: 'Frontend', color: '#00E5CC', bg: 'rgba(0,229,204,0.12)', border: 'rgba(0,229,204,0.3)' },
+  { href: '/system-design', label: 'Sys Design', color: '#39FF14', bg: 'rgba(57,255,20,0.1)', border: 'rgba(57,255,20,0.25)' },
+  { href: '/plugin-architecture', label: 'Plugins', color: '#C9872A', bg: 'rgba(201,135,42,0.12)', border: 'rgba(201,135,42,0.3)' },
+  { href: '/tools/cowork', label: 'Cowork', color: '#7C4DFF', bg: 'rgba(124,77,255,0.15)', border: 'rgba(124,77,255,0.3)' },
+  { href: '/tools/ux-prompt', label: 'UX', color: '#FFB020', bg: 'rgba(255,176,32,0.12)', border: 'rgba(255,176,32,0.3)' },
+  { href: '/tools/kickoff', label: 'Kickoff', color: '#00E5CC', bg: 'rgba(0,229,204,0.1)', border: 'rgba(0,229,204,0.25)' },
+];
+
 export function Header({ onMenuToggle }: HeaderProps) {
   const pathname = usePathname();
-
-  const isBackend = pathname === '/backend';
-  const isFrontend = pathname === '/frontend';
 
   return (
     <header style={{
@@ -24,8 +31,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
       borderBottom: '1px solid var(--border)',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 20px',
-      gap: '14px',
+      padding: '0 16px',
+      gap: '10px',
     }}>
       {/* Mobile menu button */}
       <button
@@ -45,88 +52,61 @@ export function Header({ onMenuToggle }: HeaderProps) {
       </button>
 
       {/* Logo */}
-      <Link href="/" style={{ textDecoration: 'none' }}>
+      <Link href="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
         <span style={{
           fontFamily: 'var(--font-display)',
-          fontSize: '22px',
-          letterSpacing: '0.12em',
+          fontSize: '20px',
+          letterSpacing: '0.1em',
           color: '#00E5CC',
           textShadow: '0 0 20px rgba(0,229,204,0.5)',
         }}>
-          FBT<em style={{ color: '#7C4DFF', fontStyle: 'normal' }}> PARTNER</em>
+          FBT<em style={{ color: '#7C4DFF', fontStyle: 'normal' }}> P</em>
         </span>
       </Link>
 
-      <div style={{ width: '1px', height: '20px', background: 'var(--border)' }} />
+      <div style={{ width: '1px', height: '20px', background: 'var(--border)', flexShrink: 0 }} />
 
       {/* Nav Links */}
-      <nav style={{ display: 'flex', gap: '4px' }}>
-        <Link href="/backend" style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
-          padding: '5px 12px',
-          borderRadius: '4px',
-          textDecoration: 'none',
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase' as const,
-          background: isBackend ? 'rgba(124,77,255,0.2)' : 'transparent',
-          color: isBackend ? '#7C4DFF' : 'var(--t3)',
-          border: isBackend ? '1px solid rgba(124,77,255,0.4)' : '1px solid transparent',
-          transition: 'all 0.15s',
-        }}>
-          Backend
-        </Link>
-        <Link href="/frontend" style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
-          padding: '5px 12px',
-          borderRadius: '4px',
-          textDecoration: 'none',
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase' as const,
-          background: isFrontend ? 'rgba(0,229,204,0.12)' : 'transparent',
-          color: isFrontend ? '#00E5CC' : 'var(--t3)',
-          border: isFrontend ? '1px solid rgba(0,229,204,0.3)' : '1px solid transparent',
-          transition: 'all 0.15s',
-        }}>
-          Frontend
-        </Link>
+      <nav style={{ display: 'flex', gap: '3px', overflowX: 'auto', flexShrink: 1, minWidth: 0 }}>
+        {navLinks.map((link) => {
+          const isActive = pathname === link.href;
+          return (
+            <Link key={link.href} href={link.href} style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              padding: '4px 8px',
+              borderRadius: '3px',
+              textDecoration: 'none',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              background: isActive ? link.bg : 'transparent',
+              color: isActive ? link.color : 'var(--t3)',
+              border: isActive ? `1px solid ${link.border}` : '1px solid transparent',
+              transition: 'all 0.15s',
+            }}>
+              {link.label}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Right side */}
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {isBackend && (
-          <>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: '2px', letterSpacing: '0.06em', background: 'rgba(81,43,212,0.3)', color: '#9B72FF', border: '1px solid rgba(81,43,212,0.5)' }}>.NET</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: '2px', letterSpacing: '0.06em', background: 'rgba(255,176,32,0.12)', color: '#FFB020', border: '1px solid rgba(255,176,32,0.3)' }}>PYTHON</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: '2px', letterSpacing: '0.06em', background: 'rgba(255,64,96,0.12)', color: '#FF6080', border: '1px solid rgba(255,64,96,0.3)' }}>RUST</span>
-          </>
-        )}
-        {isFrontend && (
-          <>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: '2px', letterSpacing: '0.06em', background: 'rgba(56,189,248,0.12)', color: '#38BDF8', border: '1px solid rgba(56,189,248,0.3)' }}>REACT 19</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: '2px', letterSpacing: '0.06em', background: 'rgba(255,255,255,0.06)', color: 'var(--t2)', border: '1px solid var(--border)' }}>NEXT.JS 15</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: '2px', letterSpacing: '0.06em', background: 'rgba(81,43,212,0.25)', color: '#7C4DFF', border: '1px solid rgba(124,77,255,0.5)' }}>TS 5</span>
-          </>
-        )}
-
-        {/* Cmd+K hint */}
+      {/* Right side - Search */}
+      <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: '5px',
           background: 'var(--card)',
           border: '1px solid var(--border)',
           borderRadius: '4px',
-          padding: '5px 11px',
-          marginLeft: '8px',
+          padding: '4px 9px',
           cursor: 'pointer',
         }}
           onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
         >
-          <span style={{ color: 'var(--t4)', fontSize: '13px' }}>🔍</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--t4)' }}>Search</span>
-          <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '1px 5px', background: 'var(--raised)', borderRadius: '2px', color: 'var(--t4)', border: '1px solid var(--border)' }}>⌘K</kbd>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--t4)' }}>Search</span>
+          <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: '8px', padding: '1px 4px', background: 'var(--raised)', borderRadius: '2px', color: 'var(--t4)', border: '1px solid var(--border)' }}>⌘K</kbd>
         </div>
       </div>
     </header>

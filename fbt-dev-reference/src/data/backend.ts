@@ -55,17 +55,19 @@ export interface Section {
   title: string;
   count?: string;
   description?: string;
-  type?: 'cards' | 'table' | 'patterns' | 'flow' | 'mixed';
+  type?: string;
   cards?: Card[];
   principles?: Principle[];
   patternGroups?: PatternGroup[];
   flowSteps?: { title: string; description: string }[];
   codeExample?: { code: string; lang: string };
-  callout?: { type: 'purple' | 'cyan' | 'amber' | 'red'; icon: string; text: string };
+  callout?: { type: string; icon: string; text: string };
   hasFilter?: boolean;
   filterOptions?: string[];
   code?: string;
   lang?: string;
+  table?: { headers: string[]; rows: string[][] };
+  [key: string]: unknown;
 }
 
 export const backendNav: NavSection[] = [

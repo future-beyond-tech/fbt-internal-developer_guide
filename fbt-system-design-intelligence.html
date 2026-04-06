@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBT System Design Intelligence — DesignGurus Full Analysis</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+:root {
+  --void:#030711;
+  --d1:#060E1C;
+  --d2:#0A1628;
+  --d3:#0F2040;
+  --d4:#152A55;
+  --d5:#1C3668;
+  --lime:#39FF14;
+  --lime-dim:rgba(57,255,20,0.1);
+  --lime-border:rgba(57,255,20,0.25);
+  --cyan:#00F5FF;
+  --cyan-dim:rgba(0,245,255,0.08);
+  --amber:#FFB020;
+  --amber-dim:rgba(255,176,32,0.1);
+  --pink:#FF2D78;
+  --pink-dim:rgba(255,45,120,0.1);
+  --purple:#C084FC;
+  --purple-dim:rgba(192,132,252,0.1);
+  --red:#FF4444;
+  --red-dim:rgba(255,68,68,0.1);
+  --green:#22C55E;
+  --green-dim:rgba(34,197,94,0.1);
+  --sky:#38BDF8;
+  --border:rgba(255,255,255,0.05);
+  --border-hi:rgba(57,255,20,0.2);
+  --t1:#E2F0FF;
+  --t2:#7B9EC4;
+  --t3:#3D5A80;
+  --t4:#1E3050;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Rajdhani',sans-serif;
+  --body:'DM Sans',sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+
+body{
+  background:var(--void);
+  color:var(--t1);
+  font-family:var(--body);
+  font-size:13.5px;
+  line-height:1.65;
+  overflow-x:hidden;
+}
+
+/* SCANLINES */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.015) 3px,rgba(0,0,0,0.015) 4px);
+  pointer-events:none;z-index:9999;
+}
+
+/* ANIMATED BACKGROUND GRID */
+.bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(rgba(57,255,20,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(57,255,20,0.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  animation:gridPulse 8s ease-in-out infinite;
+}
+@keyframes gridPulse{0%,100%{opacity:0.4}50%{opacity:0.8}}
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(3,7,17,0.97);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border-hi);
+  height:52px;display:flex;align-items:center;padding:0 24px;gap:14px;
+}
+.tb-logo{
+  font-family:var(--display);font-size:18px;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;
+  background:linear-gradient(135deg,var(--lime),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-shadow:none;
+}
+.tb-sep{width:1px;height:20px;background:rgba(57,255,20,0.2)}
+.tb-title{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:0.16em}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.tb-badge{
+  font-family:var(--mono);font-size:8.5px;padding:2px 9px;
+  border-radius:2px;letter-spacing:0.08em;text-transform:uppercase;
+}
+.tbb-lime{background:var(--lime-dim);color:var(--lime);border:1px solid var(--lime-border)}
+.tbb-cyan{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,245,255,0.2)}
+.tbb-d{background:rgba(255,255,255,0.03);color:var(--t3);border:1px solid var(--border)}
+
+/* STAT COUNTER */
+.topbar-stats{display:flex;align-items:center;gap:16px;margin-left:12px}
+.ts-item{display:flex;flex-direction:column;gap:1px;border-left:1px solid var(--border);padding-left:16px}
+.ts-num{font-family:var(--mono);font-size:13px;color:var(--lime);font-weight:600}
+.ts-lbl{font-family:var(--mono);font-size:8px;letter-spacing:0.1em;color:var(--t3);text-transform:uppercase}
+
+/* SHELL */
+.shell{display:flex;position:relative;z-index:1;min-height:calc(100vh - 52px)}
+
+/* SIDEBAR */
+.sidebar{
+  width:230px;min-width:230px;
+  background:rgba(6,14,28,0.95);border-right:1px solid var(--border);
+  padding:16px 0 60px;position:sticky;top:52px;
+  height:calc(100vh - 52px);overflow-y:auto;
+}
+.sidebar::-webkit-scrollbar{width:2px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--d5)}
+
+.nav-cat{
+  font-family:var(--mono);font-size:8px;font-weight:600;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--lime);padding:14px 16px 5px;
+  border-bottom:1px solid rgba(57,255,20,0.05);margin-bottom:2px;
+}
+.nav-link{
+  display:flex;align-items:center;gap:8px;padding:6px 16px;
+  font-family:var(--mono);font-size:10.5px;color:var(--t3);
+  cursor:pointer;border-left:2px solid transparent;
+  transition:all 0.1s;text-decoration:none;letter-spacing:0.02em;
+}
+.nav-link:hover{color:var(--t1);background:rgba(57,255,20,0.04);border-left-color:rgba(57,255,20,0.3)}
+.nav-link.on{color:var(--lime);border-left-color:var(--lime);background:var(--lime-dim)}
+.nav-link .nd{
+  width:4px;height:4px;border-radius:50%;background:currentColor;
+  flex-shrink:0;opacity:0.5;transition:opacity 0.1s;
+}
+.nav-link.on .nd,.nav-link:hover .nd{opacity:1}
+.nav-count{margin-left:auto;font-size:8.5px;background:var(--d3);padding:1px 5px;border-radius:1px;color:var(--t3)}
+
+/* MAIN */
+.main{flex:1;padding:0;min-width:0;overflow:hidden}
+
+/* HERO */
+.hero{
+  position:relative;padding:44px 48px 40px;
+  background:linear-gradient(135deg,var(--d1) 0%,var(--d3) 100%);
+  border-bottom:1px solid var(--border-hi);overflow:hidden;
+}
+.hero-corner{
+  position:absolute;top:0;right:0;
+  width:300px;height:300px;
+  background:radial-gradient(circle at 100% 0%,rgba(57,255,20,0.08) 0%,transparent 60%);
+}
+.hero-corner2{
+  position:absolute;bottom:-40px;left:200px;
+  width:400px;height:200px;
+  background:radial-gradient(ellipse,rgba(0,245,255,0.05) 0%,transparent 70%);
+}
+.hero-tag{
+  font-family:var(--mono);font-size:9.5px;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--lime);margin-bottom:14px;
+}
+.hero-tag::before{content:'[ ';opacity:0.5}
+.hero-tag::after{content:' ]';opacity:0.5}
+.hero h1{
+  font-family:var(--display);font-size:38px;font-weight:700;
+  line-height:1.05;letter-spacing:0.05em;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.hero h1 .g1{color:var(--t1)}
+.hero h1 .g2{
+  background:linear-gradient(90deg,var(--lime),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{font-size:13.5px;color:var(--t2);max-width:650px;line-height:1.75;margin-bottom:28px}
+.hero-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:8px;
+  max-width:680px;
+}
+.hero-metric{
+  background:rgba(57,255,20,0.04);border:1px solid var(--lime-border);
+  border-radius:3px;padding:10px 12px;
+}
+.hm-val{font-family:var(--display);font-size:24px;font-weight:700;color:var(--lime);line-height:1}
+.hm-lbl{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--t3);margin-top:3px}
+
+/* CONTENT */
+.content{padding:40px 48px 80px;position:relative;z-index:1}
+
+/* SECTION */
+section{margin-bottom:64px;scroll-margin-top:64px}
+.sec-hd{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;padding-bottom:12px;
+  border-bottom:1px solid var(--border);position:relative;
+}
+.sec-hd::after{
+  content:'';position:absolute;bottom:-1px;left:0;
+  width:80px;height:1px;
+  background:linear-gradient(90deg,var(--lime),transparent);
+}
+.sec-num{
+  font-family:var(--mono);font-size:9px;color:var(--lime);
+  letter-spacing:0.14em;background:var(--lime-dim);
+  border:1px solid var(--lime-border);padding:2px 8px;border-radius:2px;
+}
+.sec-title{
+  font-family:var(--display);font-size:20px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;color:var(--t1);
+}
+.sec-sub{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--t3);margin-left:auto;
+}
+.sec-intro{
+  font-size:13px;color:var(--t2);line-height:1.75;
+  margin-bottom:24px;max-width:780px;
+}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:20px}
+.filter-btn{
+  font-family:var(--mono);font-size:9.5px;padding:4px 12px;
+  border-radius:2px;cursor:pointer;
+  background:var(--d2);border:1px solid var(--border);
+  color:var(--t3);transition:all 0.12s;letter-spacing:0.05em;
+}
+.filter-btn:hover{border-color:var(--lime-border);color:var(--t1)}
+.filter-btn.on{background:var(--lime-dim);border-color:var(--lime);color:var(--lime)}
+
+/* CONCEPT GRID */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.concept-card{
+  background:var(--d2);border:1px solid var(--border);
+  border-radius:4px;padding:16px;position:relative;
+  overflow:hidden;transition:border-color 0.15s,transform 0.15s;
+  cursor:default;
+}
+.concept-card:hover{border-color:var(--lime-border);transform:translateY(-1px)}
+.concept-card.hidden{display:none}
+.cc-line{position:absolute;top:0;left:0;right:0;height:2px}
+.ccl-lime{background:linear-gradient(90deg,var(--lime),transparent)}
+.ccl-cyan{background:linear-gradient(90deg,var(--cyan),transparent)}
+.ccl-amber{background:linear-gradient(90deg,var(--amber),transparent)}
+.ccl-pink{background:linear-gradient(90deg,var(--pink),transparent)}
+.ccl-purple{background:linear-gradient(90deg,var(--purple),transparent)}
+.ccl-sky{background:linear-gradient(90deg,var(--sky),transparent)}
+.ccl-red{background:linear-gradient(90deg,var(--red),transparent)}
+.ccl-green{background:linear-gradient(90deg,var(--green),transparent)}
+
+.cc-header{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}
+.cc-icon{font-size:20px;line-height:1;flex-shrink:0}
+.cc-title{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--t1);line-height:1.3}
+.cc-cat{font-family:var(--mono);font-size:8.5px;color:var(--lime);letter-spacing:0.1em;margin-top:2px}
+.cc-desc{font-size:11.5px;color:var(--t2);line-height:1.6;margin-bottom:11px}
+.cc-fbt{
+  background:var(--d3);border-radius:3px;padding:8px 10px;
+  border-left:2px solid var(--lime);margin-bottom:9px;
+}
+.cc-fbt-label{font-family:var(--mono);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--lime);margin-bottom:4px}
+.cc-fbt-text{font-size:11px;color:var(--t2);line-height:1.55}
+.cc-chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{
+  font-family:var(--mono);font-size:9px;padding:2px 7px;
+  border-radius:2px;letter-spacing:0.04em;
+}
+.chip-p{background:rgba(57,255,20,0.1);color:var(--lime);border:1px solid rgba(57,255,20,0.2)}
+.chip-c{background:rgba(0,245,255,0.08);color:var(--cyan);border:1px solid rgba(0,245,255,0.2)}
+.chip-a{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,176,32,0.2)}
+.chip-pk{background:var(--pink-dim);color:var(--pink);border:1px solid rgba(255,45,120,0.2)}
+.chip-s{background:rgba(255,255,255,0.04);color:var(--t3);border:1px solid var(--border)}
+.chip-sky{background:rgba(56,189,248,0.1);color:var(--sky);border:1px solid rgba(56,189,248,0.2)}
+.chip-g{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.2)}
+
+/* BIG CONCEPT ROWS */
+.cpt-row{
+  background:var(--d2);border:1px solid var(--border);
+  border-radius:4px;margin-bottom:8px;overflow:hidden;
+  transition:border-color 0.12s;
+}
+.cpt-row:hover{border-color:var(--lime-border)}
+.cpt-hd{
+  display:grid;grid-template-columns:28px 220px 1fr auto;
+  align-items:center;gap:12px;padding:11px 16px;cursor:pointer;
+}
+.cpt-num{font-family:var(--mono);font-size:9px;color:var(--t3)}
+.cpt-name{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--t1)}
+.cpt-brief{font-size:11.5px;color:var(--t3)}
+.cpt-priority{
+  font-family:var(--mono);font-size:8px;padding:2px 8px;
+  border-radius:2px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;
+}
+.cpp-critical{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid rgba(255,68,68,0.3)}
+.cpp-high{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,176,32,0.3)}
+.cpp-med{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,245,255,0.2)}
+.cpp-low{background:rgba(255,255,255,0.04);color:var(--t3);border:1px solid var(--border)}
+.cpt-arrow{font-family:var(--mono);font-size:10px;color:var(--t4);transition:transform 0.2s;margin-left:8px}
+.cpt-row.open .cpt-arrow{transform:rotate(180deg);color:var(--lime)}
+.cpt-body{display:none;padding:14px 16px;border-top:1px solid var(--border);background:var(--d1)}
+.cpt-row.open .cpt-body{display:block}
+
+/* PROJECT MAPPING TABLE */
+.proj-map{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  margin-bottom:14px;
+}
+.pm-card{
+  background:var(--d3);border-radius:3px;padding:10px;
+  border:1px solid var(--border);
+}
+.pm-project{font-family:var(--mono);font-size:8px;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.pm-proj-rf{color:var(--cyan)}
+.pm-proj-zt{color:var(--purple)}
+.pm-proj-cm{color:var(--pink)}
+.pm-proj-fg{color:var(--amber)}
+.pm-desc{font-size:11px;color:var(--t2);line-height:1.5}
+
+/* CODE */
+.code{
+  background:rgba(0,0,0,0.6);border:1px solid rgba(57,255,20,0.1);
+  border-radius:3px;padding:12px 14px;font-family:var(--mono);
+  font-size:10.5px;color:#C9D1D9;overflow-x:auto;
+  margin:10px 0;position:relative;line-height:1.65;
+}
+.code-lbl{position:absolute;top:6px;right:10px;font-size:8px;color:var(--t4);text-transform:uppercase;letter-spacing:0.12em}
+.kw{color:#FF79C6}.fn{color:#61DAFB}.ty{color:#FFB86C}.st{color:#50FA7B}.cm{color:#3D5A80}.at{color:#FF5555}.nm{color:#BD93F9}
+
+/* SYSTEM DESIGN MATRIX */
+.sd-matrix{width:100%;border-collapse:collapse;font-size:11.5px}
+.sd-matrix th{
+  font-family:var(--mono);font-size:8px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--lime);padding:9px 12px;background:rgba(57,255,20,0.05);
+  text-align:left;border-bottom:1px solid var(--lime-border);
+}
+.sd-matrix td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:top}
+.sd-matrix tr:hover td{background:rgba(57,255,20,0.02)}
+.sd-matrix td:first-child{font-family:var(--mono);font-size:10.5px;color:var(--cyan);white-space:nowrap}
+.sd-matrix td:nth-child(2){color:var(--t1);font-weight:500}
+
+/* CALLOUT */
+.callout{display:flex;gap:10px;padding:12px 14px;border-radius:3px;margin:12px 0;font-size:12px;line-height:1.6}
+.co-lime{background:var(--lime-dim);border-left:2px solid var(--lime)}
+.co-cyan{background:var(--cyan-dim);border-left:2px solid var(--cyan)}
+.co-amber{background:var(--amber-dim);border-left:2px solid var(--amber)}
+.co-pink{background:var(--pink-dim);border-left:2px solid var(--pink)}
+.co-red{background:var(--red-dim);border-left:2px solid var(--red)}
+.callout strong{color:var(--t1)}
+.callout code{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:2px}
+
+/* PRIORITY BOARD */
+.priority-board{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.pb-zone{background:var(--d2);border:1px solid var(--border);border-radius:4px;padding:16px}
+.pb-zone-title{font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.pb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pb-item{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:12px;color:var(--t2);padding:6px 0;
+  border-bottom:1px solid var(--border);line-height:1.5;
+}
+.pb-item:last-child{border-bottom:none}
+.pb-item .pi-num{font-family:var(--mono);font-size:9px;color:var(--t4);flex-shrink:0;width:18px}
+.pb-item .pi-text{flex:1}
+.pb-item .pi-tag{font-family:var(--mono);font-size:8px;padding:1px 6px;border-radius:2px;flex-shrink:0;text-transform:uppercase}
+
+/* IMPLEMENTATION FLOW */
+.impl-flow{display:flex;flex-direction:column;gap:0}
+.if-step{display:flex;gap:18px;position:relative}
+.if-step:not(:last-child)::after{
+  content:'';position:absolute;left:18px;top:38px;bottom:-8px;
+  width:1px;background:rgba(57,255,20,0.2);
+}
+.if-num{
+  width:36px;height:36px;border-radius:2px;flex-shrink:0;z-index:1;
+  border:1px solid var(--lime-border);background:var(--lime-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:16px;font-weight:700;color:var(--lime);
+}
+.if-content{padding:4px 0 24px}
+.if-phase{font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--lime);margin-bottom:3px}
+.if-title{font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:5px;color:var(--t1)}
+.if-desc{font-size:12px;color:var(--t2);line-height:1.6}
+.if-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+
+/* ARCH DIAGRAM */
+.arch-diagram{
+  background:var(--d1);border:1px solid var(--lime-border);
+  border-radius:4px;padding:20px;font-family:var(--mono);
+  font-size:11px;color:var(--lime);line-height:2;
+  margin:12px 0;white-space:pre;overflow-x:auto;
+}
+
+/* TABS */
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab{
+  font-family:var(--mono);font-size:10px;padding:7px 16px;
+  cursor:pointer;color:var(--t3);border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:all 0.12s;letter-spacing:0.08em;
+}
+.tab:hover{color:var(--t1)}
+.tab.on{color:var(--lime);border-bottom-color:var(--lime)}
+.tab-panel{display:none}
+.tab-panel.on{display:block}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:28px 0}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:16px;max-width:400px}
+.search-wrap input{
+  width:100%;background:var(--d2);border:1px solid var(--border);
+  border-radius:3px;padding:8px 14px 8px 34px;
+  font-family:var(--mono);font-size:11.5px;color:var(--t1);outline:none;
+  transition:border-color 0.15s;
+}
+.search-wrap input:focus{border-color:var(--lime-border)}
+.search-wrap input::placeholder{color:var(--t4)}
+.search-wrap::before{
+  content:'⌕';position:absolute;left:11px;top:50%;
+  transform:translateY(-50%);color:var(--t3);font-size:15px;
+}
+
+/* PROJECT LEGEND */
+.proj-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.pl-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
+.pl-dot{width:8px;height:8px;border-radius:1px;flex-shrink:0}
+
+/* TAG CLOUD */
+.tag-cloud{display:flex;flex-wrap:wrap;gap:6px}
+.tc-tag{
+  font-family:var(--mono);font-size:10.5px;padding:3px 10px;
+  background:var(--d2);border:1px solid var(--border);border-radius:2px;
+  color:var(--t3);cursor:default;transition:all 0.12s;
+}
+.tc-tag:hover{border-color:var(--lime-border);color:var(--lime);background:var(--lime-dim)}
+
+/* ANIMATE */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+section{animation:fadeUp 0.3s ease both}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .hero,.content{padding-left:24px;padding-right:24px}
+  .proj-map{grid-template-columns:1fr 1fr}
+  .priority-board{grid-template-columns:1fr}
+  .hero-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">FBT</div>
+  <div class="tb-sep"></div>
+  <div class="tb-title">System Design Intelligence · DesignGurus Full Analysis</div>
+  <div class="topbar-stats">
+    <div class="ts-item"><div class="ts-num">95+</div><div class="ts-lbl">Concepts</div></div>
+    <div class="ts-item"><div class="ts-num">18</div><div class="ts-lbl">Design Patterns</div></div>
+    <div class="ts-item"><div class="ts-num">4</div><div class="ts-lbl">FBT Projects</div></div>
+  </div>
+  <div class="tb-right">
+    <span class="tb-badge tbb-lime">DesignGurus Full</span>
+    <span class="tb-badge tbb-cyan">FBT Mapped</span>
+    <span class="tb-badge tbb-d">Deep Analysis</span>
+  </div>
+</header>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-cat">Course Modules</div>
+  <a class="nav-link on" href="#foundations"><span class="nd"></span>System Foundations<span class="nav-count">12</span></a>
+  <a class="nav-link" href="#distributed"><span class="nd"></span>Distributed Systems<span class="nav-count">18</span></a>
+  <a class="nav-link" href="#data-storage"><span class="nd"></span>Data & Storage<span class="nav-count">14</span></a>
+  <a class="nav-link" href="#communication"><span class="nd"></span>Communication<span class="nav-count">10</span></a>
+  <a class="nav-link" href="#reliability"><span class="nd"></span>Reliability Patterns<span class="nav-count">12</span></a>
+  <a class="nav-link" href="#scalability"><span class="nd"></span>Scalability<span class="nav-count">10</span></a>
+  <a class="nav-link" href="#security-sd"><span class="nd"></span>Security & Auth<span class="nav-count">8</span></a>
+  <a class="nav-link" href="#observability"><span class="nd"></span>Observability<span class="nav-count">7</span></a>
+  <a class="nav-link" href="#design-problems"><span class="nd"></span>System Designs<span class="nav-count">15</span></div>
+  <a class="nav-link" href="#fbt-mapping"><span class="nd"></span>FBT Project Mapping</a>
+  <a class="nav-link" href="#roadmap"><span class="nd"></span>Implementation Roadmap</a>
+
+  <div class="nav-cat" style="margin-top:8px">FBT Projects</div>
+  <a class="nav-link" href="#fbt-mapping"><span class="nd"></span><span style="color:var(--cyan)">■</span>&nbsp;RentFlow</a>
+  <a class="nav-link" href="#fbt-mapping"><span class="nd"></span><span style="color:var(--purple)">■</span>&nbsp;Zentra</a>
+  <a class="nav-link" href="#fbt-mapping"><span class="nd"></span><span style="color:var(--pink)">■</span>&nbsp;CatchMoment</a>
+  <a class="nav-link" href="#fbt-mapping"><span class="nd"></span><span style="color:var(--amber)">■</span>&nbsp;FIROSE Group</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-corner"></div>
+  <div class="hero-corner2"></div>
+  <div class="hero-tag">designgurus.io/system-design-interview · complete extraction</div>
+  <h1>
+    <span class="g1">SYSTEM DESIGN</span><br>
+    <span class="g2">INTELLIGENCE FOR FBT</span>
+  </h1>
+  <p>Every concept, pattern, and principle from the DesignGurus System Design Interview curriculum — extracted, analysed, and mapped 1:1 to FBT's current and future engineering challenges. This is your architecture decision Bible.</p>
+  <div class="hero-grid">
+    <div class="hero-metric"><div class="hm-val">95+</div><div class="hm-lbl">Concepts</div></div>
+    <div class="hero-metric"><div class="hm-val">18</div><div class="hm-lbl">System Designs</div></div>
+    <div class="hero-metric"><div class="hm-val">15</div><div class="hm-lbl">Patterns</div></div>
+    <div class="hero-metric"><div class="hm-val">4</div><div class="hm-lbl">Projects</div></div>
+    <div class="hero-metric"><div class="hm-val">∞</div><div class="hm-lbl">Scale</div></div>
+    <div class="hero-metric"><div class="hm-val">NOW</div><div class="hm-lbl">Apply</div></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- PROJECT LEGEND -->
+<div class="proj-legend">
+  <div class="pl-item"><div class="pl-dot" style="background:var(--cyan)"></div>RentFlow — PG/co-living SaaS</div>
+  <div class="pl-item"><div class="pl-dot" style="background:var(--purple)"></div>Zentra — OAuth 2.0 / OIDC Identity</div>
+  <div class="pl-item"><div class="pl-dot" style="background:var(--pink)"></div>CatchMoment — AI Event Video</div>
+  <div class="pl-item"><div class="pl-dot" style="background:var(--amber)"></div>FIROSE Group — FMCG + Digital</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §1 SYSTEM DESIGN FOUNDATIONS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="foundations">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 01</span>
+    <h2 class="sec-title">System Design Foundations</h2>
+    <span class="sec-sub">12 core concepts</span>
+  </div>
+  <p class="sec-intro">The bedrock of every system design decision. DesignGurus opens with these because everything else builds on them — scalability, reliability, availability, and the trade-offs between them.</p>
+
+  <div class="concept-grid">
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">📐</div><div><div class="cc-title">Scalability</div><div class="cc-cat">FOUNDATIONS</div></div></div>
+      <div class="cc-desc"><strong>Vertical scaling</strong> (bigger machines) vs <strong>Horizontal scaling</strong> (more machines). Vertical has a ceiling; horizontal requires stateless design. Scale-cube model: X-axis (clone), Y-axis (decompose), Z-axis (partition).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow must scale horizontally — multi-tenant means unpredictable load spikes when large PG owners onboard hundreds of residents simultaneously. Railway auto-scaling needs stateless .NET API pods.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">RentFlow</span><span class="chip chip-c">CatchMoment</span><span class="chip chip-s">Railway</span><span class="chip chip-s">Horizontal</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">⚡</div><div><div class="cc-title">Reliability</div><div class="cc-cat">FOUNDATIONS</div></div></div>
+      <div class="cc-desc">System continues to work correctly even when things go wrong. Fault-tolerant through redundancy, replication, and failover. Mean Time Between Failures (MTBF) and Mean Time To Recovery (MTTR) are key metrics.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Zentra MUST be highly reliable — every FBT product depends on it for auth. Single Zentra failure = all products down. Railway multi-instance deployment with health checks and auto-restart.</div></div>
+      <div class="cc-chips"><span class="chip chip-sky">Zentra Critical</span><span class="chip chip-s">MTBF/MTTR</span><span class="chip chip-s">Redundancy</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">🟢</div><div><div class="cc-title">Availability</div><div class="cc-cat">FOUNDATIONS</div></div></div>
+      <div class="cc-desc">Percentage of time system is operational. 99.9% = 8.7 hours downtime/year. 99.99% = 52 minutes/year. 99.999% = 5 minutes/year. Availability = MTBF / (MTBF + MTTR). High availability requires eliminating single points of failure.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow SLA target: 99.9% (8.7hrs/yr). Zentra: 99.95%. CatchMoment GPU processing can be 99.5% (processing delays acceptable, not outages). FIROSE e-commerce: 99.9% during business hours.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">SLA Targets</span><span class="chip chip-s">99.9%</span><span class="chip chip-s">SPOF elimination</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-pink"></div>
+      <div class="cc-header"><div class="cc-icon">⚖️</div><div><div class="cc-title">CAP Theorem</div><div class="cc-cat">DISTRIBUTED THEORY</div></div></div>
+      <div class="cc-desc">A distributed system can guarantee only 2 of: <strong>Consistency</strong> (all nodes see same data), <strong>Availability</strong> (every request gets a response), <strong>Partition Tolerance</strong> (system works despite network splits). CP systems (PostgreSQL), AP systems (Cassandra), CA (impossible in distributed systems).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow payment data = CP (consistency critical, can't double-charge). CatchMoment video metadata = AP (availability over perfect consistency, eventual sync is fine). Zentra tokens = CP (auth must be consistent).</div></div>
+      <div class="cc-chips"><span class="chip chip-p">RentFlow: CP</span><span class="chip chip-c">CatchMoment: AP</span><span class="chip chip-sky">Zentra: CP</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-purple"></div>
+      <div class="cc-header"><div class="cc-icon">🌊</div><div><div class="cc-title">PACELC Theorem</div><div class="cc-cat">EXTENDED CAP</div></div></div>
+      <div class="cc-desc">Extends CAP: in case of Partition (P): choose Availability or Consistency. Else (E): choose Latency or Consistency. More nuanced — even without partitions, there's a latency vs consistency trade-off. DynamoDB: PA/EL. PostgreSQL: PC/EC.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow reservation system: PC/EC — consistency always wins. CatchMoment event uploads: PA/EL — low latency upload matters more than immediate consistency across nodes.</div></div>
+      <div class="cc-chips"><span class="chip chip-s">PA/EL</span><span class="chip chip-s">PC/EC</span><span class="chip chip-s">Trade-offs</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-sky"></div>
+      <div class="cc-header"><div class="cc-icon">🔗</div><div><div class="cc-title">Consistent Hashing</div><div class="cc-cat">DATA DISTRIBUTION</div></div></div>
+      <div class="cc-desc">Hash ring where nodes and keys are placed. When a node joins/leaves, only K/N keys need redistribution (K=keys, N=nodes). Virtual nodes improve load distribution. Used by Cassandra, DynamoDB, CDNs.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">CatchMoment video upload routing — consistent hashing routes uploads to the same processing node for a given event, enabling local caching. RentFlow Redis cluster uses consistent hashing for session distribution across cache nodes.</div></div>
+      <div class="cc-chips"><span class="chip chip-c">CatchMoment</span><span class="chip chip-p">Redis Cluster</span><span class="chip chip-s">Virtual nodes</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">📊</div><div><div class="cc-title">Load Balancing</div><div class="cc-cat">TRAFFIC DISTRIBUTION</div></div></div>
+      <div class="cc-desc">Algorithms: <strong>Round Robin</strong>, <strong>Weighted Round Robin</strong>, <strong>Least Connections</strong>, <strong>Least Response Time</strong>, <strong>IP Hash</strong>, <strong>Resource-Based</strong>. Layer 4 (TCP) vs Layer 7 (HTTP/content-aware). Active health checks, passive monitoring.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Railway provides L7 load balancing for RentFlow API. Zentra needs sticky sessions for token refresh flows — use IP Hash or cookie-based affinity. CatchMoment GPU worker pool: Least Connections to avoid overloading a single Modal instance.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Railway LB</span><span class="chip chip-s">L7 HTTP</span><span class="chip chip-a">Least Connections</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">⚡</div><div><div class="cc-title">Caching</div><div class="cc-cat">PERFORMANCE</div></div></div>
+      <div class="cc-desc"><strong>Cache-aside</strong>: app checks cache, loads from DB on miss. <strong>Write-through</strong>: write to cache and DB simultaneously. <strong>Write-back</strong>: write to cache, async persist. <strong>Write-around</strong>: write to DB, bypass cache. Eviction: LRU, LFU, FIFO. Cache stampede / thundering herd prevention.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Cache-aside for property listings (Redis, 5min TTL). Write-through for occupancy status (critical consistency). Zentra: Cache-aside for token validation (LRU, TTL = token expiry - 30s). CatchMoment: Cache event metadata write-through.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Redis</span><span class="chip chip-s">Cache-aside</span><span class="chip chip-s">Write-through</span><span class="chip chip-s">LRU</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">📡</div><div><div class="cc-title">Proxies</div><div class="cc-cat">NETWORK ARCHITECTURE</div></div></div>
+      <div class="cc-desc"><strong>Forward proxy</strong>: client-side, hides client identity. <strong>Reverse proxy</strong>: server-side, hides server pool, adds TLS, compression, caching. <strong>Open proxy</strong>: accessible by anyone. NGINX, HAProxy, Traefik as reverse proxies. Service mesh (Istio, Linkerd) for internal.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Railway's built-in reverse proxy handles TLS termination for all FBT services. Vyxnos Shield is FBT's custom reverse proxy / API gateway with zero-trust enforcement. YARP in .NET 8 powers internal service routing between RentFlow, Zentra, and backend services.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Vyxnos Shield</span><span class="chip chip-s">YARP</span><span class="chip chip-s">Railway Proxy</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-pink"></div>
+      <div class="cc-header"><div class="cc-icon">🗄️</div><div><div class="cc-title">SQL vs NoSQL</div><div class="cc-cat">DATA STORAGE</div></div></div>
+      <div class="cc-desc"><strong>SQL</strong>: ACID, structured, joins, vertical scaling. <strong>NoSQL types</strong>: Document (MongoDB), Key-Value (Redis, DynamoDB), Column-family (Cassandra), Graph (Neo4j). Choose based on: data structure, consistency needs, query patterns, scale requirements.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">FBT uses PostgreSQL everywhere (ACID for financials, strong consistency). Redis for caching/sessions (key-value). CatchMoment could use MongoDB for flexible video event metadata. Future: Qdrant (vector) for AI search in CatchMoment and EduConnect.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">PostgreSQL</span><span class="chip chip-s">Redis</span><span class="chip chip-c">Qdrant Vector</span><span class="chip chip-s">ACID</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-purple"></div>
+      <div class="cc-header"><div class="cc-icon">🔢</div><div><div class="cc-title">Indexes & Efficiency</div><div class="cc-cat">DATABASE PERF</div></div></div>
+      <div class="cc-desc"><strong>B-Tree index</strong>: balanced tree, good for range queries. <strong>Hash index</strong>: O(1) lookup, no range queries. <strong>Bitmap index</strong>: low cardinality columns. <strong>Composite indexes</strong>: multi-column. Trade-off: faster reads, slower writes, more storage. EXPLAIN ANALYZE for query planning.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Index every FK, (tenantId, status) composite indexes, GIN index for full-text search on property descriptions. Zentra: Hash index on token lookup by jti. CatchMoment: B-tree on (eventId, createdAt) for chronological video feeds.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">B-Tree</span><span class="chip chip-s">Composite</span><span class="chip chip-s">GIN</span><span class="chip chip-s">EXPLAIN</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">📈</div><div><div class="cc-title">Redundancy & Replication</div><div class="cc-cat">HIGH AVAILABILITY</div></div></div>
+      <div class="cc-desc"><strong>Active-passive</strong>: standby takes over on failure. <strong>Active-active</strong>: all nodes serve traffic. <strong>Leader-follower replication</strong>: leader handles writes, followers serve reads. <strong>Multi-leader</strong>: conflict resolution required. Synchronous vs asynchronous replication trade-offs.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow PostgreSQL: Leader-follower with Railway managed DB. Read replicas for property listing queries (90% reads). Zentra: Active-passive failover for identity critical path. Future: Multi-region for RentFlow as it expands beyond Chennai.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Read Replicas</span><span class="chip chip-s">Leader-Follower</span><span class="chip chip-s">Active-Passive</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §2 DISTRIBUTED SYSTEMS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="distributed">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 02</span>
+    <h2 class="sec-title">Distributed Systems Concepts</h2>
+    <span class="sec-sub">18 advanced patterns</span>
+  </div>
+  <p class="sec-intro">DesignGurus goes deep into the internals of how distributed systems maintain consensus, detect failures, and handle the realities of networks. These are the concepts that separate senior engineers from junior ones.</p>
+
+  <!-- ACCORDION STYLE FOR EFFICIENCY -->
+  <div id="distAccordion">
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.1</span>
+        <span class="cpt-name">Leader Election (Raft / Paxos)</span>
+        <span class="cpt-brief">Distributed consensus for choosing a single coordinator node</span>
+        <span class="cpt-priority cpp-critical">Critical</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">Background job workers (Hangfire) need leader election to prevent duplicate job execution across multiple API instances</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-zt">Zentra</div><div class="pm-desc">Token revocation list sync requires a leader node to push invalidation events to all instances</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Event stream processor on Temporal Cloud uses Raft internally for workflow coordination across workers</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">Future</div><div class="pm-desc">Any FBT service running multiple replicas needs this. Redis Sentinel uses it for master election</div></div>
+        </div>
+        <div class="code">
+<span class="cm">// Using Redis for distributed leader election in .NET 8</span>
+<span class="kw">public class</span> <span class="ty">LeaderElectionService</span> : <span class="ty">BackgroundService</span>
+{
+    <span class="kw">private readonly</span> <span class="ty">IDatabase</span> _redis;
+    <span class="kw">private const string</span> LeaderKey = <span class="st">"rentflow:leader"</span>;
+
+    <span class="kw">protected override async</span> <span class="ty">Task</span> <span class="fn">ExecuteAsync</span>(<span class="ty">CancellationToken</span> ct)
+    {
+        <span class="kw">while</span> (!ct.<span class="prop">IsCancellationRequested</span>)
+        {
+            <span class="cm">// Try to acquire leader lock with TTL</span>
+            <span class="kw">var</span> isLeader = <span class="kw">await</span> _redis.<span class="fn">StringSetAsync</span>(
+                LeaderKey, <span class="prop">Environment</span>.<span class="prop">MachineName</span>,
+                <span class="ty">TimeSpan</span>.<span class="fn">FromSeconds</span>(<span class="nm">30</span>),
+                <span class="ty">When</span>.NotExists);
+
+            <span class="kw">if</span> (isLeader) <span class="kw">await</span> <span class="fn">RunLeaderTasksAsync</span>(ct);
+            <span class="kw">await</span> <span class="ty">Task</span>.<span class="fn">Delay</span>(<span class="nm">10_000</span>, ct);
+        }
+    }
+}
+          <div class="code-lbl">C# .NET 8</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.2</span>
+        <span class="cpt-name">Gossip Protocol</span>
+        <span class="cpt-brief">Peer-to-peer information propagation — like a rumor spreading</span>
+        <span class="cpt-priority cpp-med">Medium</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">Multi-instance API: node health and cache invalidation broadcast via gossip — no central coordinator needed</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-zt">Zentra</div><div class="pm-desc">Token revocation propagation across Zentra instances — gossip ensures all nodes know about revoked tokens within seconds</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Temporal worker fleet membership — each worker gossips health and capacity to peers</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">Future EduConnect</div><div class="pm-desc">Online presence system for live sessions — gossip propagates "who's online" state across nodes</div></div>
+        </div>
+        <div class="callout co-cyan">
+          <span>💡</span>
+          <div><strong>FBT Insight:</strong> Cassandra, Redis Cluster, and Consul all use gossip internally. When FBT scales Redis to a cluster, the cluster membership is maintained via gossip — you get this "for free" with Redis Cluster mode. The Zentra token revocation issue you solved with mutex could also use gossip-propagated invalidation lists.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.3</span>
+        <span class="cpt-name">Write-Ahead Log (WAL)</span>
+        <span class="cpt-brief">Durability: log the intention before executing — enables recovery</span>
+        <span class="cpt-priority cpp-critical">Critical</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">PostgreSQL WAL is already your safety net. EF Core transactions rely on WAL for crash recovery. Understand it to design correct saga compensations</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-zt">Zentra</div><div class="pm-desc">Audit log entries written to WAL-backed store before response sent — guarantees audit trail even if app crashes post-write</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Temporal Cloud uses WAL internally for workflow state — crash-safe workflow execution without custom WAL needed</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">FIROSE</div><div class="pm-desc">Razorpay webhook events written to an outbox (WAL-inspired) before processing — no lost payment events</div></div>
+        </div>
+        <div class="callout co-lime">
+          <span>⚡</span>
+          <div><strong>FBT Direct Impact:</strong> The <strong>Outbox Pattern</strong> you use in RentFlow IS a WAL-inspired pattern. You write the intent (domain event) to a DB table before publishing to the message broker. WAL understanding helps you design the outbox correctly — log before act, always.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.4</span>
+        <span class="cpt-name">Split Brain & Fencing Tokens</span>
+        <span class="cpt-brief">When network partition makes two nodes think they're leader</span>
+        <span class="cpt-priority cpp-high">High</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">Distributed lock for booking confirmation — fencing token prevents double-booking if lock owner delays</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-zt">Zentra</div><div class="pm-desc">Refresh token rotation uses fencing — only the latest rotation wins. The mutex you implemented IS a fencing mechanism</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Video processing deduplication — fencing token on upload prevents double-processing of same video file</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">Future</div><div class="pm-desc">Any distributed lock scenario — use Redlock algorithm with fencing tokens</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.5</span>
+        <span class="cpt-name">Bloom Filters</span>
+        <span class="cpt-brief">Probabilistic membership test — definitely not present or probably present</span>
+        <span class="cpt-priority cpp-med">Medium</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">Check if a username/email is taken before hitting DB — bloom filter eliminates unnecessary DB queries for clearly-absent values</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-zt">Zentra</div><div class="pm-desc">Revoked token check — bloom filter for fast "definitely not revoked" path, Redis lookup only on positive hit</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Deduplication of video upload URLs — bloom filter prevents re-processing already-processed video segments</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">Future</div><div class="pm-desc">Typeahead search dedup, crawled URL tracking in any web scraping feature</div></div>
+        </div>
+        <div class="code">
+<span class="cm">// BloomFilter for Zentra token revocation fast-path</span>
+<span class="kw">public class</span> <span class="ty">TokenRevocationBloom</span>
+{
+    <span class="kw">private readonly</span> <span class="ty">BloomFilter</span><<span class="kw">string</span>> _filter = <span class="kw">new</span>(<span class="nm">10_000</span>, <span class="nm">0.01</span>);
+
+    <span class="kw">public bool</span> <span class="fn">MightBeRevoked</span>(<span class="kw">string</span> jti)
+        => _filter.<span class="fn">Contains</span>(jti); <span class="cm">// false = definitely valid</span>
+
+    <span class="kw">public void</span> <span class="fn">MarkRevoked</span>(<span class="kw">string</span> jti) => _filter.<span class="fn">Add</span>(jti);
+}
+<span class="cm">// Only hits Redis if bloom says "might be revoked"</span>
+<span class="cm">// 99% of valid tokens skip Redis entirely</span>
+          <div class="code-lbl">Zentra Fast Path</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.6</span>
+        <span class="cpt-name">Quorum & Vector Clocks</span>
+        <span class="cpt-brief">Achieving consensus in distributed reads/writes; tracking causality</span>
+        <span class="cpt-priority cpp-med">Medium</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">If using Cassandra in future for activity logs: W+R > N for strong consistency. Vector clocks for conflict resolution in offline-capable mobile app sync</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Multi-region video metadata sync — vector clocks detect causal ordering of concurrent edits to event details</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">Future</div><div class="pm-desc">Any multi-writer scenario. EduConnect collaborative course editing would use vector clocks for CRDT-based conflict resolution</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">EduConnect</div><div class="pm-desc">Collaborative quiz responses — quorum reads ensure consistent scoring across grading instances</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.7</span>
+        <span class="cpt-name">Heartbeat & Phi Accrual Failure Detection</span>
+        <span class="cpt-brief">How distributed nodes detect each other's failures gracefully</span>
+        <span class="cpt-priority cpp-high">High</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">RentFlow API instances report heartbeat to Railway health check. /health/live and /health/ready endpoints — you already implement this. Phi Accrual = adaptive threshold vs binary alive/dead</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-zt">Zentra</div><div class="pm-desc">Zentra must detect downstream service failures fast — circuit breaker + heartbeat to upstream clients</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Modal GPU worker heartbeat — Temporal detects worker failure via heartbeat timeout and reschedules workflow</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">All Projects</div><div class="pm-desc">Kubernetes/Railway liveness and readiness probes implement this pattern. Already in FBT's engineering standards</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cpt-row" data-open="false">
+      <div class="cpt-hd" onclick="toggleCpt(this)">
+        <span class="cpt-num">2.8</span>
+        <span class="cpt-name">Checksum & Merkle Trees</span>
+        <span class="cpt-brief">Data integrity verification; efficient diff detection across distributed replicas</span>
+        <span class="cpt-priority cpp-med">Medium</span>
+        <span class="cpt-arrow">▼</span>
+      </div>
+      <div class="cpt-body">
+        <div class="proj-map">
+          <div class="pm-card"><div class="pm-project pm-proj-cm">CatchMoment</div><div class="pm-desc">Video file integrity — SHA-256 checksum verified after S3 upload. Merkle tree for chunked video upload verification (like Dropbox)</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-rf">RentFlow</div><div class="pm-desc">Document upload integrity check (lease agreements, ID proofs). Checksum stored with metadata, verified on download</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">FIROSE</div><div class="pm-desc">Product image integrity on BunnyCDN — checksum validation prevents serving corrupted images</div></div>
+          <div class="pm-card"><div class="pm-project pm-proj-fg">Future</div><div class="pm-desc">Plugin architecture artifact verification — checksum each plugin bundle before loading (from article analysis)</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §3 DATA & STORAGE -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="data-storage">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 03</span>
+    <h2 class="sec-title">Data & Storage Systems</h2>
+    <span class="sec-sub">14 storage concepts</span>
+  </div>
+
+  <div class="concept-grid">
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">🔀</div><div><div class="cc-title">Data Partitioning (Sharding)</div><div class="cc-cat">SCALING STORAGE</div></div></div>
+      <div class="cc-desc"><strong>Horizontal</strong>: split rows across DBs by key range or hash. <strong>Vertical</strong>: split tables by column (frequently vs infrequently accessed). <strong>Directory-based</strong>: lookup table maps keys to shards. Problems: cross-shard joins, referential integrity, rebalancing hotspots.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow multi-tenancy = logical sharding by tenantId. Already implemented via PostgreSQL Row-Level Security. Physical sharding needed when single PG instance becomes bottleneck — use tenantId hash → DB routing layer.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">tenantId sharding</span><span class="chip chip-s">RLS</span><span class="chip chip-s">Hash partitioning</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">📚</div><div><div class="cc-title">Database Replication Strategies</div><div class="cc-cat">HIGH AVAILABILITY</div></div></div>
+      <div class="cc-desc"><strong>Synchronous</strong>: strong consistency, higher latency. <strong>Asynchronous</strong>: lower latency, possible data loss on failure. <strong>Semi-synchronous</strong>: wait for at least one replica. <strong>Statement-based</strong> vs <strong>Row-based</strong> vs <strong>Mixed</strong> replication in PostgreSQL (WAL shipping).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Railway managed PostgreSQL with async replica for reads. 90% of property listing queries go to replica. Write goes to primary. Connection string routing via .NET EF Core interceptor or PgBouncer.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">PG Replication</span><span class="chip chip-s">Read Replica</span><span class="chip chip-s">PgBouncer</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">🕒</div><div><div class="cc-title">Temporal Tables & Event Sourcing</div><div class="cc-cat">AUDIT & HISTORY</div></div></div>
+      <div class="cc-desc">System-versioned temporal tables track full row history. Event sourcing stores state as sequence of events. Temporal queries with AS OF SYSTEM TIME. Bi-temporal: valid time + transaction time. PostgreSQL temporal table support (system-period).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow rent payment history = event sourcing candidate (PaymentCreated, PaymentFailed, RefundIssued). Temporal tables for property occupancy history (who lived in Room 4B, when). Zentra audit log is event sourced by design.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Event Sourcing</span><span class="chip chip-sky">Zentra Audit</span><span class="chip chip-s">Bi-temporal</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-pink"></div>
+      <div class="cc-header"><div class="cc-icon">🔍</div><div><div class="cc-title">Search Systems (Inverted Index)</div><div class="cc-cat">SEARCH & DISCOVERY</div></div></div>
+      <div class="cc-desc">Inverted index maps terms → document IDs. Elasticsearch/OpenSearch builds inverted indexes. BM25 ranking algorithm. Tokenization, stemming, stop words. Vector search (dense retrieval) for semantic similarity. Hybrid search: keyword + vector.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow property search: PostgreSQL GIN index + pg_trgm for fuzzy matching. CatchMoment video search: Qdrant vector search for "find moments like this". EduConnect: semantic course search via Qdrant. Future: hybrid search across all FBT products.</div></div>
+      <div class="cc-chips"><span class="chip chip-c">Qdrant Cloud</span><span class="chip chip-p">pg_trgm</span><span class="chip chip-a">Vector Search</span><span class="chip chip-s">BM25</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-purple"></div>
+      <div class="cc-header"><div class="cc-icon">🗂️</div><div><div class="cc-title">Object Storage Architecture</div><div class="cc-cat">BLOB / MEDIA</div></div></div>
+      <div class="cc-desc">Flat namespace key-value for large unstructured objects. S3-compatible APIs. Presigned URLs for secure direct uploads. Multipart upload for large files (>5GB). Object lifecycle policies. S3 Intelligent-Tiering for cost optimization.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">CatchMoment: AWS S3 Mumbai for raw video uploads (presigned URL upload). BunnyCDN as pull-through CDN over S3. Multipart upload for events with 4K video. RentFlow: S3 for document storage (lease agreements, ID proofs). FIROSE: Product images on S3 + BunnyCDN.</div></div>
+      <div class="cc-chips"><span class="chip chip-c">AWS S3 Mumbai</span><span class="chip chip-a">BunnyCDN</span><span class="chip chip-s">Presigned URLs</span><span class="chip chip-s">Multipart</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-sky"></div>
+      <div class="cc-header"><div class="cc-icon">📊</div><div><div class="cc-title">Time-Series Databases</div><div class="cc-cat">METRICS & IOT</div></div></div>
+      <div class="cc-desc">Optimized for time-stamped sequential data. TimescaleDB (PostgreSQL extension), InfluxDB, Prometheus. Automatic time-based partitioning. Downsampling for retention. Continuous aggregates for real-time dashboards. Ideal for metrics, IoT, financial ticks.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow usage metrics (daily rent collection, occupancy rates over time) → TimescaleDB or ClickHouse. CatchMoment video processing metrics (queue depth, GPU utilization over time). Future: smart property IoT (electricity/water usage meters).</div></div>
+      <div class="cc-chips"><span class="chip chip-p">TimescaleDB</span><span class="chip chip-s">ClickHouse</span><span class="chip chip-c">IoT Future</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">🔄</div><div><div class="cc-title">Change Data Capture (CDC)</div><div class="cc-cat">DATA STREAMING</div></div></div>
+      <div class="cc-desc">Capture DB changes as a stream of events. Debezium reads PostgreSQL WAL and produces Kafka events. Enables event-driven architectures without modifying application code. Use cases: search index updates, cache invalidation, analytics pipelines, audit trails.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Debezium on PostgreSQL → Kafka → ElasticSearch for property search index auto-sync. Zentra: CDC on user/role changes → invalidate downstream caches. CatchMoment: video status changes stream to React Query clients via SSE (CDC → SSE gateway).</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Debezium</span><span class="chip chip-s">WAL Streaming</span><span class="chip chip-a">Cache Invalidation</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">📈</div><div><div class="cc-title">Read Models & CQRS</div><div class="cc-cat">QUERY SEPARATION</div></div></div>
+      <div class="cc-desc">Separate read and write models. Write model normalised for integrity. Read model denormalised for query performance. Projections rebuild read models from domain events. Eventual consistency between write and read sides. MediatR implements CQRS dispatch.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow already uses MediatR CQRS. Owner dashboard read model is a denormalised view of properties + rooms + occupancy + payments. Rebuild this projection from domain events rather than complex JOIN queries — massive performance win at scale.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">MediatR</span><span class="chip chip-s">Projections</span><span class="chip chip-a">Eventual Consistency</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §4 COMMUNICATION PATTERNS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="communication">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 04</span>
+    <h2 class="sec-title">Communication Patterns</h2>
+    <span class="sec-sub">10 protocols & patterns</span>
+  </div>
+
+  <table class="sd-matrix">
+    <thead>
+      <tr><th>Pattern</th><th>What</th><th>When to Use</th><th>FBT Usage</th><th>Projects</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>REST / HTTP</td>
+        <td>Stateless resource-based API, JSON payloads, HTTP verbs</td>
+        <td>Public APIs, simple CRUD, browser clients</td>
+        <td>All FBT public APIs. RentFlow frontend → .NET 8 API. Zentra OAuth endpoints</td>
+        <td><span class="chip chip-p">All</span></td>
+      </tr>
+      <tr>
+        <td>GraphQL</td>
+        <td>Query language — client specifies exact shape needed</td>
+        <td>Complex nested data, multiple clients with different needs</td>
+        <td>RentFlow mobile app could benefit — residents, managers, owners each need different data shapes from same entities</td>
+        <td><span class="chip chip-p">RentFlow Mobile</span></td>
+      </tr>
+      <tr>
+        <td>gRPC</td>
+        <td>Binary protocol, Protocol Buffers, HTTP/2, strongly typed</td>
+        <td>Internal service-to-service, high throughput, streaming</td>
+        <td>CatchMoment: video processor → highlight engine internal call (10x faster than JSON REST). Future: RentFlow microservices internal comms</td>
+        <td><span class="chip chip-c">CatchMoment</span></td>
+      </tr>
+      <tr>
+        <td>WebSockets</td>
+        <td>Full-duplex persistent connection, low latency bidirectional</td>
+        <td>Real-time: chat, live updates, collaborative editing</td>
+        <td>RentFlow: Live occupancy updates on owner dashboard (SignalR). CatchMoment: Live video processing progress to client. Future: EduConnect live classroom</td>
+        <td><span class="chip chip-p">RentFlow</span><span class="chip chip-c">CatchMoment</span></td>
+      </tr>
+      <tr>
+        <td>Server-Sent Events</td>
+        <td>Server → client push, HTTP/1.1 compatible, unidirectional</td>
+        <td>Live feeds, notifications, status updates (read-heavy)</td>
+        <td>CatchMoment: Video processing status stream (upload → transcoding → AI → ready). RentFlow: Notification feed for new booking requests</td>
+        <td><span class="chip chip-c">CatchMoment</span><span class="chip chip-p">RentFlow</span></td>
+      </tr>
+      <tr>
+        <td>Long Polling</td>
+        <td>Client holds open request until server has data or timeout</td>
+        <td>Legacy fallback when WebSockets unavailable</td>
+        <td>Fallback for RentFlow notifications in restricted networks. Less preferred — use SSE or SignalR with WS fallback</td>
+        <td><span class="chip chip-s">Fallback</span></td>
+      </tr>
+      <tr>
+        <td>Message Queues</td>
+        <td>Async decoupled communication via broker (RabbitMQ, Kafka, SQS)</td>
+        <td>Async processing, load leveling, decoupling, retries</td>
+        <td>RentFlow: Payment webhook processing via MassTransit (RabbitMQ). CatchMoment: Video job queue. FIROSE: Order processing from Neat & Fresh. All background jobs</td>
+        <td><span class="chip chip-p">All</span></td>
+      </tr>
+      <tr>
+        <td>Event Streaming (Kafka)</td>
+        <td>Ordered, replayable, partitioned log of events</td>
+        <td>Event sourcing, CDC, audit trails, high-volume events</td>
+        <td>CatchMoment event stream: CameraFeedStarted → HighlightDetected → ProcessingComplete. Future: FBT-wide event bus as products scale</td>
+        <td><span class="chip chip-c">CatchMoment</span><span class="chip chip-s">Future</span></td>
+      </tr>
+      <tr>
+        <td>Webhooks</td>
+        <td>HTTP callback — server pushes to client endpoint on event</td>
+        <td>Third-party integrations, payment callbacks, CMS events</td>
+        <td>Razorpay payment webhook → RentFlow. GitHub webhooks → FBT CI/CD. Temporal workflow completion webhooks → CatchMoment frontend</td>
+        <td><span class="chip chip-p">RentFlow</span><span class="chip chip-a">FIROSE</span></td>
+      </tr>
+      <tr>
+        <td>tRPC</td>
+        <td>Type-safe RPC for TypeScript — no codegen, no schema</td>
+        <td>Full-stack TypeScript monorepos, Next.js + Node backend</td>
+        <td>RentFlow Next.js frontend → backend type-safe calls without REST overhead. Eliminates DTO sync issues between frontend and API layer</td>
+        <td><span class="chip chip-p">RentFlow FE</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §5 RELIABILITY PATTERNS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="reliability">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 05</span>
+    <h2 class="sec-title">Reliability & Resilience Patterns</h2>
+    <span class="sec-sub">12 patterns</span>
+  </div>
+
+  <div class="concept-grid">
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">⚡</div><div><div class="cc-title">Circuit Breaker</div><div class="cc-cat">FAULT TOLERANCE</div></div></div>
+      <div class="cc-desc">Three states: <strong>Closed</strong> (normal), <strong>Open</strong> (failing fast), <strong>Half-Open</strong> (testing recovery). Prevents cascade failures. Polly v8 in .NET 8 provides circuit breaker with resilience pipelines.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Zentra circuit breaker on Razorpay payment calls — if Razorpay is down, open circuit immediately instead of timing out 1000 concurrent resident payment requests. Polly ResiliencePipeline already in FBT standards.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Polly v8</span><span class="chip chip-s">Open/Closed/Half-Open</span><span class="chip chip-a">Razorpay</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">🔄</div><div><div class="cc-title">Retry with Exponential Backoff + Jitter</div><div class="cc-cat">TRANSIENT FAULTS</div></div></div>
+      <div class="cc-desc">Retry transient failures: 1s → 2s → 4s → 8s (exponential). Add random jitter to prevent thundering herd. Limit max retries and max delay. Polly: <code>AddRetry()</code> with <code>DelayBackoffType.Exponential</code>. Never retry on 4xx (client errors).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">CatchMoment Modal GPU calls: retry up to 3x with exponential backoff — GPU cold starts can cause transient 503s. RentFlow SendGrid email: retry 2x. Zentra: no retry on 401 (auth failure), retry on 503 (service unavailable).</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Polly</span><span class="chip chip-s">Jitter</span><span class="chip chip-c">Modal GPU</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-purple"></div>
+      <div class="cc-header"><div class="cc-icon">🚧</div><div><div class="cc-title">Bulkhead Pattern</div><div class="cc-cat">ISOLATION</div></div></div>
+      <div class="cc-desc">Isolate failures by compartmentalising resources. Separate thread pools for different services — if payment service is slow, it doesn't exhaust threads for the whole API. SemaphoreSlim in .NET. Connection pool sizing per downstream service.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Separate Polly bulkheads for (1) Razorpay, (2) SendGrid, (3) Zentra auth. If SendGrid goes down, it can't starve Razorpay connection pool. CatchMoment: GPU processing bulkhead separate from metadata API bulkhead.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">SemaphoreSlim</span><span class="chip chip-s">Thread pools</span><span class="chip chip-s">Isolation</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-red"></div>
+      <div class="cc-header"><div class="cc-icon">🏁</div><div><div class="cc-title">Rate Limiting</div><div class="cc-cat">PROTECTION</div></div></div>
+      <div class="cc-desc">Algorithms: <strong>Token Bucket</strong> (burst allowed), <strong>Leaky Bucket</strong> (smooth output), <strong>Fixed Window</strong> (simple, edge cases), <strong>Sliding Window Log</strong> (accurate, memory heavy), <strong>Sliding Window Counter</strong> (balance). Redis for distributed rate limiting.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Zentra: Sliding Window Counter on auth endpoints (max 10 login attempts / 15 minutes per IP). RentFlow API: Token Bucket per tenant (burst allowed for bulk operations). CatchMoment upload: Leaky Bucket to protect S3 costs. ASP.NET Core Rate Limiting middleware.</div></div>
+      <div class="cc-chips"><span class="chip chip-sky">Zentra Login</span><span class="chip chip-p">RentFlow API</span><span class="chip chip-s">Token Bucket</span><span class="chip chip-s">Redis</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">🧭</div><div><div class="cc-title">Saga Pattern (Distributed Transactions)</div><div class="cc-cat">CONSISTENCY</div></div></div>
+      <div class="cc-desc"><strong>Choreography</strong>: services react to events independently. <strong>Orchestration</strong>: central coordinator (Temporal, MassTransit SM) drives the saga. Compensating transactions for rollback. Replace 2PC in microservices. Each step: execute → success/failure → compensate on failure.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow booking saga: ReserveBed → ProcessPayment → SendConfirmation → UpdateOccupancy. If payment fails → compensate ReserveBed. Temporal Cloud orchestrates CatchMoment: UploadVideo → Transcode → RunAI → GenerateHighlight → NotifyUser — with compensation at each step.</div></div>
+      <div class="cc-chips"><span class="chip chip-c">Temporal Cloud</span><span class="chip chip-p">MassTransit</span><span class="chip chip-s">Compensation</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-sky"></div>
+      <div class="cc-header"><div class="cc-icon">📬</div><div><div class="cc-title">Outbox Pattern (Guaranteed Delivery)</div><div class="cc-cat">MESSAGING</div></div></div>
+      <div class="cc-desc">Write domain event to an "outbox" table in the same DB transaction as business data. Background worker reads outbox and publishes to message broker. Ensures events are never lost even if broker is temporarily unavailable. At-least-once delivery with idempotency.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Already in RentFlow engineering standards. PaymentReceived domain event → OutboxMessages table (same transaction as updating payment status) → Hangfire worker → MassTransit → RabbitMQ. Never lose a payment event.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">RentFlow</span><span class="chip chip-s">At-least-once</span><span class="chip chip-s">Idempotency</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">🔑</div><div><div class="cc-title">Idempotency</div><div class="cc-cat">SAFETY</div></div></div>
+      <div class="cc-desc">Operation can be repeated multiple times with same effect as executing once. Idempotency keys for mutations — store processed keys in DB, reject duplicates. HTTP: GET/PUT/DELETE are idempotent, POST is not. Essential for payment processing and retries.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow payment: Idempotency-Key header on all payment requests to Razorpay. RentFlow API: POST /bookings with idempotency key prevents double-booking on network retry. CatchMoment: video upload idempotency prevents double-processing of the same upload.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Razorpay</span><span class="chip chip-s">Idempotency-Key header</span><span class="chip chip-c">Upload dedup</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">🚀</div><div><div class="cc-title">Dead Letter Queue (DLQ)</div><div class="cc-cat">ERROR HANDLING</div></div></div>
+      <div class="cc-desc">Messages that fail processing N times go to a DLQ for manual inspection. Prevents poison messages from blocking the entire queue. DLQ monitoring triggers alerts. Replay from DLQ after fixing the bug that caused failures.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Failed payment webhook → DLQ after 3 retries → alert FBT support → manual replay after Razorpay issue resolved. CatchMoment: Failed video processing → DLQ → investigate GPU failure → replay job. Every MassTransit queue needs a DLQ policy.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">MassTransit DLQ</span><span class="chip chip-c">Video DLQ</span><span class="chip chip-s">Alert + Replay</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §6 SCALABILITY TECHNIQUES -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="scalability">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 06</span>
+    <h2 class="sec-title">Scalability Techniques</h2>
+    <span class="sec-sub">10 strategies</span>
+  </div>
+
+  <table class="sd-matrix">
+    <thead>
+      <tr><th>Technique</th><th>Mechanism</th><th>FBT Application</th><th>Priority</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>CDN</td>
+        <td>Serve static assets from edge nodes closest to user. Pull-through or push CDN. Cache-Control headers control edge TTL.</td>
+        <td>FIROSE + CatchMoment: BunnyCDN in front of S3 Mumbai. All FBT Next.js apps: Vercel Edge Network. Media assets globally cached, origin hit only on miss.</td>
+        <td><span class="cpt-priority cpp-critical">Critical</span></td>
+      </tr>
+      <tr>
+        <td>Connection Pooling</td>
+        <td>Reuse DB connections rather than creating per-request. PgBouncer for PostgreSQL. ADO.NET built-in pool for .NET.</td>
+        <td>All FBT .NET 8 services use built-in ADO.NET connection pool (max 100 connections per service). PgBouncer in front of Railway PostgreSQL for multi-instance RentFlow deployments.</td>
+        <td><span class="cpt-priority cpp-critical">Critical</span></td>
+      </tr>
+      <tr>
+        <td>Async Processing</td>
+        <td>Offload slow operations to background workers. Message queues decouple producers from consumers.</td>
+        <td>RentFlow: All email sending, PDF generation, report exports → Hangfire background jobs. CatchMoment: Video processing via Temporal — never make user wait for video encoding.</td>
+        <td><span class="cpt-priority cpp-critical">Critical</span></td>
+      </tr>
+      <tr>
+        <td>Database Query Optimization</td>
+        <td>EXPLAIN ANALYZE, N+1 elimination, index tuning, query hints, covering indexes.</td>
+        <td>RentFlow EF Core: Use Include() carefully, projection queries (Select DTO), AsNoTracking() for reads. Avoid N+1 on property→rooms→beds→residents chain queries.</td>
+        <td><span class="cpt-priority cpp-high">High</span></td>
+      </tr>
+      <tr>
+        <td>Stateless Services</td>
+        <td>No session state on server — enables horizontal scaling. Store session in Redis or JWT claims.</td>
+        <td>All FBT .NET APIs are stateless — JWT auth means no server-side session. Allows Railway to auto-scale from 1 to N instances without sticky sessions.</td>
+        <td><span class="cpt-priority cpp-critical">Critical</span></td>
+      </tr>
+      <tr>
+        <td>Database Connection Per-Tenant Routing</td>
+        <td>Route queries to appropriate shard based on tenant. Middleware resolves tenant and selects connection string.</td>
+        <td>RentFlow multi-tenant: EF Core Tenant interceptor reads tenantId from JWT → sets RLS policy → all queries automatically scoped. Future: connection string routing to separate DB per enterprise tenant.</td>
+        <td><span class="cpt-priority cpp-high">High</span></td>
+      </tr>
+      <tr>
+        <td>Pagination (Cursor-based)</td>
+        <td>Never return unbounded result sets. Cursor-based for consistent results with live data. Offset-based for admin panels.</td>
+        <td>RentFlow property listings: Cursor-based pagination (createdAt + id). Zentra audit logs: Cursor pagination for compliance exports. CatchMoment video feed: Cursor on (eventId, timestamp). Never offset > 10,000 rows.</td>
+        <td><span class="cpt-priority cpp-critical">Critical</span></td>
+      </tr>
+      <tr>
+        <td>Materialized Views</td>
+        <td>Pre-computed query results stored as a table. Refreshed periodically or on-demand. Avoids expensive joins at query time.</td>
+        <td>RentFlow owner dashboard stats (total revenue, occupancy rate, pending dues) — materialized view refreshed every 5 minutes. Huge performance win vs computing from raw tables on every dashboard load.</td>
+        <td><span class="cpt-priority cpp-high">High</span></td>
+      </tr>
+      <tr>
+        <td>Batch Processing</td>
+        <td>Process records in bulk rather than one-by-one. Bulk INSERT/UPDATE. LINQ batch operations via EF Core Extensions.</td>
+        <td>RentFlow monthly rent generation: Batch INSERT all rent_dues for all tenants in one transaction (not N individual INSERTs). CatchMoment: Batch video metadata updates after processing pipeline completes.</td>
+        <td><span class="cpt-priority cpp-high">High</span></td>
+      </tr>
+      <tr>
+        <td>Lazy Loading (Application Layer)</td>
+        <td>Load data only when needed. Defer expensive operations. Load plugins on demand (relates to plugin architecture).</td>
+        <td>RentFlow: Load property images lazily (thumbnail first, full gallery on expand). CatchMoment: Load video chunks on scroll (infinite feed). Next.js next/dynamic for heavy chart components in dashboards.</td>
+        <td><span class="cpt-priority cpp-high">High</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §7 SECURITY -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="security-sd">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 07</span>
+    <h2 class="sec-title">Security & Authentication</h2>
+    <span class="sec-sub">8 security patterns</span>
+  </div>
+
+  <div class="concept-grid">
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">🔐</div><div><div class="cc-title">OAuth 2.0 / OIDC</div><div class="cc-cat">IDENTITY</div></div></div>
+      <div class="cc-desc">Authorization Code + PKCE for web/mobile. Client Credentials for M2M. Implicit flow deprecated. OIDC adds identity layer (ID token) over OAuth 2.0 (access token). Refresh token rotation prevents token theft replay.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Zentra IS this. FBT built a complete OAuth 2.0 / OIDC provider. All FBT products (RentFlow, CatchMoment, FIROSE apps) use Zentra as their identity provider. The refresh token race condition you fixed with single-flight mutex is directly from this section.</div></div>
+      <div class="cc-chips"><span class="chip chip-sky">Zentra Core</span><span class="chip chip-s">PKCE</span><span class="chip chip-s">Refresh Rotation</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">🎯</div><div><div class="cc-title">RBAC & ABAC</div><div class="cc-cat">AUTHORIZATION</div></div></div>
+      <div class="cc-desc"><strong>RBAC</strong>: roles define permissions (Owner can read/write properties, Resident can read only). <strong>ABAC</strong>: attribute-based (owner can only see their own properties). Policy-based authorization in .NET. Claims in JWT encode roles. Claim-based access control.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Zentra manages roles: SuperAdmin, PGOwner, Manager, Resident. RentFlow enforces ABAC: Owners can only manage properties they own (attribute: ownerId = current user). .NET Policy: RequireClaim("rentflow:manage:property"). RemoveRoleClaimsHandler handles role changes.</div></div>
+      <div class="cc-chips"><span class="chip chip-sky">Zentra Roles</span><span class="chip chip-p">RentFlow ABAC</span><span class="chip chip-s">Claims-based</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-red"></div>
+      <div class="cc-header"><div class="cc-icon">🛡️</div><div><div class="cc-title">API Key Management</div><div class="cc-cat">M2M AUTH</div></div></div>
+      <div class="cc-desc">API keys for machine-to-machine auth. Hash keys before storing (PBKDF2 or bcrypt). Key prefix for identification (sk_live_, pk_test_). Scoped permissions per key. Key rotation without downtime. Rate limit per key. Never store plaintext keys.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Zentra API Resources section manages API keys for FBT internal services. RentFlow backend calls Zentra with a service API key (not user token). CatchMoment's Modal GPU calls use Anthropic/Modal API keys managed through Zentra's secret management (not hardcoded).</div></div>
+      <div class="cc-chips"><span class="chip chip-sky">Zentra API Keys</span><span class="chip chip-s">PBKDF2 hash</span><span class="chip chip-s">Scoped perms</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">🔒</div><div><div class="cc-title">Zero Trust Architecture</div><div class="cc-cat">NETWORK SECURITY</div></div></div>
+      <div class="cc-desc">Never trust, always verify. Verify every request regardless of network origin. mTLS for service-to-service. Least privilege access. Micro-segmentation. Identity is the new perimeter. Assume breach mentality — design for compromise containment.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">Vyxnos Shield is FBT's zero-trust API gateway project. VIRV scoring, Policy Genome, Synaptic Router are FBT's custom zero-trust components. All RentFlow internal service calls go through Zentra token verification — even internal. mTLS between CatchMoment microservices.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Vyxnos Shield</span><span class="chip chip-s">mTLS</span><span class="chip chip-s">Least privilege</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-pink"></div>
+      <div class="cc-header"><div class="cc-icon">🔑</div><div><div class="cc-title">Secrets Management</div><div class="cc-cat">CREDENTIALS</div></div></div>
+      <div class="cc-desc">Never store secrets in code or environment variables in source control. HashiCorp Vault, AWS Secrets Manager, Azure Key Vault. Secret rotation without redeployment. Secret versioning. Injection at runtime via sidecar or SDK. Audit access to secrets.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">RentFlow: Railway environment variables (encrypted at rest). Production: migrate to AWS Secrets Manager for rotation. Zentra manages signing keys for JWTs — rotate quarterly. CatchMoment: Modal API key, AWS S3 credentials via Railway secrets. @t3-oss/env-nextjs validates at build time.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Railway Secrets</span><span class="chip chip-s">AWS SM</span><span class="chip chip-a">Key Rotation</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-purple"></div>
+      <div class="cc-header"><div class="cc-icon">🚫</div><div><div class="cc-title">Input Validation & OWASP Top 10</div><div class="cc-cat">APPLICATION SECURITY</div></div></div>
+      <div class="cc-desc">OWASP Top 10: Injection, Broken Auth, XSS, IDOR, Security Misconfiguration, Vulnerable Components, etc. Parameterized queries prevent SQL injection. Server-side validation always (never trust client). CSP headers prevent XSS. CORS policy enforcement.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Application</div><div class="cc-fbt-text">All FBT .NET APIs: FluentValidation server-side on every command handler. EF Core parameterized queries prevent SQLi. Next.js CSP headers configured in next.config.ts. Zentra: PKCE prevents auth code interception (OWASP ASVS L2). No dangerouslySetInnerHTML in React.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">FluentValidation</span><span class="chip chip-s">OWASP</span><span class="chip chip-s">CSP</span><span class="chip chip-s">PKCE</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §8 OBSERVABILITY -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="observability">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 08</span>
+    <h2 class="sec-title">Observability & Monitoring</h2>
+    <span class="sec-sub">7 pillars</span>
+  </div>
+
+  <div class="concept-grid">
+
+    <div class="concept-card">
+      <div class="cc-line ccl-lime"></div>
+      <div class="cc-header"><div class="cc-icon">📝</div><div><div class="cc-title">Structured Logging</div><div class="cc-cat">PILLAR 1</div></div></div>
+      <div class="cc-desc">JSON-formatted logs with consistent fields. Correlation ID threads through all services for request tracing. Log levels: Trace → Debug → Info → Warn → Error → Fatal. Log sampling at high volume. Centralized aggregation (Seq, Loki, CloudWatch).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Stack</div><div class="cc-fbt-text">Serilog + Seq for all .NET 8 services. Every log includes: tenantId, userId, correlationId, requestId. structlog for any Python services (CatchMoment AI). tracing crate in Rust (Vyxnos Shield). OpenTelemetry log bridge for unified collection.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Serilog</span><span class="chip chip-s">Seq</span><span class="chip chip-s">Correlation ID</span><span class="chip chip-s">JSON logs</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-cyan"></div>
+      <div class="cc-header"><div class="cc-icon">📊</div><div><div class="cc-title">Distributed Tracing</div><div class="cc-cat">PILLAR 2</div></div></div>
+      <div class="cc-desc">Track a single request across multiple services. TraceId + SpanId + ParentSpanId. W3C Trace Context standard. Jaeger, Zipkin, Honeycomb, Tempo as backends. OpenTelemetry SDK for instrumentation. Sampling: head-based vs tail-based.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Stack</div><div class="cc-fbt-text">OpenTelemetry SDK in all .NET 8 services. Trace: RentFlow API → Zentra Auth → Payment → DB. See exact span where latency occurs. CatchMoment: Trace video upload → S3 → Temporal → Modal GPU → highlight generation. Grafana Tempo as backend.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">OpenTelemetry</span><span class="chip chip-s">Grafana Tempo</span><span class="chip chip-s">TraceId propagation</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-amber"></div>
+      <div class="cc-header"><div class="cc-icon">📈</div><div><div class="cc-title">Metrics (RED + USE)</div><div class="cc-cat">PILLAR 3</div></div></div>
+      <div class="cc-desc"><strong>RED</strong>: Rate, Errors, Duration (for services). <strong>USE</strong>: Utilization, Saturation, Errors (for resources). Prometheus for collection. Grafana for dashboards. Counters, Gauges, Histograms, Summaries. SLI/SLO/SLA definitions. Alert on SLO breach, not individual errors.</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT Stack</div><div class="cc-fbt-text">System.Diagnostics.Metrics (.NET 8) + OpenTelemetry Metrics → Prometheus → Grafana. Key FBT metrics: RentFlow booking conversion rate, Zentra token issuance rate, CatchMoment video processing P95 latency, GPU utilization on Modal.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Prometheus</span><span class="chip chip-s">Grafana</span><span class="chip chip-s">RED/USE</span><span class="chip chip-a">SLO alerts</span></div>
+    </div>
+
+    <div class="concept-card">
+      <div class="cc-line ccl-purple"></div>
+      <div class="cc-header"><div class="cc-icon">🚨</div><div><div class="cc-title">Alerting & SLO/SLI/SLA</div><div class="cc-cat">RELIABILITY</div></div></div>
+      <div class="cc-desc"><strong>SLI</strong>: actual measurement (P99 latency = 180ms). <strong>SLO</strong>: target (P99 latency ≤ 200ms). <strong>SLA</strong>: contract with consequences. Error budget: how much SLO slack before burning budget. Alert on symptom (user-facing degradation), not cause (CPU spike).</div>
+      <div class="cc-fbt"><div class="cc-fbt-label">FBT SLOs</div><div class="cc-fbt-text">RentFlow: SLO — 99.9% availability, P99 API latency ≤500ms, booking success rate ≥99.5%. Zentra: SLO — token issuance P99 ≤100ms, 99.95% availability. CatchMoment: SLO — video ready within 2min of upload P95. Alert via PagerDuty or Slack.</div></div>
+      <div class="cc-chips"><span class="chip chip-p">Error Budget</span><span class="chip chip-s">PagerDuty</span><span class="chip chip-sky">Zentra SLO</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §9 SYSTEM DESIGN PROBLEMS (THE 18 DESIGNS) -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="design-problems">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 09</span>
+    <h2 class="sec-title">Classic System Designs → FBT Analogs</h2>
+    <span class="sec-sub">18 design problems mapped</span>
+  </div>
+  <p class="sec-intro">DesignGurus walks through 18 classic system design interview problems. Each is directly analogous to something FBT is building or will build. Learn the pattern, apply to FBT.</p>
+
+  <div class="tab-row">
+    <div class="tab on" onclick="switchDesignTab('current', this)">Current FBT Projects</div>
+    <div class="tab" onclick="switchDesignTab('future', this)">Future Projects</div>
+    <div class="tab" onclick="switchDesignTab('all', this)">All 18 Designs</div>
+  </div>
+
+  <div class="tab-panel on" id="dt-current">
+    <table class="sd-matrix">
+      <thead><tr><th>DesignGurus Problem</th><th>FBT Analog</th><th>Key Lessons to Apply</th><th>Project</th></tr></thead>
+      <tbody>
+        <tr><td>Design URL Shortener</td><td>RentFlow property QR codes (short URL → property listing)</td><td>Base62 encoding, collision resolution, redirect caching at edge CDN</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+        <tr><td>Design Facebook Messenger</td><td>RentFlow resident ↔ manager messaging</td><td>WebSocket for real-time, message delivery guarantees, read receipts, offline message queue, push notifications</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+        <tr><td>Design Dropbox</td><td>RentFlow document management (lease agreements, IDs)</td><td>File chunking, deduplication by content hash, S3 presigned URLs, metadata service separation from blob service</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+        <tr><td>Design Instagram / Photo sharing</td><td>FIROSE product catalog + CatchMoment event gallery</td><td>CDN for media, feed generation, image resizing service (Sharp/imgix), lazy loading, infinite scroll</td><td><span class="chip chip-a">FIROSE</span><span class="chip chip-c">CatchMoment</span></td></tr>
+        <tr><td>Design YouTube / Netflix</td><td>CatchMoment — event video platform</td><td>HLS/DASH adaptive streaming, video transcoding pipeline, CDN edge caching, thumbnail generation, content search</td><td><span class="chip chip-c">CatchMoment</span></td></tr>
+        <tr><td>Design API Rate Limiter</td><td>Zentra + all FBT API endpoints</td><td>Sliding Window Counter in Redis, per-tenant limits, per-endpoint limits, rate limit headers (X-RateLimit-*)</td><td><span class="chip chip-sky">Zentra</span><span class="chip chip-p">All APIs</span></td></tr>
+        <tr><td>Design Pastebin</td><td>RentFlow notice board (PG owner broadcasts)</td><td>Content addressing by hash, expiry TTL, access control (private/public), CDN edge caching for popular notices</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+        <tr><td>Design Yelp / Nearby</td><td>RentFlow property search by location</td><td>GeoHash or PostGIS for spatial indexing, proximity search, radius queries, map clustering on frontend</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+        <tr><td>Design Ticketmaster</td><td>RentFlow room/bed booking under concurrency</td><td>Optimistic locking with row version, SELECT FOR UPDATE, atomic reservation + payment saga, overbooking prevention</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+        <tr><td>Design Typeahead Search</td><td>RentFlow property search suggestions</td><td>Trie in Redis or Elasticsearch, prefix search, result ranking by popularity/recency, debounce on client</td><td><span class="chip chip-p">RentFlow</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tab-panel" id="dt-future">
+    <table class="sd-matrix">
+      <thead><tr><th>DesignGurus Problem</th><th>FBT Future Project</th><th>Key Lessons</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td>Design Twitter / Newsfeed</td><td>EduConnect student activity feed + EduConnect course updates</td><td>Fan-out on write vs read. Push for low follower counts (students), pull for high (popular courses). Redis sorted set for feed</td><td><span class="chip chip-s">EduConnect</span></td></tr>
+        <tr><td>Design Web Crawler</td><td>FIROSE competitor price monitoring system</td><td>BFS + robots.txt politeness, URL dedup via Bloom filter, distributed crawl coordination, rate limiting per domain</td><td><span class="chip chip-a">FIROSE Future</span></td></tr>
+        <tr><td>Design Twitter Search</td><td>EduConnect course + content search</td><td>Inverted index, Elasticsearch + Qdrant hybrid search (keyword + semantic). Search-as-you-type with Elasticsearch percolate queries</td><td><span class="chip chip-s">EduConnect</span></td></tr>
+        <tr><td>Design Uber / Lyft</td><td>RentFlow maintenance dispatch system (plumber, electrician dispatch to PG)</td><td>Location tracking (WebSocket), nearest-N search with GeoHash, matching algorithm, ETA calculation</td><td><span class="chip chip-p">RentFlow v2</span></td></tr>
+        <tr><td>Design Notification System</td><td>All FBT products — unified notification platform</td><td>Multi-channel (push, email, SMS, in-app), fan-out via message queue, delivery receipts, notification preferences, rate limiting</td><td><span class="chip chip-p">All Products</span></td></tr>
+        <tr><td>Design Key-Value Store</td><td>Vyxnos Shield — policy cache for zero-trust decisions</td><td>Consistent hashing, replication, conflict resolution, Bloom filter for key existence, WAL for durability</td><td><span class="chip chip-s">Vyxnos</span></td></tr>
+        <tr><td>Design Facebook Newsfeed</td><td>FIROSE Group digital hub — division updates feed</td><td>Pre-generate feeds for frequent visitors, on-demand for infrequent. CDN cache feed JSON. Redis sorted set by relevance score</td><td><span class="chip chip-a">FIROSE</span></td></tr>
+        <tr><td>Design Distributed Message Queue</td><td>FBT Platform Event Bus — cross-product events</td><td>Kafka partitioning by tenantId, consumer groups per service, at-least-once delivery, schema registry for event contracts</td><td><span class="chip chip-s">Platform</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tab-panel" id="dt-all">
+    <div class="concept-grid">
+      <div class="concept-card"><div class="cc-line ccl-lime"></div><div class="cc-header"><div class="cc-icon">🔗</div><div><div class="cc-title">URL Shortener</div><div class="cc-cat">HASH + REDIRECT</div></div></div><div class="cc-desc">Base62 encoding, hash collision handling, redirect at CDN edge, analytics tracking</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow QR codes for property self-check-in + referral links</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-cyan"></div><div class="cc-header"><div class="cc-icon">📄</div><div><div class="cc-title">Pastebin</div><div class="cc-cat">CONTENT STORE</div></div></div><div class="cc-desc">Content-addressed storage, expiry, read-heavy caching, shareable links</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow notice board, CatchMoment event brief sharing</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-pink"></div><div class="cc-header"><div class="cc-icon">📸</div><div><div class="cc-title">Instagram</div><div class="cc-cat">MEDIA + SOCIAL</div></div></div><div class="cc-desc">Photo CDN, news feed ranking, push vs pull, follow graph, image resizing</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">CatchMoment event gallery, FIROSE product catalog</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-purple"></div><div class="cc-header"><div class="cc-icon">📁</div><div><div class="cc-title">Dropbox</div><div class="cc-cat">FILE SYNC</div></div></div><div class="cc-desc">Chunked upload, content dedup, sync engine, conflict resolution, offline support</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow document management (leases, IDs, receipts)</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-amber"></div><div class="cc-header"><div class="cc-icon">💬</div><div><div class="cc-title">Facebook Messenger</div><div class="cc-cat">REAL-TIME MESSAGING</div></div></div><div class="cc-desc">WebSocket, message ordering, delivery receipts, offline queue, push notifications</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow resident ↔ manager communication</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-lime"></div><div class="cc-header"><div class="cc-icon">🐦</div><div><div class="cc-title">Twitter</div><div class="cc-cat">SOCIAL GRAPH + FEED</div></div></div><div class="cc-desc">Fan-out on write, Redis sorted sets for timeline, trending, search indexing</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">EduConnect student activity feed, FIROSE brand updates</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-red"></div><div class="cc-header"><div class="cc-icon">▶️</div><div><div class="cc-title">YouTube / Netflix</div><div class="cc-cat">VIDEO STREAMING</div></div></div><div class="cc-desc">HLS/DASH, transcoding pipeline, CDN multi-tier, adaptive bitrate, recommendation</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">CatchMoment — core architecture mirror</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-sky"></div><div class="cc-header"><div class="cc-icon">🔤</div><div><div class="cc-title">Typeahead</div><div class="cc-cat">SEARCH UX</div></div></div><div class="cc-desc">Trie or Elasticsearch prefix, popularity ranking, debounce, cache suggestions</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow property search, EduConnect course search</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-lime"></div><div class="cc-header"><div class="cc-icon">🚦</div><div><div class="cc-title">Rate Limiter</div><div class="cc-cat">PROTECTION</div></div></div><div class="cc-desc">Token Bucket, Sliding Window, Redis atomic ops, distributed coordination</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">Zentra auth endpoints, all FBT public APIs</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-purple"></div><div class="cc-header"><div class="cc-icon">🗺️</div><div><div class="cc-title">Yelp / Proximity</div><div class="cc-cat">GEO SEARCH</div></div></div><div class="cc-desc">GeoHash, QuadTree, PostGIS, radius search, map tile caching</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow "PGs near me", maintenance dispatch routing</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-amber"></div><div class="cc-header"><div class="cc-icon">🚕</div><div><div class="cc-title">Uber / Lyft</div><div class="cc-cat">DISPATCH SYSTEM</div></div></div><div class="cc-desc">Location streaming, nearest-N, matching, surge pricing, ETA</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow maintenance crew dispatch to PGs</div></div></div>
+      <div class="concept-card"><div class="cc-line ccl-cyan"></div><div class="cc-header"><div class="cc-icon">🎟️</div><div><div class="cc-title">Ticketmaster</div><div class="cc-cat">CONCURRENT BOOKING</div></div></div><div class="cc-desc">Pessimistic locking, reservation expiry, atomic saga, overbooking prevention</div><div class="cc-fbt"><div class="cc-fbt-label">FBT</div><div class="cc-fbt-text">RentFlow bed booking concurrency — identical problem</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §10 COMPREHENSIVE FBT MAPPING -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="fbt-mapping">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 10</span>
+    <h2 class="sec-title">FBT Project System Design Map</h2>
+    <span class="sec-sub">complete architecture blueprint</span>
+  </div>
+
+  <div class="callout co-lime">
+    <span>⚡</span>
+    <div><strong>The Big Picture:</strong> Treating every DesignGurus lesson as a direct specification for FBT's architecture. RentFlow = Ticketmaster + Uber + Messenger. CatchMoment = YouTube + Dropbox. Zentra = Auth0 architecture. FIROSE = Instagram + Typeahead. Build each with DesignGurus-grade thinking.</div>
+  </div>
+
+  <!-- RENTFLOW ARCH -->
+  <div class="cpt-row open" data-open="true">
+    <div class="cpt-hd" onclick="toggleCpt(this)">
+      <span class="cpt-num" style="color:var(--cyan)">RF</span>
+      <span class="cpt-name" style="color:var(--cyan)">RentFlow — Complete System Architecture</span>
+      <span class="cpt-brief">PG/co-living SaaS — multi-tenant rental platform</span>
+      <span class="cpt-priority cpp-critical">Primary Product</span>
+      <span class="cpt-arrow">▼</span>
+    </div>
+    <div class="cpt-body" style="display:block">
+      <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                         RENTFLOW SYSTEM                          │
+├─────────────────────────────────────────────────────────────────┤
+│  [Next.js 15 Web]  [Expo Mobile]                                 │
+│         │                 │                                       │
+│         └─────────┬───────┘                                       │
+│                   ▼                                               │
+│         [Railway Load Balancer] ← Rate Limit (Sliding Window)    │
+│                   │                                               │
+│         [.NET 8 API — CQRS / MediatR / Clean Arch]               │
+│          │        │        │        │                             │
+│     [Zentra]  [Redis]  [PgBouncer] [Hangfire Jobs]               │
+│     Auth/JWT  Cache    Connection   Background                    │
+│                         Pool       Workers                        │
+│                   │                                               │
+│         [PostgreSQL Primary] → [Read Replica]                    │
+│                   │                                               │
+│         [Outbox Worker] → [RabbitMQ] → [MassTransit Consumers]   │
+│                   │              │                                 │
+│              [Email]      [Webhook]  [Push Notification]          │
+│                   │                                               │
+│           [S3 Mumbai] → [BunnyCDN] ← [Document uploads]          │
+└─────────────────────────────────────────────────────────────────┘</div>
+      <div class="proj-map">
+        <div class="pm-card"><div class="pm-project pm-proj-rf">Scalability Pattern</div><div class="pm-desc">Horizontal scaling via stateless .NET API pods. tenantId-scoped data via RLS. Read replicas for 90% read traffic on property listings</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-rf">Consistency Model</div><div class="pm-desc">CP for financial data (payments, invoices). AP acceptable for notifications, activity feeds. Strong consistency for booking/reservation state</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-rf">Booking Concurrency</div><div class="pm-desc">SELECT FOR UPDATE on bed/room row. Reservation holds for 10min with TTL. Saga: reserve → charge → confirm. Compensate on failure</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-rf">Caching Strategy</div><div class="pm-desc">Redis cache-aside for property listings (5min TTL). Write-through for occupancy. Invalidate on booking, check-in, check-out events</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZENTRA ARCH -->
+  <div class="cpt-row" data-open="false">
+    <div class="cpt-hd" onclick="toggleCpt(this)">
+      <span class="cpt-num" style="color:var(--purple)">ZT</span>
+      <span class="cpt-name" style="color:var(--purple)">Zentra — Identity Platform Architecture</span>
+      <span class="cpt-brief">OAuth 2.0 / OIDC provider — shared identity for all FBT products</span>
+      <span class="cpt-priority cpp-critical">Infrastructure</span>
+      <span class="cpt-arrow">▼</span>
+    </div>
+    <div class="cpt-body">
+      <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                          ZENTRA                                  │
+├─────────────────────────────────────────────────────────────────┤
+│  [Client Apps] → [Authorization Endpoint] → [PKCE Flow]         │
+│                          │                                       │
+│               [Token Service] ← Redis Token Cache               │
+│                    │       │                                      │
+│            [JWT Signing]  [Refresh Token Store]                  │
+│                    │         │ (Rotating, Redis)                  │
+│                    ▼         ▼                                    │
+│         [PostgreSQL: Users, Clients, Scopes, Roles]              │
+│                    │                                              │
+│         [Audit Log Stream] → [Event Sourced Audit Store]         │
+│                    │                                              │
+│         [Admin UI — Lazy-loaded Plugin Modules]                  │
+│          Client Mgmt | Roles | Tokens | Users | Audit            │
+└─────────────────────────────────────────────────────────────────┘</div>
+      <div class="proj-map">
+        <div class="pm-card"><div class="pm-project pm-proj-zt">High Availability</div><div class="pm-desc">Active-passive failover. 99.95% SLO. Every FBT product depends on Zentra — single point of failure means ALL products down</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-zt">Token Validation</div><div class="pm-desc">Bloom filter fast-path for revocation check. Redis for revoked JTI list. Local JWT validation without Zentra call for most requests</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-zt">Rate Limiting</div><div class="pm-desc">Sliding Window: 10 auth attempts / 15min per IP. Account lockout after 5 failed attempts. CAPTCHA threshold at 3 failures</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-zt">Refresh Token Race</div><div class="pm-desc">Single-flight mutex pattern (already implemented) prevents duplicate refresh on concurrent requests — fencing token approach</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATCHMOMENT ARCH -->
+  <div class="cpt-row" data-open="false">
+    <div class="cpt-hd" onclick="toggleCpt(this)">
+      <span class="cpt-num" style="color:var(--pink)">CM</span>
+      <span class="cpt-name" style="color:var(--pink)">CatchMoment — AI Video Platform Architecture</span>
+      <span class="cpt-brief">Event video capture + AI highlight generation — 8-repo polyrepo</span>
+      <span class="cpt-priority cpp-high">Growing Product</span>
+      <span class="cpt-arrow">▼</span>
+    </div>
+    <div class="cpt-body">
+      <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                       CATCHMOMENT                                │
+├─────────────────────────────────────────────────────────────────┤
+│  [Next.js Web] → Presigned URL → [S3 Mumbai] → Multipart Upload  │
+│                                        │                         │
+│                               [S3 Event Trigger]                 │
+│                                        │                         │
+│                         [Temporal Cloud Workflow]                 │
+│                          ┌─────────────────────┐                 │
+│                          │ 1. Validate Upload   │                 │
+│                          │ 2. Transcode (Modal) │ ← HLS/DASH     │
+│                          │ 3. AI Inference      │ ← GPU           │
+│                          │ 4. Highlight Extract │                 │
+│                          │ 5. Generate Thumbnail│                 │
+│                          │ 6. Index in Qdrant   │ ← Vector Search │
+│                          │ 7. Notify Client     │ ← SSE           │
+│                          └─────────────────────┘                 │
+│                                        │                         │
+│                         [BunnyCDN] ← [S3 Processed Videos]       │
+│                         HLS streaming to client                   │
+└─────────────────────────────────────────────────────────────────┘</div>
+      <div class="proj-map">
+        <div class="pm-card"><div class="pm-project pm-proj-cm">YouTube Lessons</div><div class="pm-desc">HLS adaptive bitrate streaming (360p / 720p / 1080p / 4K). Thumbnail at 5 intervals. Processing pipeline stages same as YouTube's architecture</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-cm">Consistency Model</div><div class="pm-desc">AP for video metadata (eventual consistency). Processing status eventual via SSE. Video content immutable once processed</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-cm">Saga Pattern</div><div class="pm-desc">Temporal orchestrates the full processing saga. Compensation: delete S3 artifacts on failure. At-least-once delivery with idempotency keys</div></div>
+        <div class="pm-card"><div class="pm-project pm-proj-cm">Search Architecture</div><div class="pm-desc">Qdrant vector search for "find moments like this clip". Temporal workflow indexes embeddings after AI inference. Semantic video search</div></div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- §11 IMPLEMENTATION ROADMAP -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="roadmap">
+  <div class="sec-hd">
+    <span class="sec-num">MODULE 11</span>
+    <h2 class="sec-title">FBT Implementation Roadmap</h2>
+    <span class="sec-sub">apply now · phased plan</span>
+  </div>
+
+  <div class="priority-board">
+    <div class="pb-zone">
+      <div class="pb-zone-title"><div class="pb-dot" style="background:var(--red)"></div><span style="color:var(--red)">Apply Immediately — All Projects</span></div>
+      <div class="pb-item"><span class="pi-num">01</span><span class="pi-text">Add Bloom filter to Zentra token revocation fast-path — 99% of valid tokens skip Redis lookup</span><span class="pi-tag" style="background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2)">Day 1</span></div>
+      <div class="pb-item"><span class="pi-num">02</span><span class="pi-text">Implement Redis read replica for RentFlow property listing queries (huge read volume)</span><span class="pi-tag" style="background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2)">Week 1</span></div>
+      <div class="pb-item"><span class="pi-num">03</span><span class="pi-text">Add Polly bulkheads for each external service (Razorpay, SendGrid, Zentra) in RentFlow</span><span class="pi-tag" style="background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2)">Week 1</span></div>
+      <div class="pb-item"><span class="pi-num">04</span><span class="pi-text">Define SLOs for all FBT services (RentFlow 99.9%, Zentra 99.95%, CatchMoment 99.5%)</span><span class="pi-tag" style="background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2)">Week 1</span></div>
+      <div class="pb-item"><span class="pi-num">05</span><span class="pi-text">Implement cursor-based pagination for all RentFlow list endpoints (replace offset pagination)</span><span class="pi-tag" style="background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2)">Week 2</span></div>
+      <div class="pb-item"><span class="pi-num">06</span><span class="pi-text">Add composite indexes (tenantId, status, createdAt) to all RentFlow high-traffic tables</span><span class="pi-tag" style="background:rgba(255,68,68,0.1);color:var(--red);border:1px solid rgba(255,68,68,0.2)">Week 2</span></div>
+    </div>
+    <div class="pb-zone">
+      <div class="pb-zone-title"><div class="pb-dot" style="background:var(--amber)"></div><span style="color:var(--amber)">Next 4–8 Weeks</span></div>
+      <div class="pb-item"><span class="pi-num">07</span><span class="pi-text">Set up OpenTelemetry distributed tracing across RentFlow → Zentra → DB for latency debugging</span><span class="pi-tag" style="background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.2)">Month 1</span></div>
+      <div class="pb-item"><span class="pi-num">08</span><span class="pi-text">Implement booking saga in RentFlow: ReserveBed → ProcessPayment → Confirm with Temporal or MassTransit SM</span><span class="pi-tag" style="background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.2)">Month 1</span></div>
+      <div class="pb-item"><span class="pi-num">09</span><span class="pi-text">Add Sliding Window rate limiting to Zentra auth endpoints via ASP.NET Core Rate Limiting middleware</span><span class="pi-tag" style="background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.2)">Month 1</span></div>
+      <div class="pb-item"><span class="pi-num">10</span><span class="pi-text">PostgreSQL materialized views for RentFlow owner dashboard stats (refresh every 5min via pg_cron)</span><span class="pi-tag" style="background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.2)">Month 2</span></div>
+      <div class="pb-item"><span class="pi-num">11</span><span class="pi-text">CatchMoment: HLS transcoding pipeline via FFmpeg on Modal — adaptive bitrate (360p/720p/1080p)</span><span class="pi-tag" style="background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.2)">Month 2</span></div>
+      <div class="pb-item"><span class="pi-num">12</span><span class="pi-text">Add Leader Election to RentFlow background job workers to prevent duplicate Hangfire job execution</span><span class="pi-tag" style="background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.2)">Month 2</span></div>
+    </div>
+  </div>
+
+  <div class="impl-flow">
+    <div class="if-step">
+      <div class="if-num">Q1</div>
+      <div class="if-content">
+        <div class="if-phase">Immediate · All Projects</div>
+        <div class="if-title">Foundation Hardening</div>
+        <div class="if-desc">Bloom filter (Zentra), bulkheads (RentFlow), cursor pagination (all APIs), composite indexes (RentFlow DB), SLO definitions (all products), CSP headers (all frontends). These are small changes with massive reliability impact.</div>
+        <div class="if-tags"><span class="chip chip-sky">Zentra</span><span class="chip chip-p">RentFlow</span><span class="chip chip-s">Low risk</span><span class="chip chip-s">High impact</span></div>
+      </div>
+    </div>
+    <div class="if-step">
+      <div class="if-num">Q2</div>
+      <div class="if-content">
+        <div class="if-phase">Month 1–2 · RentFlow Priority</div>
+        <div class="if-title">Scalability & Observability</div>
+        <div class="if-desc">OpenTelemetry distributed tracing, PostgreSQL read replica routing, materialized views for dashboards, booking saga with Temporal/MassTransit, rate limiting on Zentra. Start measuring before optimising.</div>
+        <div class="if-tags"><span class="chip chip-p">Saga</span><span class="chip chip-sky">Tracing</span><span class="chip chip-s">Read replicas</span><span class="chip chip-a">Rate limiting</span></div>
+      </div>
+    </div>
+    <div class="if-step">
+      <div class="if-num">Q3</div>
+      <div class="if-content">
+        <div class="if-phase">Month 3–4 · CatchMoment Priority</div>
+        <div class="if-title">CatchMoment Video Pipeline</div>
+        <div class="if-desc">Full HLS transcoding via Modal, Qdrant vector search for semantic video search, Temporal multi-stage saga for processing, SSE progress streaming, BunnyCDN HLS delivery optimisation, DLQ for failed jobs.</div>
+        <div class="if-tags"><span class="chip chip-c">HLS</span><span class="chip chip-c">Qdrant</span><span class="chip chip-c">Temporal</span><span class="chip chip-c">SSE</span></div>
+      </div>
+    </div>
+    <div class="if-step">
+      <div class="if-num">Q4</div>
+      <div class="if-content">
+        <div class="if-phase">Month 5–6 · Platform</div>
+        <div class="if-title">FBT Platform Event Bus & Future Products</div>
+        <div class="if-desc">Kafka event bus bridging RentFlow, Zentra, CatchMoment. Schema registry for event contracts. CDC from RentFlow PostgreSQL. Begin EduConnect system design. Vyxnos Shield zero-trust gateway hardening.</div>
+        <div class="if-tags"><span class="chip chip-s">Kafka</span><span class="chip chip-s">CDC</span><span class="chip chip-p">Vyxnos</span><span class="chip chip-s">EduConnect</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COMPLETE CONCEPT INDEX -->
+<div style="margin-bottom:48px">
+  <div style="font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--t2);margin-bottom:16px">
+    // COMPLETE CONCEPT INDEX — 95+ TOPICS
+  </div>
+  <div class="tag-cloud">
+    <span class="tc-tag">Scalability</span><span class="tc-tag">Reliability</span><span class="tc-tag">Availability</span><span class="tc-tag">CAP Theorem</span><span class="tc-tag">PACELC</span><span class="tc-tag">Consistent Hashing</span><span class="tc-tag">Load Balancing</span><span class="tc-tag">Caching</span><span class="tc-tag">Cache-aside</span><span class="tc-tag">Write-through</span><span class="tc-tag">Write-back</span><span class="tc-tag">LRU/LFU</span><span class="tc-tag">CDN</span><span class="tc-tag">SQL vs NoSQL</span><span class="tc-tag">Sharding</span><span class="tc-tag">Replication</span><span class="tc-tag">Indexes</span><span class="tc-tag">B-Tree Index</span><span class="tc-tag">Bloom Filter</span><span class="tc-tag">Leader Election</span><span class="tc-tag">Raft</span><span class="tc-tag">Paxos</span><span class="tc-tag">Gossip Protocol</span><span class="tc-tag">Write-Ahead Log</span><span class="tc-tag">Split Brain</span><span class="tc-tag">Fencing Tokens</span><span class="tc-tag">Vector Clocks</span><span class="tc-tag">Quorum</span><span class="tc-tag">Merkle Trees</span><span class="tc-tag">Checksum</span><span class="tc-tag">Heartbeat</span><span class="tc-tag">Phi Accrual</span><span class="tc-tag">Circuit Breaker</span><span class="tc-tag">Retry + Backoff</span><span class="tc-tag">Bulkhead</span><span class="tc-tag">Rate Limiting</span><span class="tc-tag">Token Bucket</span><span class="tc-tag">Sliding Window</span><span class="tc-tag">Leaky Bucket</span><span class="tc-tag">Saga Pattern</span><span class="tc-tag">Outbox Pattern</span><span class="tc-tag">Idempotency</span><span class="tc-tag">DLQ</span><span class="tc-tag">REST</span><span class="tc-tag">GraphQL</span><span class="tc-tag">gRPC</span><span class="tc-tag">WebSockets</span><span class="tc-tag">SSE</span><span class="tc-tag">Long Polling</span><span class="tc-tag">Webhooks</span><span class="tc-tag">Message Queues</span><span class="tc-tag">Kafka</span><span class="tc-tag">RabbitMQ</span><span class="tc-tag">Event Streaming</span><span class="tc-tag">CDC</span><span class="tc-tag">CQRS</span><span class="tc-tag">Event Sourcing</span><span class="tc-tag">Read Models</span><span class="tc-tag">OAuth 2.0</span><span class="tc-tag">OIDC</span><span class="tc-tag">JWT</span><span class="tc-tag">PKCE</span><span class="tc-tag">RBAC</span><span class="tc-tag">ABAC</span><span class="tc-tag">Zero Trust</span><span class="tc-tag">mTLS</span><span class="tc-tag">API Keys</span><span class="tc-tag">Secrets Management</span><span class="tc-tag">OWASP Top 10</span><span class="tc-tag">SQL Injection</span><span class="tc-tag">XSS</span><span class="tc-tag">CSP</span><span class="tc-tag">Structured Logging</span><span class="tc-tag">Distributed Tracing</span><span class="tc-tag">Metrics RED/USE</span><span class="tc-tag">SLO/SLI/SLA</span><span class="tc-tag">Error Budget</span><span class="tc-tag">Prometheus</span><span class="tc-tag">Grafana</span><span class="tc-tag">OpenTelemetry</span><span class="tc-tag">Connection Pooling</span><span class="tc-tag">Materialized Views</span><span class="tc-tag">Inverted Index</span><span class="tc-tag">Vector Search</span><span class="tc-tag">GeoHash</span><span class="tc-tag">PostGIS</span><span class="tc-tag">QuadTree</span><span class="tc-tag">Trie</span><span class="tc-tag">HLS/DASH</span><span class="tc-tag">Adaptive Bitrate</span><span class="tc-tag">Presigned URLs</span><span class="tc-tag">Object Storage</span><span class="tc-tag">Content Addressing</span><span class="tc-tag">Fan-out</span><span class="tc-tag">Push vs Pull</span><span class="tc-tag">Temporal Tables</span><span class="tc-tag">Time-series DB</span><span class="tc-tag">PgBouncer</span><span class="tc-tag">Leader-Follower</span><span class="tc-tag">Active-Passive</span><span class="tc-tag">Concurrent Booking</span><span class="tc-tag">Optimistic Locking</span><span class="tc-tag">SELECT FOR UPDATE</span>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ── ACCORDION ──
+function toggleCpt(hd) {
+  const row = hd.closest('.cpt-row');
+  const body = row.querySelector('.cpt-body');
+  const arrow = row.querySelector('.cpt-arrow');
+  const isOpen = row.classList.contains('open');
+  row.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    body.style.display = 'block';
+    arrow.style.color = 'var(--lime)';
+  } else {
+    body.style.display = 'none';
+    arrow.style.color = '';
+  }
+}
+
+// ── DESIGN TABS ──
+function switchDesignTab(id, btn) {
+  document.querySelectorAll('[id^="dt-"]').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  document.getElementById('dt-' + id)?.classList.add('on');
+  btn.classList.add('on');
+}
+
+// ── NAV ACTIVE ──
+const secs = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { rootMargin: '-20% 0px -72% 0px' });
+secs.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

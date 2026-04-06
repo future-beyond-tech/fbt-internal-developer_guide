@@ -6,8 +6,6 @@ import { Sidebar } from './Sidebar';
 import { SectionRenderer } from './SectionRenderer';
 import { SearchModal } from '../ui/SearchModal';
 import { ProgressBar } from '../ui/ProgressBar';
-import type { Section } from '@/data/backend';
-
 interface NavItem {
   id?: string;
   title?: string;
@@ -20,24 +18,11 @@ interface NavSection {
   items: NavItem[];
 }
 
-interface HeroStat {
-  value: string;
-  label: string;
-}
-
-interface HeroData {
-  title: string;
-  subtitle?: string;
-  description: string;
-  stats: HeroStat[];
-  tags?: string[];
-}
-
 interface ReferencePageProps {
   nav: NavSection[];
-  sections: Section[];
-  hero: HeroData;
-  variant: 'backend' | 'frontend';
+  sections: any[];
+  hero: any;
+  variant: string;
 }
 
 export function ReferencePage({ nav, sections, hero, variant }: ReferencePageProps) {
@@ -45,32 +30,52 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
 
   const searchItems = useMemo(() => {
     const items: { title: string; section: string; href: string; description?: string }[] = [];
-    sections.forEach((s) => {
+    sections.forEach((s: any) => {
+      const variantLabel = variant.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       items.push({
         title: s.title,
-        section: variant === 'backend' ? 'Backend' : 'Frontend',
+        section: variantLabel,
         href: `/${variant}#${s.id}`,
         description: s.description,
       });
-      if (s.cards) {
-        s.cards.forEach((c) => {
-          items.push({
-            title: c.title,
-            section: s.title,
-            href: `/${variant}#${s.id}`,
-            description: c.description,
-          });
+      const cardList = s.cards || (s.type === 'cards' && Array.isArray(s.data) ? s.data : []);
+      cardList.forEach((c: any) => {
+        items.push({
+          title: c.title,
+          section: s.title,
+          href: `/${variant}#${s.id}`,
+          description: c.description,
         });
-      }
+      });
       if (s.patternGroups) {
-        s.patternGroups.forEach((g) => {
-          g.patterns.forEach((p) => {
+        s.patternGroups.forEach((g: any) => {
+          g.patterns.forEach((p: any) => {
             items.push({
               title: p.name,
               section: g.title,
               href: `/${variant}#${s.id}`,
               description: p.description,
             });
+          });
+        });
+      }
+      if (s.concepts) {
+        s.concepts.forEach((c: any) => {
+          items.push({
+            title: c.concept,
+            section: s.title,
+            href: `/${variant}#${s.id}`,
+            description: c.articleSays || c.description,
+          });
+        });
+      }
+      if (s.projects) {
+        s.projects.forEach((p: any) => {
+          items.push({
+            title: p.name,
+            section: s.title,
+            href: `/${variant}#${s.id}`,
+            description: p.description || p.strategy,
           });
         });
       }
@@ -138,7 +143,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
               marginBottom: '14px',
               position: 'relative',
             }}>
-              ▸ {variant === 'backend' ? 'Backend Master Reference' : 'Frontend Master Reference'}
+              ▸ {variant.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Master Reference
             </div>
 
             {/* Title */}
@@ -175,13 +180,13 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
             </p>
 
             {/* Stats */}
-            <div style={{ display: 'flex', gap: 0, position: 'relative' }}>
-              {hero.stats.map((stat, i) => (
+            <div style={{ display: 'flex', gap: 0, position: 'relative', flexWrap: 'wrap' }}>
+              {(hero.stats || hero.metrics || []).map((stat: any, i: number) => (
                 <div key={i} style={{
                   padding: '16px 28px',
                   border: '1px solid var(--border)',
-                  borderRight: i < hero.stats.length - 1 ? 'none' : '1px solid var(--border)',
-                  borderRadius: i === 0 ? '6px 0 0 6px' : i === hero.stats.length - 1 ? '0 6px 6px 0' : '0',
+                  borderRight: i < (hero.stats || hero.metrics || []).length - 1 ? 'none' : '1px solid var(--border)',
+                  borderRadius: i === 0 ? '6px 0 0 6px' : i === (hero.stats || hero.metrics || []).length - 1 ? '0 6px 6px 0' : '0',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '4px',
@@ -217,7 +222,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
                 marginTop: '24px',
                 position: 'relative',
               }}>
-                {hero.tags.map((tag, i) => (
+                {hero.tags.map((tag: string, i: number) => (
                   <span key={i} style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: '9.5px',

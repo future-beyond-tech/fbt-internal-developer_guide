@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBT — Plugin Architecture: How It Applies to Us</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap');
+
+:root {
+  --ink: #0D1117;
+  --ink2: #1C2333;
+  --ink3: #2A3550;
+  --paper: #F5F2EC;
+  --paper2: #EDE9E0;
+  --paper3: #E2DDD2;
+  --gold: #C9872A;
+  --gold-hi: #E0A040;
+  --gold-dim: rgba(201,135,42,0.12);
+  --gold-border: rgba(201,135,42,0.3);
+  --fbt: #512BD4;
+  --fbt-hi: #7C52FF;
+  --fbt-dim: rgba(81,43,212,0.1);
+  --fbt-border: rgba(81,43,212,0.25);
+  --green: #1A7A4A;
+  --green-dim: rgba(26,122,74,0.1);
+  --red: #C0392B;
+  --red-dim: rgba(192,57,43,0.08);
+  --blue: #1565C0;
+  --blue-dim: rgba(21,101,192,0.1);
+  --mono: 'JetBrains Mono', monospace;
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'Outfit', sans-serif;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid var(--gold);
+}
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.hbrand {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.hbrand em { color: var(--paper); font-style: normal; }
+.hsep { width: 1px; height: 20px; background: rgba(255,255,255,0.15); }
+.htitle {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+.hright { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.hbadge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 2px;
+}
+.hb-gold { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold-border); }
+.hb-fbt  { background: var(--fbt-dim); color: var(--fbt-hi); border: 1px solid var(--fbt-border); }
+.hb-ink  { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); }
+
+/* ── LAYOUT ── */
+.body-wrap { display: flex; max-width: 1280px; margin: 0 auto; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  padding: 28px 0 60px;
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  border-right: 1px solid var(--paper3);
+  background: var(--paper);
+}
+.sidebar::-webkit-scrollbar { width: 2px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--paper3); }
+
+.nav-label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 14px 20px 5px;
+  font-weight: 600;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 20px;
+  font-size: 12px;
+  color: var(--ink3);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.12s;
+  text-decoration: none;
+}
+.nav-item:hover { color: var(--ink); background: var(--paper2); border-left-color: var(--paper3); }
+.nav-item.active { color: var(--fbt); border-left-color: var(--fbt); background: var(--fbt-dim); }
+.nav-item .nd { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.4; flex-shrink: 0; }
+.nav-item:hover .nd, .nav-item.active .nd { opacity: 1; }
+.nav-divider { height: 1px; background: var(--paper3); margin: 10px 0; }
+
+/* ── MAIN ── */
+.main { flex: 1; padding: 40px 52px 80px 48px; min-width: 0; }
+
+/* ── ARTICLE HERO ── */
+.article-hero {
+  margin-bottom: 48px;
+  padding: 36px 40px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.ah-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(201,135,42,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,135,42,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+.ah-glow {
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(201,135,42,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ah-eyebrow {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  position: relative;
+}
+.ah-eyebrow::before { content: '// '; opacity: 0.6; }
+.ah-title {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  position: relative;
+}
+.ah-title .hi { color: var(--gold); }
+.ah-desc {
+  font-size: 13.5px;
+  color: rgba(245,242,236,0.65);
+  max-width: 600px;
+  line-height: 1.75;
+  position: relative;
+  margin-bottom: 28px;
+}
+.ah-stats {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+.ah-stat {
+  padding: 12px 24px;
+  border: 1px solid rgba(201,135,42,0.25);
+  border-right: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ah-stat:first-child { border-radius: 4px 0 0 4px; }
+.ah-stat:last-child { border-right: 1px solid rgba(201,135,42,0.25); border-radius: 0 4px 4px 0; }
+.ah-sv { font-family: var(--serif); font-size: 26px; font-weight: 700; color: var(--gold); line-height: 1; }
+.ah-sl { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+
+/* ── SECTION ── */
+section { margin-bottom: 64px; scroll-margin-top: 64px; }
+.sec-hd {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--paper3);
+  position: relative;
+}
+.sec-hd::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 48px; height: 1px;
+  background: var(--gold);
+}
+.sec-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.sec-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sec-sub {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(13,17,23,0.35);
+  margin-left: auto;
+}
+.sec-intro {
+  font-size: 13.5px;
+  color: var(--ink3);
+  line-height: 1.8;
+  margin-bottom: 24px;
+  max-width: 720px;
+}
+
+/* ── RELEVANCE CARD ── */
+.relevance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rel-card {
+  background: #fff;
+  border: 1px solid var(--paper3);
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.rel-card:hover { box-shadow: var(--shadow-lg); }
+.rel-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.rc-gold::before { background: linear-gradient(90deg, var(--gold), var(--gold-hi)); }
+.rc-fbt::before  { background: linear-gradient(90deg, var(--fbt), var(--fbt-hi)); }
+.rc-green::before{ background: linear-gradient(90deg, #0D6E39, var(--green)); }
+.rc-blue::before { background: linear-gradient(90deg, #0D47A1, var(--blue)); }
+.rc-red::before  { background: linear-gradient(90deg, #8B0000, var(--red)); }
+
+.rc-project-tag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+.rct-gold  { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold-border); }
+.rct-fbt   { background: var(--fbt-dim); color: var(--fbt); border: 1px solid var(--fbt-border); }
+.rct-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(26,122,74,0.25); }
+.rct-blue  { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(21,101,192,0.25); }
+.rct-multi { background: rgba(81,43,212,0.08); color: var(--fbt); border: 1px solid rgba(81,43,212,0.2); }
+
+.rc-title {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.rc-body {
+  font-size: 12.5px;
+  color: var(--ink3);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+.rc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.rc-mi {
+  background: var(--paper2);
+  padding: 6px 9px;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.rc-ml { font-family: var(--mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(13,17,23,0.4); }
+.rc-mv { font-size: 11.5px; color: var(--ink); }
+
+/* ── CODE BLOCK ── */
+.code {
+  background: var(--ink);
+  color: #C9D1D9;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  padding: 16px 18px;
+  border-radius: 5px;
+  overflow-x: auto;
+  margin: 12px 0;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.code-title {
+  position: absolute;
+  top: 8px; right: 12px;
+  font-size: 8.5px;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.kw  { color: #FF79C6; }
+.fn  { color: #61DAFB; }
+.ty  { color: #FFB86C; }
+.st  { color: #50FA7B; }
+.cm  { color: #6272A4; }
+.at  { color: #FF5555; }
+.nm  { color: #BD93F9; }
+.prop{ color: #8BE9FD; }
+
+/* ── CONCEPT TABLE ── */
+.concept-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+}
+.concept-tbl th {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(13,17,23,0.45);
+  padding: 9px 13px;
+  background: var(--paper2);
+  text-align: left;
+  border-bottom: 1px solid var(--paper3);
+}
+.concept-tbl td {
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--paper3);
+  vertical-align: top;
+  color: var(--ink3);
+}
+.concept-tbl tr:hover td { background: #fff; }
+.concept-tbl td:first-child {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fbt);
+  white-space: nowrap;
+}
+.concept-tbl td:nth-child(2) { font-weight: 500; color: var(--ink); }
+
+/* ── CALLOUT ── */
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 5px;
+  margin: 14px 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+.co-gold  { background: var(--gold-dim); border-left: 3px solid var(--gold); }
+.co-fbt   { background: var(--fbt-dim); border-left: 3px solid var(--fbt); }
+.co-green { background: var(--green-dim); border-left: 3px solid var(--green); }
+.co-red   { background: var(--red-dim); border-left: 3px solid var(--red); }
+.co-blue  { background: var(--blue-dim); border-left: 3px solid var(--blue); }
+.callout strong { color: var(--ink); }
+.callout code { font-family: var(--mono); font-size: 10.5px; background: rgba(0,0,0,0.07); padding: 1px 5px; border-radius: 2px; }
+
+/* ── PROJECT MAPPING CARDS ── */
+.project-card {
+  background: #fff;
+  border: 1px solid var(--paper3);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.pc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--paper3);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.pc-header:hover { background: var(--paper); }
+.pc-icon { font-size: 22px; }
+.pc-name {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.pc-tagline { font-size: 12px; color: rgba(13,17,23,0.5); margin-top: 1px; }
+.pc-badge {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 2px;
+}
+.pcb-high { background: rgba(192,57,43,0.1); color: var(--red); border: 1px solid rgba(192,57,43,0.25); }
+.pcb-med  { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold-border); }
+.pcb-low  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(26,122,74,0.25); }
+.pc-arrow { font-size: 11px; color: rgba(13,17,23,0.3); margin-left: 8px; transition: transform 0.2s; }
+.pc-arrow.open { transform: rotate(180deg); }
+.pc-body { display: none; padding: 20px; }
+.pc-body.open { display: block; }
+.pc-section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+.pc-section-title:first-child { margin-top: 0; }
+.pc-feature-list { list-style: none; margin-bottom: 12px; }
+.pc-feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink3);
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--paper3);
+  line-height: 1.55;
+}
+.pc-feature-list li:last-child { border-bottom: none; }
+.pc-feature-list li::before { content: '→'; color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+.pc-apply-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.pca-item {
+  background: var(--paper2);
+  border-radius: 4px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pca-concept { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fbt); font-weight: 600; }
+.pca-desc { font-size: 11px; color: var(--ink3); line-height: 1.5; }
+
+/* ── BEFORE/AFTER ── */
+.ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.ba-box { border-radius: 5px; padding: 16px; }
+.ba-before { background: var(--red-dim); border: 1px solid rgba(192,57,43,0.2); }
+.ba-after  { background: var(--green-dim); border: 1px solid rgba(26,122,74,0.2); }
+.ba-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+.ba-before .ba-label { color: var(--red); }
+.ba-after  .ba-label { color: var(--green); }
+.ba-list { list-style: none; }
+.ba-list li {
+  font-size: 12px;
+  color: var(--ink3);
+  padding: 4px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+.ba-before .ba-list li::before { content: '✗'; color: var(--red); }
+.ba-after  .ba-list li::before { content: '✓'; color: var(--green); }
+
+/* ── IMPLEMENTATION ROADMAP ── */
+.roadmap { display: flex; flex-direction: column; gap: 0; }
+.rm-step {
+  display: flex;
+  gap: 20px;
+  position: relative;
+}
+.rm-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 19px; top: 40px; bottom: -8px;
+  width: 2px;
+  background: var(--paper3);
+}
+.rm-num {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-border);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold);
+  flex-shrink: 0;
+  z-index: 1;
+}
+.rm-content { padding: 8px 0 28px; }
+.rm-project {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fbt);
+  margin-bottom: 4px;
+}
+.rm-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.rm-desc { font-size: 12.5px; color: var(--ink3); line-height: 1.65; margin-bottom: 10px; }
+.rm-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.rm-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--paper2);
+  border: 1px solid var(--paper3);
+  color: var(--ink3);
+}
+
+/* ── VERDICT BOX ── */
+.verdict {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 8px;
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.verdict::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 0% 100%, rgba(201,135,42,0.12) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(81,43,212,0.1) 0%, transparent 50%);
+}
+.verdict-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+  position: relative;
+}
+.verdict-text {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.7;
+  position: relative;
+  color: rgba(245,242,236,0.9);
+}
+.verdict-text strong { color: var(--gold); font-style: normal; }
+.verdict-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+  position: relative;
+}
+.vg-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(201,135,42,0.15);
+  border-radius: 5px;
+  padding: 12px 14px;
+}
+.vg-label { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 6px; }
+.vg-value { font-size: 12px; color: rgba(245,242,236,0.8); line-height: 1.5; }
+
+/* ── TAGS ── */
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+.t {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 3px 10px;
+  border-radius: 2px;
+  background: var(--paper2);
+  border: 1px solid var(--paper3);
+  color: var(--ink3);
+  cursor: default;
+  transition: all 0.12s;
+}
+.t:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--paper3); margin: 32px 0; }
+
+/* ── TAB SWITCH ── */
+.tab-bar { display: flex; border-bottom: 1px solid var(--paper3); margin-bottom: 20px; }
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: rgba(13,17,23,0.4);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.12s;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.on { color: var(--gold); border-bottom-color: var(--gold); }
+.tab-panel { display: none; }
+.tab-panel.on { display: block; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+section { animation: fadeUp 0.3s ease both; }
+
+@media(max-width:900px) {
+  .sidebar { display: none; }
+  .main { padding: 24px 20px 60px; }
+  .relevance-grid, .ba-grid, .verdict-grid, .pc-apply-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="hbrand">FBT <em>Engineering</em></div>
+    <div class="hsep"></div>
+    <div class="htitle">Plugin Architecture Analysis</div>
+    <div class="hright">
+      <span class="hbadge hb-gold">Article Analysis</span>
+      <span class="hbadge hb-fbt">Next.js 15</span>
+      <span class="hbadge hb-ink">React 19</span>
+    </div>
+  </div>
+</header>
+
+<div class="body-wrap">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-label">This Document</div>
+  <a class="nav-item active" href="#overview"><span class="nd"></span>Why It Matters for FBT</a>
+  <a class="nav-item" href="#concepts"><span class="nd"></span>Concept → FBT Mapping</a>
+  <a class="nav-item" href="#projects"><span class="nd"></span>Project-by-Project</a>
+  <a class="nav-item" href="#code"><span class="nd"></span>FBT Code Adaptations</a>
+  <a class="nav-item" href="#before-after"><span class="nd"></span>Before vs After</a>
+  <a class="nav-item" href="#roadmap"><span class="nd"></span>Implementation Roadmap</a>
+  <a class="nav-item" href="#when-not"><span class="nd"></span>When NOT to Use</a>
+  <a class="nav-item" href="#verdict"><span class="nd"></span>FBT Verdict</a>
+
+  <div class="nav-divider"></div>
+  <div class="nav-label">Concepts Covered</div>
+  <a class="nav-item" href="#concepts"><span class="nd"></span>Host API Design</a>
+  <a class="nav-item" href="#concepts"><span class="nd"></span>Plugin Lifecycle</a>
+  <a class="nav-item" href="#concepts"><span class="nd"></span>Lazy Loading</a>
+  <a class="nav-item" href="#concepts"><span class="nd"></span>Security Model</a>
+  <a class="nav-item" href="#concepts"><span class="nd"></span>Hot-loading / CI</a>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="article-hero">
+    <div class="ah-pattern"></div>
+    <div class="ah-glow"></div>
+    <div class="ah-eyebrow">Article Analysis — Jessica Patel · Type-Safe Plugin Architecture in React</div>
+    <h1 class="ah-title">How This Changes<br><span class="hi">Everything for FBT</span></h1>
+    <p class="ah-desc">
+      This article isn't just theory — it's a direct blueprint for solving FBT's #1 engineering challenge:
+      how do RentFlow, Zentra, CatchMoment, and FIROSE Group grow independently without becoming a tangled monolith?
+      Plugin architecture is the answer.
+    </p>
+    <div class="ah-stats">
+      <div class="ah-stat"><div class="ah-sv">4</div><div class="ah-sl">FBT Projects Impacted</div></div>
+      <div class="ah-stat"><div class="ah-sv">7</div><div class="ah-sl">Concepts to Apply</div></div>
+      <div class="ah-stat"><div class="ah-sv">HIGH</div><div class="ah-sl">Strategic Relevance</div></div>
+      <div class="ah-stat"><div class="ah-sv">Now</div><div class="ah-sl">Best Time to Start</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ §1 WHY IT MATTERS ═══ -->
+  <section id="overview">
+    <div class="sec-hd">
+      <span class="sec-num">01</span>
+      <h2 class="sec-title">Why This Article Matters for FBT</h2>
+      <span class="sec-sub">the core problem it solves</span>
+    </div>
+
+    <p class="sec-intro">
+      FBT is not a single-product company. You are building a <strong>platform ecosystem</strong> — RentFlow as the SaaS product, Zentra as the identity layer, CatchMoment as an AI video product, and FIROSE Group's digital suite. All of these need to evolve independently, share infrastructure, and integrate with each other without becoming entangled. This is precisely the problem the article addresses.
+    </p>
+
+    <div class="relevance-grid">
+      <div class="rel-card rc-gold">
+        <span class="rc-project-tag rct-gold">RentFlow</span>
+        <div class="rc-title">Multi-Tenant Feature Isolation</div>
+        <div class="rc-body">RentFlow has Owner, Manager, Resident, and Super-Admin roles — each with radically different UI needs. A plugin architecture means each role's dashboard can be a separate plugin, loaded only for that user. No more monolithic role-switch logic.</div>
+        <div class="rc-meta">
+          <div class="rc-mi"><div class="rc-ml">Article Concept</div><div class="rc-mv">Lazy Loading + Host API</div></div>
+          <div class="rc-mi"><div class="rc-ml">FBT Gain</div><div class="rc-mv">Smaller bundles per role</div></div>
+        </div>
+      </div>
+
+      <div class="rel-card rc-fbt">
+        <span class="rc-project-tag rct-fbt">Zentra</span>
+        <div class="rc-title">OAuth Provider as Plugin Host</div>
+        <div class="rc-body">Zentra is FBT's identity provider. It needs to serve multiple clients (RentFlow, CatchMoment, FIROSE apps). The Plugin API model maps perfectly — Zentra exposes a HostAPI that each client registers with, getting only the auth capabilities they're permitted to use.</div>
+        <div class="rc-meta">
+          <div class="rc-mi"><div class="rc-ml">Article Concept</div><div class="rc-mv">Security + Permission Model</div></div>
+          <div class="rc-mi"><div class="rc-ml">FBT Gain</div><div class="rc-mv">Scoped auth per client app</div></div>
+        </div>
+      </div>
+
+      <div class="rel-card rc-green">
+        <span class="rc-project-tag rct-green">CatchMoment</span>
+        <div class="rc-title">AI Pipeline as Plugin Extensions</div>
+        <div class="rc-body">CatchMoment's 8-repo polyrepo is a natural fit for plugin architecture. Video capture, highlight generation, social sharing, and storage are independent pipelines. Each can be a plugin with its own bundle, loaded on demand — perfectly matching the article's bundling strategy.</div>
+        <div class="rc-meta">
+          <div class="rc-mi"><div class="rc-ml">Article Concept</div><div class="rc-mv">Independent Bundling + Lifecycle</div></div>
+          <div class="rc-mi"><div class="rc-mv">FBT Gain</div><div class="rc-mv">Deploy pipelines independently</div></div>
+        </div>
+      </div>
+
+      <div class="rel-card rc-blue">
+        <span class="rc-project-tag rct-multi">FIROSE Group</span>
+        <div class="rc-title">Multi-Division Digital Extensions</div>
+        <div class="rc-body">Neat & Fresh, The Femison, and AR Perfumes are separate divisions that share the FIROSE website infrastructure. Plugin architecture lets each division's product catalog, promotional modules, and campaign pages be independently deployable without redeploying the whole platform.</div>
+        <div class="rc-meta">
+          <div class="rc-mi"><div class="rc-ml">Article Concept</div><div class="rc-mv">Hot-loading + CI/CD</div></div>
+          <div class="rc-mi"><div class="rc-ml">FBT Gain</div><div class="rc-mv">Division-level autonomy</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §2 CONCEPT MAPPING ═══ -->
+  <section id="concepts">
+    <div class="sec-hd">
+      <span class="sec-num">02</span>
+      <h2 class="sec-title">Article Concept → FBT Application</h2>
+      <span class="sec-sub">direct translation</span>
+    </div>
+
+    <p class="sec-intro">
+      Every concept in the article maps 1:1 to something FBT is already building or planning. Here's the complete translation table — what the article teaches vs. what FBT should implement, and where.
+    </p>
+
+    <table class="concept-tbl">
+      <thead>
+        <tr>
+          <th>Article Concept</th>
+          <th>What It Is</th>
+          <th>FBT Application</th>
+          <th>Where to Apply</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Host API</td>
+          <td>Controlled interface between core app and plugins</td>
+          <td>RentFlow exposes a HostAPI that role-specific modules (Owner, Manager, Resident) register with. Zentra exposes an AuthHostAPI to client apps.</td>
+          <td>RentFlow Core, Zentra</td>
+          <td><span style="color:var(--red);font-weight:700">Critical</span></td>
+        </tr>
+        <tr>
+          <td>Plugin Lifecycle</td>
+          <td>init → mount → update → unmount lifecycle hooks</td>
+          <td>Each RentFlow dashboard section (PropertyCard, ResidentProfile, PaymentHistory) gets a lifecycle. CatchMoment video pipeline stages use lifecycle hooks for setup/teardown.</td>
+          <td>RentFlow, CatchMoment</td>
+          <td><span style="color:var(--red);font-weight:700">High</span></td>
+        </tr>
+        <tr>
+          <td>Independent Bundling</td>
+          <td>Each plugin compiled as its own Vite/esbuild bundle</td>
+          <td>CatchMoment's 8 polyrepos already are independent. RentFlow's role dashboards should each build to separate chunks. Neat & Fresh store modules can be standalone.</td>
+          <td>CatchMoment, RentFlow, Neat & Fresh</td>
+          <td><span style="color:var(--red);font-weight:700">High</span></td>
+        </tr>
+        <tr>
+          <td>Lazy Loading</td>
+          <td>Dynamic import() — load plugin only when user needs it</td>
+          <td>Load Owner Dashboard only when owner logs in. Load video processing plugin only when CatchMoment event is active. Load Femison catalog only on that division page.</td>
+          <td>All FBT projects</td>
+          <td><span style="color:var(--red);font-weight:700">Critical</span></td>
+        </tr>
+        <tr>
+          <td>Security Model</td>
+          <td>Restricted API surface, permission boundaries</td>
+          <td>Zentra scopes tokens to specific capabilities (read:users, manage:roles). RentFlow's resident plugin cannot access owner financial data. RBAC enforced at plugin API level.</td>
+          <td>Zentra, RentFlow</td>
+          <td><span style="color:var(--red);font-weight:700">Critical</span></td>
+        </tr>
+        <tr>
+          <td>Hot-loading</td>
+          <td>Vite HMR for plugin live-reload during development</td>
+          <td>FBT's Cowork workflow accelerates dramatically — Cowork edits a plugin module, changes appear without full app restart. Essential for Claude Code workflow.</td>
+          <td>All FBT development</td>
+          <td><span style="color:var(--gold);font-weight:700">Medium</span></td>
+        </tr>
+        <tr>
+          <td>CI/CD for Plugins</td>
+          <td>GitHub Actions per plugin — lint, test, bundle, deploy</td>
+          <td>Each of CatchMoment's 8 repos gets its own pipeline. RentFlow role modules lint and test independently. FIROSE divisions deploy their content plugins without coordinating releases.</td>
+          <td>CatchMoment, RentFlow, FIROSE</td>
+          <td><span style="color:var(--gold);font-weight:700">High</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout co-fbt">
+      <span>💡</span>
+      <div><strong>Key Insight:</strong> The article's <code>HostAPI + Plugin</code> pattern is architecturally identical to how Zentra already works — it's an OAuth provider that gives clients only what they're permitted. You've already implemented this principle. Now formalise it across the frontend with TypeScript interfaces.</div>
+    </div>
+  </section>
+
+  <!-- ═══ §3 PROJECT BREAKDOWN ═══ -->
+  <section id="projects">
+    <div class="sec-hd">
+      <span class="sec-num">03</span>
+      <h2 class="sec-title">Project-by-Project Plugin Plan</h2>
+      <span class="sec-sub">click to expand each project</span>
+    </div>
+
+    <p class="sec-intro">Each FBT project has a specific plugin architecture story. Expand any project to see exactly what to build, what the plugin host exposes, and which article concepts apply directly.</p>
+
+    <!-- RENTFLOW -->
+    <div class="project-card">
+      <div class="pc-header" onclick="toggleProject('rentflow')">
+        <span class="pc-icon">🏠</span>
+        <div>
+          <div class="pc-name">RentFlow</div>
+          <div class="pc-tagline">India's First Usage-Based Rental Operating System</div>
+        </div>
+        <span class="pc-badge pcb-high">Highest Fit</span>
+        <span class="pc-arrow" id="arr-rentflow">▼</span>
+      </div>
+      <div class="pc-body" id="body-rentflow">
+        <div class="pc-section-title">The Problem Plugin Arch Solves</div>
+        <ul class="pc-feature-list">
+          <li>Owner, Manager, Resident, and Super-Admin dashboards share one codebase — every role loads every other role's code</li>
+          <li>Adding a new Manager feature risks breaking Resident views and causes full app redeployment</li>
+          <li>The two onboarding paths (manual add vs. QR self-registration) are diverging — plugin arch formalises this as two separate plugins with shared lifecycle contracts</li>
+          <li>Mobile app (Expo/RN) and web app share no code — plugins bridge this via shared HostAPI contracts over the same backend</li>
+        </ul>
+
+        <div class="pc-section-title">What the RentFlow HostAPI Exposes</div>
+        <div class="code">
+<span class="cm">// rentflow-core/src/plugins/host.ts</span>
+<span class="kw">export interface</span> <span class="ty">RentFlowHostAPI</span> {
+  <span class="cm">// Auth context (Zentra-sourced, scope-limited)</span>
+  <span class="prop">auth</span>: {
+    <span class="prop">user</span>: <span class="ty">AuthUser</span>;
+    <span class="prop">hasPermission</span>: (perm: <span class="ty">Permission</span>) => <span class="kw">boolean</span>;
+    <span class="prop">tenantId</span>: <span class="kw">string</span>;
+  };
+  <span class="cm">// UI registration (plugins contribute panels)</span>
+  <span class="prop">registerPanel</span>: (key: <span class="kw">string</span>, config: <span class="ty">PanelConfig</span>) => <span class="kw">void</span>;
+  <span class="prop">registerRoute</span>: (path: <span class="kw">string</span>, component: <span class="ty">React.ComponentType</span>) => <span class="kw">void</span>;
+  <span class="cm">// Events — plugins can subscribe/emit</span>
+  <span class="prop">events</span>: <span class="ty">EventBus</span>;
+  <span class="cm">// Logging only — no raw console access</span>
+  <span class="prop">log</span>: (msg: <span class="kw">string</span>, level?: <span class="st">'info'</span>|<span class="st">'warn'</span>|<span class="st">'error'</span>) => <span class="kw">void</span>;
+}
+
+<span class="cm">// Plugin contract every role module implements</span>
+<span class="kw">export interface</span> <span class="ty">RentFlowPlugin</span> {
+  <span class="prop">name</span>: <span class="st">'OwnerPlugin'</span> | <span class="st">'ManagerPlugin'</span> | <span class="st">'ResidentPlugin'</span> | <span class="st">'SuperAdminPlugin'</span>;
+  <span class="prop">requiredPermissions</span>: <span class="ty">Permission</span>[];
+  <span class="prop">init</span>: (host: <span class="ty">RentFlowHostAPI</span>) => <span class="ty">Promise</span><<span class="kw">void</span>>;
+  <span class="prop">unmount</span>?: () => <span class="kw">void</span>;
+}
+          <div class="code-title">TypeScript</div>
+        </div>
+
+        <div class="pc-section-title">Concepts Applied</div>
+        <div class="pc-apply-grid">
+          <div class="pca-item"><div class="pca-concept">Host API</div><div class="pca-desc">auth, registerPanel, events — role plugins get only what their permissions allow</div></div>
+          <div class="pca-item"><div class="pca-concept">Lazy Loading</div><div class="pca-desc">Load OwnerPlugin only when JWT role = owner. Never ship Resident code to Owner</div></div>
+          <div class="pca-item"><div class="pca-concept">Security Model</div><div class="pca-desc">requiredPermissions checked before plugin init — fails safely if Zentra token lacks scope</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZENTRA -->
+    <div class="project-card">
+      <div class="pc-header" onclick="toggleProject('zentra')">
+        <span class="pc-icon">🔐</span>
+        <div>
+          <div class="pc-name">Zentra</div>
+          <div class="pc-tagline">Custom OAuth 2.0 / OIDC Identity Provider</div>
+        </div>
+        <span class="pc-badge pcb-high">Infrastructure Plugin Host</span>
+        <span class="pc-arrow" id="arr-zentra">▼</span>
+      </div>
+      <div class="pc-body" id="body-zentra">
+        <div class="pc-section-title">Zentra IS Already a Plugin Host</div>
+        <ul class="pc-feature-list">
+          <li>Zentra serves multiple clients: RentFlow, CatchMoment, FIROSE apps — each is effectively a "plugin" registering with the identity provider</li>
+          <li>The article's <strong>SecureHostAPI</strong> pattern is exactly what Zentra's client registration does — each client gets scoped capabilities</li>
+          <li>Zentra's 6 Admin UI modules (Client Management, Roles/Claims, Token Revocation, Audit Logs) are perfect plugin candidates — each can be lazy-loaded</li>
+          <li>The <code>RemoveRoleClaimsHandler</code> concurrency issue you fixed is a lifecycle management problem — plugin unmount semantics would have prevented it</li>
+        </ul>
+
+        <div class="pc-section-title">Zentra Admin UI as Plugin-Based Dashboard</div>
+        <div class="code">
+<span class="cm">// Each Zentra admin module = lazy-loaded plugin</span>
+<span class="kw">const</span> <span class="prop">modules</span> = {
+  <span class="st">'client-management'</span>: () => <span class="kw">import</span>(<span class="st">'@zentra/plugin-clients'</span>),
+  <span class="st">'roles-claims'</span>:       () => <span class="kw">import</span>(<span class="st">'@zentra/plugin-roles'</span>),
+  <span class="st">'token-revocation'</span>:   () => <span class="kw">import</span>(<span class="st">'@zentra/plugin-tokens'</span>),
+  <span class="st">'audit-logs'</span>:         () => <span class="kw">import</span>(<span class="st">'@zentra/plugin-audit'</span>),
+  <span class="st">'user-admin'</span>:         () => <span class="kw">import</span>(<span class="st">'@zentra/plugin-users'</span>),
+  <span class="st">'api-resources'</span>:      () => <span class="kw">import</span>(<span class="st">'@zentra/plugin-api'</span>),
+};
+
+<span class="cm">// Load only the module the admin navigates to</span>
+<span class="kw">async function</span> <span class="fn">loadZentraModule</span>(key: <span class="kw">keyof typeof</span> <span class="prop">modules</span>) {
+  <span class="kw">const</span> { <span class="kw">default</span>: plugin } = <span class="kw">await</span> <span class="prop">modules</span>[key]();
+  plugin.<span class="fn">init</span>(zentraHostAPI); <span class="cm">// passes scoped admin API</span>
+}
+          <div class="code-title">TypeScript</div>
+        </div>
+        <div class="pc-section-title">Concepts Applied</div>
+        <div class="pc-apply-grid">
+          <div class="pca-item"><div class="pca-concept">Independent Bundling</div><div class="pca-desc">Each Zentra module is its own package under @zentra/plugin-*</div></div>
+          <div class="pca-item"><div class="pca-concept">Lazy Loading</div><div class="pca-desc">Admin modules load on navigation — initial bundle stays minimal</div></div>
+          <div class="pca-item"><div class="pca-concept">Lifecycle</div><div class="pca-desc">unmount() cancels in-flight claims mutations — solves the concurrency bug structurally</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CATCHMOMENT -->
+    <div class="project-card">
+      <div class="pc-header" onclick="toggleProject('catchmoment')">
+        <span class="pc-icon">🎬</span>
+        <div>
+          <div class="pc-name">CatchMoment</div>
+          <div class="pc-tagline">AI-powered event video capture & highlight generation</div>
+        </div>
+        <span class="pc-badge pcb-med">Polyrepo Synergy</span>
+        <span class="pc-arrow" id="arr-catchmoment">▼</span>
+      </div>
+      <div class="pc-body" id="body-catchmoment">
+        <div class="pc-section-title">8 Repos = 8 Natural Plugin Candidates</div>
+        <ul class="pc-feature-list">
+          <li><strong>cm-api-gateway</strong> → HostAPI layer — the article's host, all other services register with it</li>
+          <li><strong>cm-video-processor</strong> (Modal GPU) → Plugin with its own lifecycle: init GPU session → process → release</li>
+          <li><strong>cm-highlight-engine</strong> → AI plugin loaded only when highlight generation is triggered (perfect lazy load)</li>
+          <li><strong>cm-storage-service</strong> (S3 + BunnyCDN) → Plugin that registers storage capability into HostAPI</li>
+          <li><strong>cm-event-service</strong> → Orchestrates which plugins are active for a given event type</li>
+          <li><strong>cm-web-app</strong> → Consumes plugins, lazy-loads feature sections (upload UI, gallery, sharing)</li>
+        </ul>
+
+        <div class="pc-section-title">GPU Plugin Lifecycle Example</div>
+        <div class="code">
+<span class="cm">// cm-highlight-engine/src/plugin.ts</span>
+<span class="kw">const</span> <span class="ty">HighlightPlugin</span>: <span class="ty">CatchMomentPlugin</span> = {
+  <span class="prop">name</span>: <span class="st">'HighlightEngine'</span>,
+  <span class="prop">version</span>: <span class="st">'2.0.0'</span>,
+  <span class="prop">requiredCapabilities</span>: [<span class="st">'gpu-inference'</span>, <span class="st">'storage-write'</span>],
+
+  <span class="kw">async</span> <span class="fn">init</span>(host: <span class="ty">CatchMomentHostAPI</span>) {
+    <span class="cm">// Register what this plugin provides</span>
+    host.<span class="fn">registerCapability</span>(<span class="st">'generate-highlights'</span>, <span class="kw">this</span>.<span class="prop">generateHighlights</span>);
+    host.<span class="fn">registerComponent</span>(<span class="st">'HighlightProgress'</span>, <span class="ty">HighlightProgressUI</span>);
+    host.<span class="fn">log</span>(<span class="st">'HighlightEngine: GPU session ready'</span>);
+  },
+
+  <span class="cm">// Lifecycle: release GPU resources when done</span>
+  <span class="kw">async</span> <span class="fn">unmount</span>() {
+    <span class="kw">await</span> <span class="fn">releaseGPUSession</span>();
+    host.<span class="fn">log</span>(<span class="st">'HighlightEngine: GPU session released'</span>);
+  },
+
+  <span class="prop">generateHighlights</span>: <span class="kw">async</span> (eventId: <span class="kw">string</span>) => { <span class="cm">/* Modal inference call */</span> }
+};
+          <div class="code-title">TypeScript</div>
+        </div>
+        <div class="callout co-green">
+          <span>⚡</span>
+          <div><strong>CatchMoment Insight:</strong> The article's section on <strong>Web Workers for isolation</strong> is directly applicable here. GPU inference plugins can run in a Worker, keeping the main thread free. The <code>postMessage</code> pattern becomes CatchMoment's inter-plugin communication bus.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIROSE -->
+    <div class="project-card">
+      <div class="pc-header" onclick="toggleProject('firose')">
+        <span class="pc-icon">🏢</span>
+        <div>
+          <div class="pc-name">FIROSE Group</div>
+          <div class="pc-tagline">Neat & Fresh · The Femison · AR Perfumes</div>
+        </div>
+        <span class="pc-badge pcb-low">Content Modularity</span>
+        <span class="pc-arrow" id="arr-firose">▼</span>
+      </div>
+      <div class="pc-body" id="body-firose">
+        <div class="pc-section-title">Multi-Division Plugin Strategy</div>
+        <ul class="pc-feature-list">
+          <li>Each division (Neat & Fresh, Femison, AR Perfumes) owns its product catalog, promotional banners, and campaign pages as independent plugins</li>
+          <li>The FIROSE Group website is the host — divisions register their sections without touching the core website codebase</li>
+          <li>Multilingual content (5 languages via next-intl) can be lazy-loaded per locale — massive bundle reduction for non-EN visitors</li>
+          <li>Neat & Fresh e-commerce platform (already built on .NET 8 + Next.js 14) can expose a product plugin that the main FIROSE site lazy-loads</li>
+          <li>Marketing campaign pages (like Black Phynoline launches) become short-lived plugins — deploy, promote, retire — without touching the core</li>
+        </ul>
+        <div class="pc-section-title">Division Plugin Registration</div>
+        <div class="code">
+<span class="cm">// firose-web/src/plugins/host.ts</span>
+<span class="kw">interface</span> <span class="ty">FIROSEHostAPI</span> {
+  <span class="prop">registerDivision</span>: (division: <span class="ty">Division</span>, config: <span class="ty">DivisionConfig</span>) => <span class="kw">void</span>;
+  <span class="prop">registerProductCatalog</span>: (divisionId: <span class="kw">string</span>, catalog: <span class="ty">CatalogPlugin</span>) => <span class="kw">void</span>;
+  <span class="prop">registerCampaignPage</span>: (slug: <span class="kw">string</span>, component: <span class="ty">React.ComponentType</span>) => <span class="kw">void</span>;
+  <span class="prop">i18n</span>: { <span class="prop">t</span>: (key: <span class="kw">string</span>, locale: <span class="ty">Locale</span>) => <span class="kw">string</span> };
+}
+
+<span class="cm">// Neat & Fresh registers with FIROSE host</span>
+<span class="kw">const</span> <span class="ty">NeatFreshPlugin</span>: <span class="ty">FIROSEPlugin</span> = {
+  <span class="prop">name</span>: <span class="st">'NeatFresh'</span>,
+  <span class="kw">async</span> <span class="fn">init</span>(host: <span class="ty">FIROSEHostAPI</span>) {
+    host.<span class="fn">registerDivision</span>(<span class="st">'neat-fresh'</span>, { locale: <span class="st">'en'</span>, theme: <span class="st">'green'</span> });
+    host.<span class="fn">registerProductCatalog</span>(<span class="st">'neat-fresh'</span>, await <span class="fn">fetchCatalog</span>());
+  }
+};
+          <div class="code-title">TypeScript</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §4 CODE ADAPTATIONS ═══ -->
+  <section id="code">
+    <div class="sec-hd">
+      <span class="sec-num">04</span>
+      <h2 class="sec-title">FBT Code Adaptations</h2>
+      <span class="sec-sub">article code → fbt stack</span>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-btn on" onclick="switchTab('loader', this)">Plugin Loader</div>
+      <div class="tab-btn" onclick="switchTab('security', this)">Security Layer</div>
+      <div class="tab-btn" onclick="switchTab('hotload', this)">Hot-Loading</div>
+      <div class="tab-btn" onclick="switchTab('ci', this)">CI Pipeline</div>
+    </div>
+
+    <div class="tab-panel on" id="tab-loader">
+      <div class="callout co-gold">
+        <span>📖</span>
+        <div><strong>Article says:</strong> <code>import(/* @vite-ignore */ url)</code> to lazy-load plugin bundles. FBT adapts this with strict URL allowlisting, role-based plugin selection, and React 19's <code>use()</code> hook for Suspense-native plugin loading.</div>
+      </div>
+      <div class="code">
+<span class="cm">// fbt-shared/plugin-loader.ts — FBT Production Plugin Loader</span>
+<span class="kw">import</span> { <span class="nm">use</span>, <span class="nm">cache</span> } <span class="kw">from</span> <span class="st">'react'</span>; <span class="cm">// React 19</span>
+
+<span class="cm">// Strict allowlist — no arbitrary URLs</span>
+<span class="kw">const</span> <span class="prop">PLUGIN_REGISTRY</span>: <span class="ty">Record</span><<span class="kw">string</span>, () => <span class="ty">Promise</span><<span class="kw">any</span>>> = {
+  <span class="st">'owner-dashboard'</span>:    () => <span class="kw">import</span>(<span class="st">'@rentflow/plugin-owner'</span>),
+  <span class="st">'manager-dashboard'</span>:  () => <span class="kw">import</span>(<span class="st">'@rentflow/plugin-manager'</span>),
+  <span class="st">'resident-dashboard'</span>: () => <span class="kw">import</span>(<span class="st">'@rentflow/plugin-resident'</span>),
+  <span class="st">'superadmin-panel'</span>:   () => <span class="kw">import</span>(<span class="st">'@rentflow/plugin-superadmin'</span>),
+};
+
+<span class="cm">// Cache plugin promises — deduplicate concurrent loads</span>
+<span class="kw">const</span> <span class="fn">loadPlugin</span> = <span class="fn">cache</span>(<span class="kw">async</span> (key: <span class="kw">string</span>, hostAPI: <span class="ty">RentFlowHostAPI</span>) => {
+  <span class="kw">const</span> loader = <span class="prop">PLUGIN_REGISTRY</span>[key];
+  <span class="kw">if</span> (!loader) <span class="kw">throw new</span> <span class="ty">Error</span>(<span class="st">`Unknown plugin: ${key}`</span>);
+  <span class="kw">const</span> { <span class="kw">default</span>: plugin } = <span class="kw">await</span> <span class="fn">loader</span>();
+  <span class="kw">await</span> plugin.<span class="fn">init</span>(hostAPI);
+  <span class="kw">return</span> plugin;
+});
+
+<span class="cm">// React 19 — Suspense-native plugin component</span>
+<span class="kw">export function</span> <span class="fn">PluginBoundary</span>({ pluginKey }: { pluginKey: <span class="kw">string</span> }) {
+  <span class="kw">const</span> plugin = <span class="fn">use</span>(<span class="fn">loadPlugin</span>(pluginKey, hostAPI)); <span class="cm">// Throws promise → Suspense</span>
+  <span class="kw">const</span> <span class="ty">Component</span> = plugin.<span class="fn">getComponent</span>(<span class="st">'Dashboard'</span>);
+  <span class="kw">return</span> <<span class="ty">Component</span> />;
+}
+        <div class="code-title">Next.js 15 + React 19</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-security">
+      <div class="callout co-fbt">
+        <span>🔐</span>
+        <div><strong>Article says:</strong> Use a <code>SecureHostAPI</code> that restricts what plugins can call. FBT extends this with Zentra token scopes — a plugin's capabilities are derived directly from the JWT claims in the user's Zentra token.</div>
+      </div>
+      <div class="code">
+<span class="cm">// fbt-shared/secure-host.ts — Zentra-powered security</span>
+<span class="kw">export function</span> <span class="fn">createSecureHostAPI</span>(
+  zentraToken: <span class="ty">ZentraToken</span>,
+  tenantId: <span class="kw">string</span>
+): <span class="ty">RentFlowHostAPI</span> {
+  <span class="cm">// Derive capabilities from Zentra claims</span>
+  <span class="kw">const</span> <span class="fn">hasScope</span> = (scope: <span class="kw">string</span>) =>
+    zentraToken.scopes.<span class="fn">includes</span>(scope);
+
+  <span class="kw">return</span> {
+    <span class="prop">auth</span>: {
+      <span class="prop">user</span>: zentraToken.user,
+      <span class="prop">tenantId</span>,
+      <span class="cm">// Permission check uses live token scopes</span>
+      <span class="prop">hasPermission</span>: (perm) => <span class="fn">hasScope</span>(<span class="st">`rentflow:${perm}`</span>),
+    },
+    <span class="prop">registerPanel</span>: (key, config) => {
+      <span class="cm">// Guard: panel registration requires manage:ui scope</span>
+      <span class="kw">if</span> (!<span class="fn">hasScope</span>(<span class="st">'rentflow:manage:ui'</span>))
+        <span class="kw">throw new</span> <span class="ty">Error</span>(<span class="st">'Plugin lacks manage:ui scope'</span>);
+      panelRegistry.<span class="fn">set</span>(key, config);
+    },
+    <span class="cm">// Network access explicitly absent — plugins call APIs directly</span>
+    <span class="cm">// through their own service layer, not through hostAPI</span>
+    <span class="prop">log</span>: (msg, lvl) => logger.<span class="fn">emit</span>({ msg, level: lvl ?? <span class="st">'info'</span>, tenantId }),
+    <span class="prop">events</span>: <span class="fn">createScopedEventBus</span>(tenantId),
+  };
+}
+        <div class="code-title">Zentra-Integrated Security</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-hotload">
+      <div class="callout co-gold">
+        <span>🔥</span>
+        <div><strong>Article says:</strong> Use Vite's <code>import.meta.hot.accept()</code> for HMR. For FBT's Cowork workflow, this is transformational — Cowork edits a plugin, the host app shows changes without a full restart, keeping the Claude Code → review loop under 3 seconds.</div>
+      </div>
+      <div class="code">
+<span class="cm">// In development — hot-reload plugin without losing host state</span>
+<span class="kw">if</span> (<span class="kw">import</span>.meta.<span class="prop">hot</span>) {
+  <span class="kw">import</span>.meta.<span class="prop">hot</span>.<span class="fn">accept</span>(
+    [
+      <span class="st">'@rentflow/plugin-owner'</span>,
+      <span class="st">'@rentflow/plugin-manager'</span>,
+      <span class="st">'@rentflow/plugin-resident'</span>,
+    ],
+    <span class="kw">async</span> (newModules) => {
+      <span class="kw">for</span> (<span class="kw">const</span> newModule <span class="kw">of</span> newModules ?? []) {
+        <span class="kw">if</span> (!newModule) <span class="kw">continue</span>;
+        <span class="kw">const</span> updatedPlugin = newModule.<span class="kw">default</span>;
+
+        <span class="cm">// Graceful unmount before hot-swap</span>
+        <span class="kw">const</span> existing = pluginRegistry.<span class="fn">get</span>(updatedPlugin.name);
+        <span class="kw">await</span> existing?.unmount?.();
+
+        <span class="cm">// Re-init with fresh host API snapshot</span>
+        <span class="kw">await</span> updatedPlugin.<span class="fn">init</span>(<span class="fn">createSecureHostAPI</span>(currentToken, tenantId));
+        pluginRegistry.<span class="fn">set</span>(updatedPlugin.name, updatedPlugin);
+
+        console.<span class="fn">log</span>(<span class="st">`[HMR] Plugin hot-swapped: ${updatedPlugin.name}`</span>);
+      }
+    }
+  );
+}
+        <div class="code-title">Vite HMR — FBT Cowork Dev Loop</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-ci">
+      <div class="callout co-green">
+        <span>🚀</span>
+        <div><strong>Article says:</strong> Per-plugin GitHub Actions. FBT extends this to Railway auto-deploy on plugin bundle change — each RentFlow plugin module triggers its own deploy pipeline, not the full app.</div>
+      </div>
+      <div class="code">
+<span class="cm"># .github/workflows/plugin-owner.yml</span>
+<span class="prop">name</span>: <span class="st">RentFlow Owner Plugin CI</span>
+<span class="prop">on</span>:
+  <span class="prop">push</span>:
+    <span class="prop">paths</span>: [<span class="st">'packages/plugin-owner/**'</span>]
+
+<span class="prop">jobs</span>:
+  <span class="prop">ci</span>:
+    <span class="prop">runs-on</span>: ubuntu-latest
+    <span class="prop">steps</span>:
+      - <span class="prop">uses</span>: actions/checkout@v4
+      - <span class="prop">uses</span>: actions/setup-node@v4
+        <span class="prop">with</span>: { node-version: <span class="st">'22'</span> }
+      - <span class="prop">run</span>: <span class="st">pnpm install --frozen-lockfile</span>
+
+      <span class="cm"># Type-check plugin against HostAPI contract</span>
+      - <span class="prop">run</span>: <span class="st">pnpm -F @rentflow/plugin-owner typecheck</span>
+      - <span class="prop">run</span>: <span class="st">pnpm -F @rentflow/plugin-owner lint</span>
+      - <span class="prop">run</span>: <span class="st">pnpm -F @rentflow/plugin-owner test</span>
+      - <span class="prop">run</span>: <span class="st">pnpm -F @rentflow/plugin-owner build</span>
+
+      <span class="cm"># Verify plugin implements required HostAPI contract</span>
+      - <span class="prop">run</span>: <span class="st">pnpm -F @rentflow/plugin-owner verify-contract</span>
+
+      <span class="cm"># Upload bundle to Railway CDN — host app lazy-loads from here</span>
+      - <span class="prop">name</span>: Deploy plugin bundle
+        <span class="prop">run</span>: <span class="st">|
+          railway deploy --service rentflow-plugin-owner \
+            --env production \
+            --file dist/plugin-owner.es.js</span>
+        <div class="code-title">GitHub Actions + Railway</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §5 BEFORE / AFTER ═══ -->
+  <section id="before-after">
+    <div class="sec-hd">
+      <span class="sec-num">05</span>
+      <h2 class="sec-title">Before vs After for FBT</h2>
+      <span class="sec-sub">monolith → modular platform</span>
+    </div>
+
+    <div class="ba-grid">
+      <div class="ba-box ba-before">
+        <div class="ba-label">Without Plugin Architecture (Now)</div>
+        <ul class="ba-list">
+          <li>All RentFlow roles load all role code — every user downloads Owner + Manager + Resident + SuperAdmin bundles</li>
+          <li>Adding a new Manager feature requires touching the same files Resident uses → merge conflicts</li>
+          <li>Zentra Admin UI modules share the same chunk — audit-logs loads even when only managing clients</li>
+          <li>CatchMoment's video processing logic is bundled with the landing page</li>
+          <li>FIROSE division campaigns require redeploying the entire Group website</li>
+          <li>A bug in the Owner dashboard forces a full RentFlow release cycle</li>
+          <li>Cowork-generated code for one feature can break another in the same bundle</li>
+        </ul>
+      </div>
+      <div class="ba-box ba-after">
+        <div class="ba-label">With Plugin Architecture (Target)</div>
+        <ul class="ba-list">
+          <li>Zentra token determines which plugin bundle loads — Resident never downloads Owner code</li>
+          <li>Manager plugin lives in <code>@rentflow/plugin-manager</code> — Resident team never touches it</li>
+          <li>Zentra admin loads audit-logs plugin on demand — initial load drops from 400kb to 80kb</li>
+          <li>CatchMoment video plugin loads only when an active event exists</li>
+          <li>Black Phynoline campaign deploys as a FIROSE plugin without touching homepage</li>
+          <li>Owner plugin hotfix deploys and hot-loads without Resident downtime</li>
+          <li>Cowork generates a complete self-contained plugin — zero risk to other modules</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout co-fbt">
+      <span>🎯</span>
+      <div><strong>The single biggest FBT win:</strong> Cowork's Claude Code workflow becomes dramatically safer. Each session targets one plugin. The generated code is type-checked against the HostAPI contract. You can hot-load Cowork's output in the host app without rebuilding anything else. Iteration speed multiplies.</div>
+    </div>
+  </section>
+
+  <!-- ═══ §6 ROADMAP ═══ -->
+  <section id="roadmap">
+    <div class="sec-hd">
+      <span class="sec-num">06</span>
+      <h2 class="sec-title">FBT Implementation Roadmap</h2>
+      <span class="sec-sub">phased rollout plan</span>
+    </div>
+
+    <p class="sec-intro">The article gives all the technical pieces. Here's the FBT-specific sequence — ordered to deliver value fast without a big-bang rewrite.</p>
+
+    <div class="roadmap">
+      <div class="rm-step">
+        <div class="rm-num">1</div>
+        <div class="rm-content">
+          <div class="rm-project">Zentra · Week 1–2</div>
+          <div class="rm-title">Define the FBT HostAPI Interface Contracts</div>
+          <div class="rm-desc">Start with Zentra. Write <code>ZentraHostAPI</code> and <code>RentFlowHostAPI</code> TypeScript interfaces. These are the foundation everything else builds on. No runtime code yet — just contracts. This is the article's "How to Define the Host API" applied to FBT's actual domain.</div>
+          <div class="rm-tags"><span class="rm-tag">TypeScript interfaces</span><span class="rm-tag">HostAPI contract</span><span class="rm-tag">Zentra scopes</span></div>
+        </div>
+      </div>
+
+      <div class="rm-step">
+        <div class="rm-num">2</div>
+        <div class="rm-content">
+          <div class="rm-project">RentFlow · Week 2–3</div>
+          <div class="rm-title">Extract Role Dashboards as Lazy-Loaded Plugins</div>
+          <div class="rm-desc">Move <code>OwnerDashboard</code>, <code>ManagerDashboard</code>, and <code>ResidentDashboard</code> into separate packages under <code>packages/</code>. Each gets a <code>plugin.ts</code> with init/unmount. The main <code>app/</code> dynamically imports based on Zentra JWT role claim. Immediate bundle size win.</div>
+          <div class="rm-tags"><span class="rm-tag">Dynamic import()</span><span class="rm-tag">Role-based loading</span><span class="rm-tag">Turborepo</span></div>
+        </div>
+      </div>
+
+      <div class="rm-step">
+        <div class="rm-num">3</div>
+        <div class="rm-content">
+          <div class="rm-project">Zentra + RentFlow · Week 3–4</div>
+          <div class="rm-title">Implement SecureHostAPI with Zentra Token Scopes</div>
+          <div class="rm-desc">Create <code>createSecureHostAPI(zentraToken)</code> that derives plugin capabilities from live JWT claims. A Resident plugin that tries to register an Owner-only panel throws a typed error at init time. The security layer is Zentra-native, not custom-built.</div>
+          <div class="rm-tags"><span class="rm-tag">JWT scopes</span><span class="rm-tag">Permission gates</span><span class="rm-tag">SecureHostAPI</span></div>
+        </div>
+      </div>
+
+      <div class="rm-step">
+        <div class="rm-num">4</div>
+        <div class="rm-content">
+          <div class="rm-project">CatchMoment · Week 4–6</div>
+          <div class="rm-title">Formalise Polyrepo Interfaces as Plugin Contracts</div>
+          <div class="rm-desc">CatchMoment's 8 repos already have natural boundaries. Formalise each as a <code>CatchMomentPlugin</code> with typed capabilities (<code>gpu-inference</code>, <code>storage-write</code>, <code>highlight-generate</code>). The event-service becomes the HostAPI orchestrator — loading the right pipeline plugins for each event type.</div>
+          <div class="rm-tags"><span class="rm-tag">Polyrepo contracts</span><span class="rm-tag">GPU lifecycle</span><span class="rm-tag">Capability model</span></div>
+        </div>
+      </div>
+
+      <div class="rm-step">
+        <div class="rm-num">5</div>
+        <div class="rm-content">
+          <div class="rm-project">All Projects · Week 6–7</div>
+          <div class="rm-title">Per-Plugin CI Pipelines on GitHub Actions</div>
+          <div class="rm-desc">Add the GitHub Actions workflow the article describes — one per plugin package. Each runs type-check, lint, test, build, and a <code>verify-contract</code> script that confirms the plugin satisfies its HostAPI interface. Railway auto-deploys changed plugin bundles. Cowork sessions can target specific plugin packages with confidence.</div>
+          <div class="rm-tags"><span class="rm-tag">GitHub Actions</span><span class="rm-tag">Railway deploy</span><span class="rm-tag">Contract verification</span></div>
+        </div>
+      </div>
+
+      <div class="rm-step">
+        <div class="rm-num">6</div>
+        <div class="rm-content">
+          <div class="rm-project">FIROSE · Week 7–8</div>
+          <div class="rm-title">Division Content as Independently Deployable Plugins</div>
+          <div class="rm-desc">Neat & Fresh, Femison, and AR Perfumes each get a content plugin. The FIROSE Group website becomes a plugin host. Division teams deploy their product catalog updates without a website release. Hot-loading in development lets marketing see live changes in the host context instantly.</div>
+          <div class="rm-tags"><span class="rm-tag">Content plugins</span><span class="rm-tag">Division autonomy</span><span class="rm-tag">Hot-load</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ §7 WHEN NOT TO ═══ -->
+  <section id="when-not">
+    <div class="sec-hd">
+      <span class="sec-num">07</span>
+      <h2 class="sec-title">When FBT Should NOT Use This</h2>
+      <span class="sec-sub">the article is honest about this — so are we</span>
+    </div>
+
+    <p class="sec-intro">The article explicitly lists when plugin architecture is wrong. Let's map this honestly to FBT's situation.</p>
+
+    <table class="concept-tbl">
+      <thead>
+        <tr><th>Article Warning</th><th>Applies to FBT?</th><th>FBT Verdict</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Small / Single-Team Apps</td>
+          <td>Partly — early-stage features</td>
+          <td>New EduConnect or early-stage features should <strong>not</strong> start as plugins. Build monolithic first, extract when boundaries are clear.</td>
+        </tr>
+        <tr>
+          <td>Tightly Coupled Features</td>
+          <td>Yes — some RentFlow flows</td>
+          <td>The resident onboarding QR flow is tightly coupled to the property assignment logic. <strong>Don't plugin-ise this</strong> — the coupling is load-bearing. Keep it in core.</td>
+        </tr>
+        <tr>
+          <td>Performance-Critical Systems</td>
+          <td>Partly — CatchMoment GPU pipeline</td>
+          <td>The GPU inference hot path itself should <strong>not</strong> use plugin dynamic import — too slow. Load it eagerly at event start. Only the UI components are plugin-lazy-loaded.</td>
+        </tr>
+        <tr>
+          <td>Limited Security Controls</td>
+          <td>Not applicable — Zentra handles it</td>
+          <td>FBT is in the clear. Zentra's OIDC token scopes provide exactly the security layer the article recommends. You already have the infrastructure.</td>
+        </tr>
+        <tr>
+          <td>Early-Stage Products</td>
+          <td>Yes — new project kickoffs</td>
+          <td>When starting a new FBT project with Cowork, <strong>build monolithic first</strong> for 4–6 weeks. Once domains are clear, extract plugins. The Kickoff Prompt should scaffold conventional structure.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ §8 VERDICT ═══ -->
+  <section id="verdict">
+    <div class="sec-hd">
+      <span class="sec-num">08</span>
+      <h2 class="sec-title">FBT Verdict</h2>
+      <span class="sec-sub">what to do with this knowledge</span>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-label">// FBT Engineering Assessment</div>
+      <p class="verdict-text">
+        This article is not a nice-to-have read — it's a <strong>roadmap for how FBT scales without imploding</strong>. You are already building a platform (Zentra as identity, RentFlow as the product, CatchMoment as a new vertical). Platform thinking requires plugin thinking. The HostAPI pattern maps directly to Zentra's token scope model. The lazy-loading pattern directly solves RentFlow's role-bundle problem. The lifecycle hooks fix the concurrency issues you've already encountered. <strong>The architecture described is the one FBT needs.</strong>
+      </p>
+      <div class="verdict-grid">
+        <div class="vg-item">
+          <div class="vg-label">Start Immediately</div>
+          <div class="vg-value">Define HostAPI contracts for RentFlow and Zentra. These are TypeScript interfaces — zero runtime cost to start.</div>
+        </div>
+        <div class="vg-item">
+          <div class="vg-label">Biggest Quick Win</div>
+          <div class="vg-value">Lazy-load RentFlow role dashboards by Zentra JWT role claim. Instant bundle reduction, zero UX change.</div>
+        </div>
+        <div class="vg-item">
+          <div class="vg-label">Cowork Multiplier</div>
+          <div class="vg-value">Each Cowork session targets one plugin package. Safer generation, faster iteration, zero cross-module risk.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="font-family:var(--serif);font-size:14px;font-weight:600;margin-bottom:12px;color:var(--ink)">Complete Concept Index</div>
+    <div class="tag-cloud">
+      <span class="t">Host API Design</span>
+      <span class="t">Plugin Lifecycle</span>
+      <span class="t">Independent Bundling</span>
+      <span class="t">Dynamic import()</span>
+      <span class="t">Lazy Loading</span>
+      <span class="t">Vite Library Mode</span>
+      <span class="t">SecureHostAPI</span>
+      <span class="t">Permission Model</span>
+      <span class="t">iframe Sandboxing</span>
+      <span class="t">Web Workers</span>
+      <span class="t">postMessage IPC</span>
+      <span class="t">HMR Hot-Reload</span>
+      <span class="t">import.meta.hot</span>
+      <span class="t">GitHub Actions per plugin</span>
+      <span class="t">TypeScript Contracts</span>
+      <span class="t">Zentra Token Scopes</span>
+      <span class="t">Role-Based Plugin Load</span>
+      <span class="t">Turborepo Packages</span>
+      <span class="t">RentFlow Role Modules</span>
+      <span class="t">CatchMoment GPU Lifecycle</span>
+      <span class="t">FIROSE Division Plugins</span>
+      <span class="t">Plugin Registry Allowlist</span>
+      <span class="t">React 19 use()</span>
+      <span class="t">Suspense Plugin Boundary</span>
+      <span class="t">Plugin EventBus</span>
+      <span class="t">Plugin Versioning</span>
+      <span class="t">Cowork Session Isolation</span>
+      <span class="t">Railway Plugin Deploy</span>
+      <span class="t">Contract Verification CI</span>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+// ── PROJECT ACCORDIONS ──
+function toggleProject(id) {
+  const body = document.getElementById('body-' + id);
+  const arrow = document.getElementById('arr-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+// Open RentFlow by default
+toggleProject('rentflow');
+
+// ── TABS ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tab-' + id)?.classList.add('on');
+  btn.classList.add('on');
+}
+
+// ── ACTIVE NAV ──
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-item');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { rootMargin: '-20% 0px -75% 0px' });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
