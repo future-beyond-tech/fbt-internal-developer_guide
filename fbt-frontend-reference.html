@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBT Partner — Frontend Development Master Reference</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  --fbt: #512BD4;
+  --fbt-hi: #7C4DFF;
+  --fbt-lo: #1E0B6E;
+  --fbt-glow: rgba(124,77,255,0.35);
+  --cyan: #00E5CC;
+  --cyan-dim: rgba(0,229,204,0.15);
+  --amber: #FFB020;
+  --amber-dim: rgba(255,176,32,0.12);
+  --green: #00D68F;
+  --green-dim: rgba(0,214,143,0.12);
+  --red: #FF4060;
+  --red-dim: rgba(255,64,96,0.12);
+  --pink: #FF2D78;
+  --sky: #38BDF8;
+  --void: #05050F;
+  --deep: #080818;
+  --panel: #0C0C22;
+  --card: #10102A;
+  --raised: #151535;
+  --lift: #1C1C42;
+  --border: rgba(255,255,255,0.06);
+  --border-hi: rgba(124,77,255,0.5);
+  --t1: #EEEEFF;
+  --t2: #9999CC;
+  --t3: #5555AA;
+  --t4: #333366;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Instrument Sans', sans-serif;
+  --display: 'Bebas Neue', sans-serif;
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{background:var(--void);color:var(--t1);font-family:var(--sans);font-size:13.5px;line-height:1.65;overflow-x:hidden}
+
+/* ─── GRAIN OVERLAY ─── */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:0.6}
+
+/* ─── TOP BAR ─── */
+.topbar{position:sticky;top:0;z-index:200;height:52px;background:rgba(5,5,15,0.95);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px}
+.topbar-logo{font-family:var(--display);font-size:22px;letter-spacing:0.12em;color:var(--cyan);text-shadow:0 0 20px rgba(0,229,204,0.5)}
+.topbar-logo em{color:var(--fbt-hi);font-style:normal}
+.topbar-sep{width:1px;height:20px;background:var(--border)}
+.topbar-title{font-family:var(--mono);font-size:10.5px;color:var(--t3);letter-spacing:0.18em;text-transform:uppercase}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.tbadge{font-family:var(--mono);font-size:9px;font-weight:500;padding:3px 9px;border-radius:2px;letter-spacing:0.06em;text-transform:uppercase}
+.tbadge-r{background:rgba(56,189,248,0.12);color:var(--sky);border:1px solid rgba(56,189,248,0.3)}
+.tbadge-n{background:rgba(0,0,0,0.4);color:var(--t3);border:1px solid var(--border)}
+.tbadge-v{background:rgba(81,43,212,0.25);color:var(--fbt-hi);border:1px solid var(--border-hi)}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:5px 11px;transition:border-color 0.2s;margin-left:8px}
+.topbar-search:focus-within{border-color:var(--fbt)}
+.topbar-search input{background:none;border:none;outline:none;color:var(--t1);font-family:var(--mono);font-size:11px;width:160px}
+.topbar-search input::placeholder{color:var(--t4)}
+
+/* ─── LAYOUT ─── */
+.shell{display:flex;min-height:calc(100vh - 52px)}
+
+/* ─── SIDEBAR ─── */
+.sidebar{width:220px;min-width:220px;background:var(--deep);border-right:1px solid var(--border);padding:16px 0 40px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.sidebar::-webkit-scrollbar{width:2px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--fbt-lo);border-radius:1px}
+.nav-group-label{font-family:var(--mono);font-size:8.5px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--t4);padding:14px 16px 5px}
+.nav-group-label:first-child{padding-top:6px}
+.nav-link{display:flex;align-items:center;gap:9px;padding:6px 16px;color:var(--t3);text-decoration:none;font-size:12px;transition:all 0.12s;border-left:2px solid transparent;white-space:nowrap}
+.nav-link:hover,.nav-link.active{color:var(--t1);background:rgba(124,77,255,0.08);border-left-color:var(--fbt-hi)}
+.nav-link .ndi{width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:0.5;transition:opacity 0.12s}
+.nav-link:hover .ndi,.nav-link.active .ndi{opacity:1;background:var(--fbt-hi);box-shadow:0 0 6px var(--fbt-hi)}
+.nav-count{margin-left:auto;font-family:var(--mono);font-size:8px;color:var(--t4);background:var(--panel);padding:1px 5px;border-radius:2px}
+
+/* ─── MAIN ─── */
+main{flex:1;padding:0;min-width:0}
+
+/* ─── HERO ─── */
+.hero{position:relative;background:var(--deep);border-bottom:1px solid var(--border);padding:48px 52px 44px;overflow:hidden}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 80%)}
+.hero-glow-l{position:absolute;top:-80px;left:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(81,43,212,0.25) 0%,transparent 70%);pointer-events:none}
+.hero-glow-r{position:absolute;bottom:-60px;right:80px;width:300px;height:300px;background:radial-gradient(circle,rgba(0,229,204,0.12) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:14px;position:relative}
+.hero-eyebrow::before{content:'▸ ';opacity:0.6}
+.hero h1{font-family:var(--display);font-size:64px;line-height:0.95;letter-spacing:0.04em;position:relative;margin-bottom:20px}
+.hero h1 .line1{display:block;color:var(--t1)}
+.hero h1 .line2{display:block;-webkit-text-stroke:1px var(--fbt-hi);color:transparent;text-shadow:none}
+.hero h1 .line3{display:block;color:var(--cyan);text-shadow:0 0 30px rgba(0,229,204,0.4)}
+.hero-desc{font-size:14px;color:var(--t2);max-width:560px;line-height:1.7;position:relative;margin-bottom:32px}
+.hero-stats{display:flex;gap:0;position:relative}
+.hero-stat{padding:16px 28px;border:1px solid var(--border);border-right:none;display:flex;flex-direction:column;gap:4px}
+.hero-stat:first-child{border-radius:6px 0 0 6px}
+.hero-stat:last-child{border-right:1px solid var(--border);border-radius:0 6px 6px 0}
+.hero-stat .sv{font-family:var(--display);font-size:36px;letter-spacing:0.05em;line-height:1;color:var(--fbt-hi)}
+.hero-stat .sl{font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--t3)}
+.hero-tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:24px;position:relative}
+.hero-tag{font-family:var(--mono);font-size:9.5px;padding:3px 9px;border-radius:2px;border:1px solid var(--border);color:var(--t3)}
+.hero-tag.hi{border-color:rgba(124,77,255,0.4);color:var(--fbt-hi);background:rgba(124,77,255,0.08)}
+
+/* ─── CONTENT AREA ─── */
+.content{padding:44px 52px 80px}
+
+/* ─── SECTION ─── */
+section{margin-bottom:72px;scroll-margin-top:64px;animation:fadeUp 0.35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.sec-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--border);position:relative}
+.sec-hd::after{content:'';position:absolute;bottom:-1px;left:0;width:60px;height:1px;background:var(--fbt-hi);box-shadow:0 0 8px var(--fbt-hi)}
+.sec-ico{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;border:1px solid var(--border)}
+.sec-hd h2{font-family:var(--display);font-size:26px;letter-spacing:0.06em;color:var(--t1)}
+.sec-sub{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--t3);text-transform:uppercase;margin-left:auto}
+.sec-desc{font-size:13px;color:var(--t2);margin-bottom:24px;max-width:750px;line-height:1.7}
+
+/* ─── GRID LAYOUTS ─── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gauto{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.gauto-sm{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+
+/* ─── CARD ─── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;position:relative;overflow:hidden;transition:border-color 0.15s,transform 0.15s}
+.card:hover{border-color:rgba(124,77,255,0.3);transform:translateY(-1px)}
+.card-top-bar{position:absolute;top:0;left:0;right:0;height:2px}
+.ct-purple{background:linear-gradient(90deg,var(--fbt),var(--fbt-hi))}
+.ct-cyan{background:linear-gradient(90deg,#00A896,var(--cyan))}
+.ct-amber{background:linear-gradient(90deg,#E07000,var(--amber))}
+.ct-green{background:linear-gradient(90deg,#009966,var(--green))}
+.ct-red{background:linear-gradient(90deg,#CC0033,var(--red))}
+.ct-pink{background:linear-gradient(90deg,#CC0055,var(--pink))}
+.ct-sky{background:linear-gradient(90deg,#0066CC,var(--sky))}
+.ct-multi{background:linear-gradient(90deg,var(--fbt),var(--cyan),var(--amber))}
+.card-hd{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.card-ico{font-size:22px;line-height:1;flex-shrink:0}
+.card-title{font-family:var(--sans);font-size:13.5px;font-weight:700;color:var(--t1);line-height:1.3}
+.card-kw{font-family:var(--mono);font-size:9px;color:var(--fbt-hi);letter-spacing:0.1em;margin-top:2px;text-transform:uppercase}
+.card p{font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:10px}
+.card p strong{color:var(--t1)}
+
+/* ─── META CHIPS ─── */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:2px;letter-spacing:0.04em}
+.chip-p{background:rgba(124,77,255,0.18);color:#B090FF;border:1px solid rgba(124,77,255,0.35)}
+.chip-c{background:rgba(0,229,204,0.12);color:#00E5CC;border:1px solid rgba(0,229,204,0.25)}
+.chip-a{background:rgba(255,176,32,0.12);color:#FFB020;border:1px solid rgba(255,176,32,0.25)}
+.chip-g{background:rgba(0,214,143,0.12);color:#00D68F;border:1px solid rgba(0,214,143,0.25)}
+.chip-r{background:rgba(255,64,96,0.12);color:#FF6080;border:1px solid rgba(255,64,96,0.25)}
+.chip-s{background:rgba(255,255,255,0.05);color:var(--t3);border:1px solid var(--border)}
+
+/* ─── META GRID ─── */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.mi{background:var(--raised);padding:6px 9px;border-radius:4px;display:flex;flex-direction:column;gap:1px}
+.mi-l{font-family:var(--mono);font-size:8.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--t4)}
+.mi-v{font-size:11.5px;color:var(--t1)}
+
+/* ─── CODE BLOCK ─── */
+.code{background:var(--void);border:1px solid rgba(255,255,255,0.05);border-radius:5px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:#B8C4FF;overflow-x:auto;margin:8px 0;position:relative;line-height:1.6}
+.code-lang{position:absolute;top:6px;right:10px;font-size:8.5px;color:var(--t4);text-transform:uppercase;letter-spacing:0.12em}
+.kw{color:#9B72FF}
+.fn{color:var(--cyan)}
+.ty{color:var(--amber)}
+.st{color:var(--green)}
+.cm{color:#334466}
+.at{color:#FF8CB0}
+.nm{color:#7EC8FF}
+
+/* ─── TABLE ─── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--t3);padding:9px 13px;background:var(--raised);text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 13px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--t2);vertical-align:top}
+.tbl tr:hover td{background:rgba(124,77,255,0.04)}
+.tbl td:first-child{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--cyan);white-space:nowrap}
+.tbl td:nth-child(2){color:var(--t1);font-weight:500}
+.ck{color:var(--green)}
+.xx{color:var(--red)}
+.pt{color:var(--amber)}
+
+/* ─── CALLOUT ─── */
+.callout{display:flex;gap:11px;padding:13px 16px;border-radius:6px;margin:12px 0;font-size:12.5px;line-height:1.6}
+.co-p{background:rgba(81,43,212,0.12);border-left:3px solid var(--fbt)}
+.co-c{background:rgba(0,229,204,0.07);border-left:3px solid var(--cyan)}
+.co-a{background:rgba(255,176,32,0.08);border-left:3px solid var(--amber)}
+.co-r{background:rgba(255,64,96,0.08);border-left:3px solid var(--red)}
+.co-g{background:rgba(0,214,143,0.08);border-left:3px solid var(--green)}
+.callout strong{color:var(--t1)}
+.callout code{font-family:var(--mono);font-size:10.5px;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:2px}
+
+/* ─── WIDE CARD ─── */
+.wcard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:14px}
+.wcard-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.wcard-title{font-family:var(--sans);font-size:14.5px;font-weight:700;color:var(--t1)}
+.wcard-sub{font-family:var(--mono);font-size:9px;color:var(--t3);margin-left:auto;text-transform:uppercase;letter-spacing:0.12em}
+
+/* ─── PATTERN ROW ─── */
+.prow{display:grid;grid-template-columns:180px 1fr auto;align-items:start;gap:16px;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:7px;transition:border-color 0.15s}
+.prow:hover{border-color:rgba(124,77,255,0.3)}
+.prow-name{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--t1)}
+.prow-tag{font-family:var(--mono);font-size:9px;color:var(--fbt-hi);letter-spacing:0.08em;margin-top:2px}
+.prow-desc{font-size:12px;color:var(--t2);line-height:1.55}
+.prow-when{font-size:11px;color:var(--t3);font-style:italic;text-align:right;min-width:170px}
+
+/* ─── FLOW ─── */
+.flow{display:flex;flex-direction:column}
+.fstep{display:flex;gap:16px;position:relative}
+.fstep:not(:last-child)::after{content:'';position:absolute;left:14px;top:30px;bottom:-8px;width:1px;background:var(--border-hi);opacity:0.5}
+.fnum{width:29px;height:29px;border-radius:50%;background:var(--raised);border:1px solid var(--border-hi);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--fbt-hi);flex-shrink:0;z-index:1}
+.fcontent{padding:4px 0 20px}
+.ftitle{font-family:var(--sans);font-size:13px;font-weight:700;margin-bottom:3px;color:var(--t1)}
+.fdesc{font-size:12px;color:var(--t2);line-height:1.55}
+
+/* ─── HIGHLIGHT ROW ─── */
+.hrow{background:rgba(124,77,255,0.07);border-radius:5px;padding:10px 13px;margin-bottom:7px;border-left:2px solid var(--fbt-hi)}
+.hrow-t{font-family:var(--sans);font-size:13px;font-weight:700;margin-bottom:3px;color:var(--t1)}
+.hrow-b{font-size:12px;color:var(--t2)}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{font-family:var(--mono);font-size:10.5px;padding:6px 14px;cursor:pointer;color:var(--t3);border-bottom:2px solid transparent;transition:all 0.12s;margin-bottom:-1px;letter-spacing:0.06em}
+.tab:hover{color:var(--t1)}
+.tab.on{color:var(--fbt-hi);border-bottom-color:var(--fbt-hi)}
+.tab-panel{display:none}
+.tab-panel.on{display:block}
+
+/* ─── FILTER TABS ─── */
+.ftabs{display:flex;gap:5px;margin-bottom:18px;flex-wrap:wrap}
+.ftab{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:3px;cursor:pointer;background:var(--raised);border:1px solid var(--border);color:var(--t3);transition:all 0.12s;letter-spacing:0.05em}
+.ftab:hover{border-color:var(--fbt)}
+.ftab.on{background:var(--fbt);border-color:var(--fbt);color:#fff}
+
+/* ─── COMPARISON MATRIX ─── */
+.matrix{width:100%;border-collapse:collapse;font-size:11.5px}
+.matrix th{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--t3);padding:9px 12px;background:var(--raised);text-align:center;border:1px solid var(--border)}
+.matrix th:first-child{text-align:left}
+.matrix td{padding:9px 12px;border:1px solid rgba(255,255,255,0.04);color:var(--t2);text-align:center;vertical-align:middle}
+.matrix td:first-child{text-align:left;font-weight:600;color:var(--t1)}
+.matrix tr:hover td{background:rgba(124,77,255,0.04)}
+
+/* ─── TAG CLOUD ─── */
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-family:var(--mono);font-size:11px;padding:4px 10px;background:var(--raised);border:1px solid var(--border);border-radius:3px;color:var(--t2);cursor:default;transition:all 0.12s}
+.tag:hover{border-color:var(--fbt-hi);color:var(--t1);background:rgba(124,77,255,0.12)}
+
+/* ─── PERF METER ─── */
+.perf-bar{margin-bottom:10px}
+.perf-label{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11.5px}
+.perf-label span:first-child{color:var(--t1);font-weight:500}
+.perf-label span:last-child{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.perf-track{height:6px;background:var(--raised);border-radius:3px;overflow:hidden}
+.perf-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.pf-good{background:linear-gradient(90deg,var(--green),#00F0A0)}
+.pf-warn{background:linear-gradient(90deg,var(--amber),#FFD060)}
+.pf-bad{background:linear-gradient(90deg,var(--red),#FF8060)}
+.pf-fbt{background:linear-gradient(90deg,var(--fbt),var(--fbt-hi))}
+
+/* ─── ACCORDION ─── */
+.acc{border:1px solid var(--border);border-radius:6px;margin-bottom:7px;overflow:hidden}
+.acc-hd{display:flex;align-items:center;gap:10px;padding:12px 15px;background:var(--card);cursor:pointer;user-select:none;transition:background 0.12s}
+.acc-hd:hover{background:var(--raised)}
+.acc-title{font-family:var(--sans);font-size:13px;font-weight:600;flex:1;color:var(--t1)}
+.acc-ico{font-family:var(--mono);font-size:11px;color:var(--t3);transition:transform 0.2s}
+.acc.open .acc-ico{transform:rotate(180deg)}
+.acc-body{display:none;padding:14px 15px;background:var(--deep);border-top:1px solid var(--border)}
+.acc.open .acc-body{display:block}
+
+/* ─── DIVIDER ─── */
+.divider{height:1px;background:var(--border);margin:36px 0}
+
+/* ─── STICKY SECTION INDICATOR ─── */
+.section-progress{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:100}
+.sp-dot{width:6px;height:6px;border-radius:50%;background:var(--t4);cursor:pointer;transition:all 0.2s}
+.sp-dot:hover,.sp-dot.active{background:var(--fbt-hi);box-shadow:0 0 8px var(--fbt-hi);transform:scale(1.4)}
+
+/* ─── STATUS BADGE ─── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:2px;letter-spacing:0.06em;text-transform:uppercase}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.b-green{background:rgba(0,214,143,0.1);color:var(--green);border:1px solid rgba(0,214,143,0.25)}
+.b-amber{background:rgba(255,176,32,0.1);color:var(--amber);border:1px solid rgba(255,176,32,0.25)}
+.b-red{background:rgba(255,64,96,0.1);color:var(--red);border:1px solid rgba(255,64,96,0.25)}
+.b-blue{background:rgba(56,189,248,0.1);color:var(--sky);border:1px solid rgba(56,189,248,0.25)}
+
+/* ─── SCROLL SMOOTH ─── */
+html{scroll-padding-top:70px}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1200px){.g3{grid-template-columns:1fr 1fr}.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.sidebar{display:none}.hero{padding:32px 28px}.content{padding:32px 28px}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-logo">FBT<em> PARTNER</em></div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-title">Frontend Master Reference</div>
+  <div class="topbar-right">
+    <span class="tbadge tbadge-r">React 19</span>
+    <span class="tbadge tbadge-n">Next.js 15</span>
+    <span class="tbadge tbadge-v">TypeScript 5</span>
+    <span class="tbadge tbadge-n">Tailwind v4</span>
+    <div class="topbar-search">
+      <span style="color:var(--t4);font-size:13px">⌕</span>
+      <input type="text" placeholder="Search techniques..." id="searchInput" oninput="searchContent(this.value)">
+    </div>
+  </div>
+</header>
+
+<!-- PROGRESS DOTS -->
+<div class="section-progress" id="progressDots"></div>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-group-label">Foundation</div>
+  <a href="#principles" class="nav-link"><span class="ndi"></span>Core Principles<span class="nav-count">16</span></a>
+  <a href="#typescript" class="nav-link"><span class="ndi"></span>TypeScript Standards</a>
+  <a href="#paradigms" class="nav-link"><span class="ndi"></span>Paradigms</a>
+
+  <div class="nav-group-label">Architecture</div>
+  <a href="#component-arch" class="nav-link"><span class="ndi"></span>Component Architecture</a>
+  <a href="#design-patterns" class="nav-link"><span class="ndi"></span>Design Patterns</a>
+  <a href="#state-management" class="nav-link"><span class="ndi"></span>State Management</a>
+
+  <div class="nav-group-label">Next.js 15</div>
+  <a href="#nextjs" class="nav-link"><span class="ndi"></span>App Router Deep Dive</a>
+  <a href="#server-components" class="nav-link"><span class="ndi"></span>RSC & Server Actions</a>
+  <a href="#routing" class="nav-link"><span class="ndi"></span>Routing Patterns</a>
+  <a href="#data-fetching" class="nav-link"><span class="ndi"></span>Data Fetching</a>
+
+  <div class="nav-group-label">Styling</div>
+  <a href="#styling" class="nav-link"><span class="ndi"></span>Styling Approaches</a>
+  <a href="#design-system" class="nav-link"><span class="ndi"></span>Design System</a>
+  <a href="#responsive" class="nav-link"><span class="ndi"></span>Responsive Design</a>
+  <a href="#animation" class="nav-link"><span class="ndi"></span>Animation & Motion</a>
+
+  <div class="nav-group-label">Quality</div>
+  <a href="#forms" class="nav-link"><span class="ndi"></span>Forms & Validation</a>
+  <a href="#testing" class="nav-link"><span class="ndi"></span>Testing Strategies</a>
+  <a href="#accessibility" class="nav-link"><span class="ndi"></span>Accessibility</a>
+  <a href="#security-fe" class="nav-link"><span class="ndi"></span>Security</a>
+
+  <div class="nav-group-label">Performance</div>
+  <a href="#performance" class="nav-link"><span class="ndi"></span>Core Web Vitals</a>
+  <a href="#optimization" class="nav-link"><span class="ndi"></span>Optimization</a>
+
+  <div class="nav-group-label">Ecosystem</div>
+  <a href="#api-integration" class="nav-link"><span class="ndi"></span>API Integration</a>
+  <a href="#seo" class="nav-link"><span class="ndi"></span>SEO & Metadata</a>
+  <a href="#tooling" class="nav-link"><span class="ndi"></span>Build & Tooling</a>
+  <a href="#deployment-fe" class="nav-link"><span class="ndi"></span>Deployment</a>
+  <a href="#fbt-standards" class="nav-link"><span class="ndi"></span>FBT Standards</a>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow-l"></div>
+  <div class="hero-glow-r"></div>
+  <div class="hero-eyebrow">FBT Partner · Frontend Engineering · v3.0</div>
+  <h1>
+    <span class="line1">FRONTEND</span>
+    <span class="line2">DEVELOPMENT</span>
+    <span class="line3">MASTER REF</span>
+  </h1>
+  <p class="hero-desc">Every principle, pattern, standard, and approach for building production-grade frontend systems in React, Next.js 15, and TypeScript — structured, searchable, and FBT-grade. From atomic design to zero-downtime deployments.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="sv">22</div><div class="sl">Sections</div></div>
+    <div class="hero-stat"><div class="sv">120+</div><div class="sl">Patterns</div></div>
+    <div class="hero-stat"><div class="sv">60+</div><div class="sl">Standards</div></div>
+    <div class="hero-stat"><div class="sv">∞</div><div class="sl">Craft</div></div>
+  </div>
+  <div class="hero-tag-row">
+    <span class="hero-tag hi">React 19</span>
+    <span class="hero-tag hi">Next.js 15 App Router</span>
+    <span class="hero-tag hi">TypeScript 5 Strict</span>
+    <span class="hero-tag">Tailwind v4</span>
+    <span class="hero-tag">Framer Motion</span>
+    <span class="hero-tag">React Query v5</span>
+    <span class="hero-tag">Zustand</span>
+    <span class="hero-tag">React Hook Form</span>
+    <span class="hero-tag">Zod</span>
+    <span class="hero-tag">Storybook 8</span>
+    <span class="hero-tag">Playwright</span>
+    <span class="hero-tag">Vitest</span>
+    <span class="hero-tag">shadcn/ui</span>
+    <span class="hero-tag">tRPC</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="searchableContent">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §1  CORE PRINCIPLES -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="principles">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(124,77,255,0.12)">⚡</div>
+    <h2>CORE PRINCIPLES</h2>
+    <span class="sec-sub">16 principles · all levels</span>
+  </div>
+  <p class="sec-desc">The philosophical foundations that govern every decision in frontend engineering — from component design to user experience.</p>
+
+  <table class="tbl" style="margin-bottom:16px">
+    <thead>
+      <tr><th>Principle</th><th>What</th><th>How</th><th>Why</th><th>When</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SRP</td><td>Single Responsibility</td><td>One component, one job — render a button, not a button + analytics + logging</td><td>Easier to test, replace, reuse</td><td>Every component/hook you create</td></tr>
+      <tr><td>DRY</td><td>Don't Repeat Yourself</td><td>Extract repeated UI into shared components; logic into custom hooks</td><td>One source of truth, no drift</td><td>Anytime you write something twice</td></tr>
+      <tr><td>KISS</td><td>Keep It Simple</td><td>Prefer a plain div over a complex abstraction; 50 line component over 200</td><td>Lower cognitive load, faster iteration</td><td>Every architectural decision</td></tr>
+      <tr><td>YAGNI</td><td>Don't Over-Engineer</td><td>No prop-drilling solution until you have 3+ levels; no state library until local state fails</td><td>Ship faster, less dead code</td><td>Every feature decision</td></tr>
+      <tr><td>CDD</td><td>Component-Driven Dev</td><td>Build components in isolation (Storybook), compose into pages</td><td>Reusable, testable, documented UI</td><td>Every new component</td></tr>
+      <tr><td>SoT</td><td>Single Source of Truth</td><td>One place owns each piece of state; derive everything else</td><td>No sync bugs, predictable data flow</td><td>State architecture design</td></tr>
+      <tr><td>Co-Location</td><td>Keep things near where used</td><td>Tests, stories, styles alongside component files</td><td>Context-switching reduced</td><td>File structure decisions</td></tr>
+      <tr><td>Composition over Inheritance</td><td>Compose small pieces</td><td>children prop, compound components, render props over class extends</td><td>Flexible, avoids rigid hierarchy</td><td>Component design</td></tr>
+      <tr><td>Unidirectional Data Flow</td><td>Data flows one direction</td><td>Props down, events up. Never mutate props. Lift state when needed</td><td>Predictable, debuggable</td><td>React's core mental model</td></tr>
+      <tr><td>Controlled Surfaces</td><td>Explicit state control</td><td>Controlled components over uncontrolled where state matters</td><td>Full control, testability</td><td>Forms, inputs, complex UI</td></tr>
+      <tr><td>Semantic HTML First</td><td>Meaning before styling</td><td>Use nav, main, article, section, button vs div soup</td><td>SEO, accessibility, screen readers</td><td>Every markup decision</td></tr>
+      <tr><td>Progressive Enhancement</td><td>Works without JS first</td><td>Server Components render HTML; hydrate for interactivity</td><td>Fast FCP, SEO, resilience</td><td>Next.js App Router design</td></tr>
+      <tr><td>Fail Visibly</td><td>Errors should be obvious</td><td>Error boundaries, loading states, empty states — design all 3</td><td>User trust, debuggability</td><td>Every async/data component</td></tr>
+      <tr><td>Accessibility First</td><td>Inclusive by default</td><td>WCAG 2.2 AA minimum; ARIA only when HTML semantics insufficient</td><td>Legal, moral, better UX for all</td><td>Every UI component</td></tr>
+      <tr><td>Performance Budget</td><td>Set explicit limits</td><td>FCP &lt;1.5s, LCP &lt;2.5s, CLS &lt;0.1, INP &lt;200ms — enforce in CI</td><td>Real-world user experience</td><td>Every release</td></tr>
+      <tr><td>Type Safety End-to-End</td><td>Zero runtime type errors</td><td>TypeScript strict + Zod at boundaries + tRPC for API type sharing</td><td>Refactor confidently, no surprises</td><td>All data paths</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout co-p">
+    <span>🏆</span>
+    <div><strong>FBT Non-Negotiables:</strong> WCAG 2.2 AA · FCP &lt;1.5s · Zero TypeScript <code>any</code> · No prop drilling beyond 2 levels · Semantic HTML · Error + Loading + Empty states on every async surface · Co-located tests.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §2  TYPESCRIPT STANDARDS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="typescript">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(56,189,248,0.12)">🔷</div>
+    <h2>TYPESCRIPT STANDARDS</h2>
+    <span class="sec-sub">strict · full coverage</span>
+  </div>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">⚙️</div><div><div class="card-title">tsconfig — Strict Mode</div><div class="card-kw">COMPILER OPTIONS</div></div></div>
+      <div class="code">
+<span class="cm">// tsconfig.json — FBT Standard</span>
+{
+  <span class="st">"strict"</span>: <span class="kw">true</span>,         <span class="cm">// all strict flags</span>
+  <span class="st">"noUncheckedIndexedAccess"</span>: <span class="kw">true</span>,
+  <span class="st">"noImplicitOverride"</span>: <span class="kw">true</span>,
+  <span class="st">"exactOptionalPropertyTypes"</span>: <span class="kw">true</span>,
+  <span class="st">"moduleResolution"</span>: <span class="st">"bundler"</span>,
+  <span class="st">"paths"</span>: { <span class="st">"@/*"</span>: [<span class="st">"./src/*"</span>] }
+}
+        <div class="code-lang">tsconfig</div>
+      </div>
+      <div class="chips"><span class="chip chip-s">strictNullChecks</span><span class="chip chip-s">noImplicitAny</span><span class="chip chip-s">strictFunctionTypes</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🔧</div><div><div class="card-title">Utility Types</div><div class="card-kw">BUILT-IN POWER</div></div></div>
+      <div class="code">
+<span class="ty">Partial</span><<span class="ty">User</span>>          <span class="cm">// all optional</span>
+<span class="ty">Required</span><<span class="ty">User</span>>         <span class="cm">// all required</span>
+<span class="ty">Readonly</span><<span class="ty">User</span>>         <span class="cm">// immutable</span>
+<span class="ty">Pick</span><<span class="ty">User</span>, <span class="st">'id'</span>|<span class="st">'name'</span>> <span class="cm">// subset</span>
+<span class="ty">Omit</span><<span class="ty">User</span>, <span class="st">'password'</span>> <span class="cm">// exclude</span>
+<span class="ty">Record</span><<span class="ty">string</span>,<span class="ty">number</span>>  <span class="cm">// dict</span>
+<span class="ty">ReturnType</span><<span class="kw">typeof</span> fn>  <span class="cm">// infer return</span>
+<span class="ty">Parameters</span><<span class="kw">typeof</span> fn>  <span class="cm">// infer params</span>
+<span class="ty">Awaited</span><<span class="ty">Promise</span><<span class="ty">T</span>>>   <span class="cm">// unwrap promise</span>
+        <div class="code-lang">TypeScript</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🎯</div><div><div class="card-title">Type Guards & Narrowing</div><div class="card-kw">RUNTIME SAFETY</div></div></div>
+      <div class="code">
+<span class="cm">// typeof narrowing</span>
+<span class="kw">if</span> (<span class="kw">typeof</span> val === <span class="st">'string'</span>) { }
+
+<span class="cm">// User-defined type guard</span>
+<span class="kw">function</span> <span class="fn">isUser</span>(x: <span class="kw">unknown</span>): x <span class="kw">is</span> <span class="ty">User</span> {
+  <span class="kw">return</span> x !== <span class="kw">null</span> &&
+    <span class="kw">typeof</span> (x <span class="kw">as any</span>).id === <span class="st">'string'</span>
+}
+<span class="cm">// Discriminated union</span>
+<span class="kw">type</span> <span class="ty">Result</span> =
+  | { status: <span class="st">'ok'</span>; data: <span class="ty">User</span> }
+  | { status: <span class="st">'err'</span>; error: <span class="ty">string</span> }
+        <div class="code-lang">TypeScript</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🧩</div><div><div class="card-title">Generics & Inference</div><div class="card-kw">REUSABLE TYPES</div></div></div>
+      <div class="code">
+<span class="cm">// Generic component</span>
+<span class="kw">type</span> <span class="ty">ListProps</span><<span class="ty">T</span>> = {
+  items: <span class="ty">T</span>[];
+  render: (item: <span class="ty">T</span>) => <span class="ty">React.ReactNode</span>;
+  keyExtractor: (item: <span class="ty">T</span>) => <span class="kw">string</span>;
+}
+<span class="cm">// Conditional type</span>
+<span class="kw">type</span> <span class="ty">NonNullable</span><<span class="ty">T</span>> =
+  <span class="ty">T</span> <span class="kw">extends</span> <span class="kw">null</span>|<span class="kw">undefined</span> ? <span class="kw">never</span> : <span class="ty">T</span>
+<span class="cm">// Template literal type</span>
+<span class="kw">type</span> <span class="ty">EventName</span> = `on${<span class="ty">Capitalize</span><<span class="kw">string</span>>}`
+        <div class="code-lang">TypeScript</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">📋</div><div><div class="card-title">React + TypeScript Patterns</div><div class="card-kw">COMPONENT TYPING</div></div></div>
+      <div class="code">
+<span class="cm">// FC type (avoid — prefer explicit)</span>
+<span class="kw">type</span> <span class="ty">ButtonProps</span> = {
+  variant: <span class="st">'primary'</span> | <span class="st">'ghost'</span>
+  onClick?: () => <span class="kw">void</span>
+  children: <span class="ty">React.ReactNode</span>
+  className?: <span class="kw">string</span>
+}
+<span class="kw">export function</span> <span class="fn">Button</span>({ variant, children,
+  ...props }: <span class="ty">ButtonProps</span>) { }
+
+<span class="cm">// Event typing</span>
+<span class="kw">const</span> handler = (e: <span class="ty">React.ChangeEvent</span><<span class="ty">HTMLInputElement</span>>) => { }
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🛡️</div><div><div class="card-title">Zod — Runtime Validation</div><div class="card-kw">SCHEMA FIRST</div></div></div>
+      <div class="code">
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="st">'zod'</span>
+<span class="kw">const</span> <span class="nm">UserSchema</span> = z.object({
+  id: z.<span class="fn">string</span>().<span class="fn">uuid</span>(),
+  email: z.<span class="fn">string</span>().<span class="fn">email</span>(),
+  role: z.<span class="fn">enum</span>([<span class="st">'admin'</span>, <span class="st">'user'</span>]),
+  age: z.<span class="fn">number</span>().<span class="fn">min</span>(<span class="nm">0</span>).<span class="fn">max</span>(<span class="nm">120</span>)
+})
+<span class="cm">// Infer type from schema</span>
+<span class="kw">type</span> <span class="ty">User</span> = z.<span class="ty">infer</span><<span class="kw">typeof</span> <span class="nm">UserSchema</span>>
+        <div class="code-lang">TypeScript</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §3  PARADIGMS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="paradigms">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,229,204,0.1)">🧬</div>
+    <h2>FRONTEND PARADIGMS</h2>
+    <span class="sec-sub">mental models</span>
+  </div>
+  <div class="gauto-sm">
+    <div class="card"><div class="card-top-bar ct-purple"></div><div class="card-hd"><div class="card-ico">⚛️</div><div><div class="card-title">Declarative UI</div><div class="card-kw">REACT'S CORE</div></div></div><p>Describe <strong>what</strong> to render, not <strong>how</strong> to manipulate DOM. React reconciles virtual DOM diff to real DOM. State changes trigger re-renders automatically. Mental model: UI = f(state).</p><div class="chips"><span class="chip chip-p">React</span><span class="chip chip-s">Virtual DOM</span></div></div>
+    <div class="card"><div class="card-top-bar ct-cyan"></div><div class="card-hd"><div class="card-ico">🔄</div><div><div class="card-title">Functional Components</div><div class="card-kw">HOOKS ERA</div></div></div><p>Pure functions that take props, return JSX. Hooks for side effects and state. Closures capture state. Avoid class components — they carry baggage. Easier to test, compose, and reason about.</p><div class="chips"><span class="chip chip-p">React 16.8+</span><span class="chip chip-s">Hooks</span></div></div>
+    <div class="card"><div class="card-top-bar ct-amber"></div><div class="card-hd"><div class="card-ico">🏝️</div><div><div class="card-title">Islands Architecture</div><div class="card-kw">PARTIAL HYDRATION</div></div></div><p>Most of page is static HTML. Only interactive islands hydrate with JS. Astro pioneered this. Next.js Server Components approximate it. Result: dramatically less JS shipped.</p><div class="chips"><span class="chip chip-p">Next.js</span><span class="chip chip-s">Astro</span></div></div>
+    <div class="card"><div class="card-top-bar ct-green"></div><div class="card-hd"><div class="card-ico">🔀</div><div><div class="card-title">Streaming SSR</div><div class="card-kw">REACT 18+</div></div></div><p>Stream HTML chunks to browser as they're ready. Suspense boundaries control what streams when. Critical content first, slower parts stream in. LCP improves dramatically.</p><div class="chips"><span class="chip chip-p">React 18</span><span class="chip chip-p">Next.js 15</span></div></div>
+    <div class="card"><div class="card-top-bar ct-red"></div><div class="card-hd"><div class="card-ico">🧱</div><div><div class="card-title">Atomic Design</div><div class="card-kw">BRAD FROST</div></div></div><p>Atoms → Molecules → Organisms → Templates → Pages. Bottom-up component hierarchy. Each level adds context. Atoms are elemental (Button, Input). Pages assemble everything.</p><div class="chips"><span class="chip chip-s">Design System</span><span class="chip chip-s">Component Lib</span></div></div>
+    <div class="card"><div class="card-top-bar ct-sky"></div><div class="card-hd"><div class="card-ico">📦</div><div><div class="card-title">Micro-Frontends</div><div class="card-kw">DISTRIBUTED UI</div></div></div><p>Multiple teams own independent frontend slices. Module Federation (Webpack), iframes, or Web Components as integration layers. High overhead — only at org scale.</p><div class="chips"><span class="chip chip-s">Module Federation</span><span class="chip chip-s">Webpack</span></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §4  COMPONENT ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="component-arch">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,45,120,0.12)">🧩</div>
+    <h2>COMPONENT ARCHITECTURE</h2>
+    <span class="sec-sub">patterns & structures</span>
+  </div>
+
+  <div class="wcard">
+    <div class="wcard-hd"><span style="font-size:18px">🏗️</span><div class="wcard-title">Component Classification</div><div class="wcard-sub">layer model</div></div>
+    <table class="tbl">
+      <thead><tr><th>Type</th><th>Responsibility</th><th>Has State?</th><th>Network?</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td>Server Component</td><td>Fetch data, render to HTML</td><td>No (server)</td><td>Direct DB/API</td><td>Page layouts, data containers</td></tr>
+        <tr><td>Client Component</td><td>Interactivity, browser APIs</td><td>Yes</td><td>Via hooks/actions</td><td>Buttons, forms, dropdowns</td></tr>
+        <tr><td>Shared UI</td><td>Pure presentational</td><td>No</td><td>No</td><td>Card, Badge, Typography</td></tr>
+        <tr><td>Container/Smart</td><td>Orchestrate data + UI</td><td>Often</td><td>Yes</td><td>UserProfile, ProductList</td></tr>
+        <tr><td>Layout</td><td>Structural scaffolding</td><td>Minimal</td><td>Rarely</td><td>Sidebar, Header, Grid</td></tr>
+        <tr><td>Boundary</td><td>Error/Suspense wrapping</td><td>Error state</td><td>No</td><td>ErrorBoundary, Suspense</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gauto" style="margin-top:14px">
+    <div class="card">
+      <div class="card-top-bar ct-pink"></div>
+      <div class="card-hd"><div class="card-ico">🔗</div><div><div class="card-title">Compound Components</div><div class="card-kw">CONTEXT-SHARING PATTERN</div></div></div>
+      <p>Parent shares implicit state with children via Context. Children are part of parent's public API. Flexible composition without prop drilling. Used by Radix UI, Headless UI.</p>
+      <div class="code">
+<span class="cm">// Usage: intuitive & flexible</span>
+<<span class="ty">Select</span>>
+  <<span class="ty">Select.Trigger</span>>Choose</<span class="ty">Select.Trigger</span>>
+  <<span class="ty">Select.Content</span>>
+    <<span class="ty">Select.Item</span> value=<span class="st">"a"</span>>Option A</<span class="ty">Select.Item</span>>
+  </<span class="ty">Select.Content</span>>
+</<span class="ty">Select</span>>
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-p">React</span><span class="chip chip-s">Context API</span><span class="chip chip-s">Radix UI</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🪝</div><div><div class="card-title">Custom Hooks</div><div class="card-kw">LOGIC EXTRACTION</div></div></div>
+      <p>Extract stateful logic into reusable functions. Start with <code>use</code> prefix. Can compose other hooks. Replace HOCs and render props in modern React. Single most powerful abstraction.</p>
+      <div class="code">
+<span class="kw">function</span> <span class="fn">useDebounce</span><<span class="ty">T</span>>(value: <span class="ty">T</span>, delay: <span class="kw">number</span>) {
+  <span class="kw">const</span> [dv, setDv] = <span class="fn">useState</span>(value)
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">const</span> t = <span class="fn">setTimeout</span>(() => <span class="fn">setDv</span>(value), delay)
+    <span class="kw">return</span> () => <span class="fn">clearTimeout</span>(t)
+  }, [value, delay])
+  <span class="kw">return</span> dv
+}
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-p">React 16.8+</span><span class="chip chip-s">Composable</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🎭</div><div><div class="card-title">Render Props</div><div class="card-kw">FUNCTION-AS-CHILD</div></div></div>
+      <p>Pass a function as a prop that returns JSX. Enables sharing stateful behavior without HOC complexity. Now mostly superseded by hooks, but still useful for complex render delegation (tables, virtual lists).</p>
+      <div class="code">
+<<span class="ty">DataLoader</span>
+  url=<span class="st">"/api/users"</span>
+  render={(data, loading) =>
+    loading ? <<span class="ty">Spinner</span>/> : <<span class="ty">UserList</span> data={data}/>
+  }
+/>
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-s">Legacy pattern</span><span class="chip chip-s">Use hooks instead</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🌊</div><div><div class="card-title">Controlled vs Uncontrolled</div><div class="card-kw">STATE OWNERSHIP</div></div></div>
+      <p><strong>Controlled:</strong> Parent owns state, passes value + onChange. Fully predictable, testable. <strong>Uncontrolled:</strong> DOM owns state, read via ref. Less re-renders. React Hook Form uses uncontrolled internally for performance.</p>
+      <div class="chips"><span class="chip chip-g">Controlled = full power</span><span class="chip chip-a">Uncontrolled = perf</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">🔀</div><div><div class="card-title">Higher-Order Components</div><div class="card-kw">HOC PATTERN</div></div></div>
+      <p>Function that takes a component, returns enhanced component. withAuth(), withTheme(). Mostly superseded by hooks. Still valid for class components and some cross-cutting concerns (code splitting).</p>
+      <div class="chips"><span class="chip chip-s">Legacy / specific use</span><span class="chip chip-p">withAuth</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🧱</div><div><div class="card-title">Headless Components</div><div class="card-kw">LOGIC WITHOUT STYLE</div></div></div>
+      <p>Provide behavior and accessibility with zero styling opinions. Radix UI, Headless UI, React Aria. You bring the styles. Maximum flexibility for design systems. Industry best practice for component libraries.</p>
+      <div class="chips"><span class="chip chip-p">Radix UI</span><span class="chip chip-p">Headless UI</span><span class="chip chip-s">React Aria</span></div>
+    </div>
+  </div>
+
+  <div class="callout co-c" style="margin-top:12px">
+    <span>💡</span>
+    <div><strong>File Structure Pattern (FBT):</strong> <code>components/Button/Button.tsx</code> · <code>Button.stories.tsx</code> · <code>Button.test.tsx</code> · <code>Button.module.css</code> · <code>index.ts</code>. Co-locate everything. Barrel export from index.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §5  DESIGN PATTERNS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="design-patterns">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(124,77,255,0.12)">🎨</div>
+    <h2>FRONTEND DESIGN PATTERNS</h2>
+    <span class="sec-sub">solutions to recurring problems</span>
+  </div>
+
+  <div class="wcard">
+    <div class="wcard-hd"><span>⚛️</span><div class="wcard-title">React-Specific Patterns</div></div>
+    <div class="prow">
+      <div><div class="prow-name">Provider Pattern</div><div class="prow-tag">CONTEXT</div></div>
+      <div class="prow-desc">Wrap subtree with context provider. Children consume via useContext. ThemeProvider, AuthProvider, QueryClientProvider. Avoid mega-provider — split concerns.</div>
+      <div class="prow-when">Global/shared state injection</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Container/Presenter</div><div class="prow-tag">SEPARATION</div></div>
+      <div class="prow-desc">Container fetches data and manages state. Presenter receives props, renders UI. Clean testing — test presenter with mocked props, container logic separately.</div>
+      <div class="prow-when">Complex data + UI separation</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Skeleton Loading</div><div class="prow-tag">UX PATTERN</div></div>
+      <div class="prow-desc">Render placeholder shapes while loading. Reduces perceived wait time vs spinner. Match content layout exactly. React Suspense + skeleton component.</div>
+      <div class="prow-when">Every async data component</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Optimistic Updates</div><div class="prow-tag">UX / MUTATION</div></div>
+      <div class="prow-desc">Update UI immediately, sync to server in background. Roll back on error. React Query useMutation onMutate/onError/onSettled. Instant feel for like, follow, delete.</div>
+      <div class="prow-when">Low-risk mutations (likes, toggles)</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Error Boundary</div><div class="prow-tag">FAULT ISOLATION</div></div>
+      <div class="prow-desc">Catch JS errors in subtree, render fallback UI. Class component (React 18) or react-error-boundary library. Every page should have one. Granular = better UX.</div>
+      <div class="prow-when">All production page routes</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Suspense Boundary</div><div class="prow-tag">ASYNC LOADING</div></div>
+      <div class="prow-desc">Declaratively handle async rendering. Show fallback while children are loading. Compose multiple Suspense boundaries for granular loading states. Works with use() hook in React 19.</div>
+      <div class="prow-when">Async data, lazy-loaded components</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Slot Pattern</div><div class="prow-tag">COMPOSITION</div></div>
+      <div class="prow-desc">Named slots for flexible layout composition. {header, children, footer} props or named children slots. Modal, Card, Layout components use this heavily.</div>
+      <div class="prow-when">Layout components with zones</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Virtualization</div><div class="prow-tag">PERFORMANCE</div></div>
+      <div class="prow-desc">Only render visible items in long lists. React Virtual (TanStack), react-window. 10,000-item list performs like a 20-item list. Essential for data grids, infinite scroll.</div>
+      <div class="prow-when">Lists &gt;100 items</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Portals</div><div class="prow-tag">DOM ESCAPE</div></div>
+      <div class="prow-desc">Render children outside parent DOM tree. Modals, tooltips, dropdowns that need to escape z-index/overflow constraints. createPortal(children, domNode).</div>
+      <div class="prow-when">Modals, overlays, toasts</div>
+    </div>
+    <div class="prow">
+      <div><div class="prow-name">Derivation over Storage</div><div class="prow-tag">STATE MANAGEMENT</div></div>
+      <div class="prow-desc">Don't store derived state — compute it. filteredItems = useMemo(() => items.filter...). Avoid storing selectedItemDetails if you can look it up from selectedId + items array.</div>
+      <div class="prow-when">Anytime you're tempted to sync state</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §6  STATE MANAGEMENT -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="state-management">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,176,32,0.1)">🗂️</div>
+    <h2>STATE MANAGEMENT</h2>
+    <span class="sec-sub">pick the right tool</span>
+  </div>
+
+  <div class="callout co-a" style="margin-bottom:20px">
+    <span>📐</span>
+    <div><strong>Decision Rule:</strong> Local state first → Lift state → Context (for prop-drilling) → Server State (React Query) → Zustand/Jotai (complex client state). Add complexity only when simpler solutions fail.</div>
+  </div>
+
+  <table class="matrix" style="margin-bottom:20px">
+    <thead>
+      <tr><th>Solution</th><th>Type</th><th>Bundle</th><th>DevTools</th><th>SSR</th><th>Complexity</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>useState / useReducer</td><td>Local</td><td>0kb</td><td>React DevTools</td><td class="ck">✓</td><td class="chip chip-g">Low</td><td>Component-level UI state</td></tr>
+      <tr><td>Context API</td><td>Shared</td><td>0kb</td><td>React DevTools</td><td class="ck">✓</td><td class="chip chip-g">Low</td><td>Theme, auth, locale</td></tr>
+      <tr><td>Zustand</td><td>Global</td><td>~1kb</td><td>Redux DevTools</td><td class="ck">✓</td><td class="chip chip-g">Low</td><td>Simple global state</td></tr>
+      <tr><td>Jotai</td><td>Atomic</td><td>~4kb</td><td>Jotai DevTools</td><td class="ck">✓</td><td class="chip chip-a">Medium</td><td>Fine-grained subscriptions</td></tr>
+      <tr><td>Redux Toolkit</td><td>Global</td><td>~20kb</td><td>Redux DevTools</td><td class="ck">✓</td><td class="chip chip-r">High</td><td>Complex shared state, teams</td></tr>
+      <tr><td>React Query / TanStack</td><td>Server</td><td>~13kb</td><td>React Query DevTools</td><td class="ck">✓</td><td class="chip chip-a">Medium</td><td>Server state, cache, async</td></tr>
+      <tr><td>SWR</td><td>Server</td><td>~5kb</td><td>Basic</td><td class="ck">✓</td><td class="chip chip-g">Low</td><td>Simple data fetching</td></tr>
+      <tr><td>XState</td><td>Machine</td><td>~15kb</td><td>XState Viz</td><td class="ck">✓</td><td class="chip chip-r">High</td><td>Complex UI workflows</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🐻</div><div><div class="card-title">Zustand</div><div class="card-kw">LIGHTWEIGHT GLOBAL STATE</div></div></div>
+      <p>No boilerplate, no providers. Just create a store, subscribe anywhere. Slice pattern for large stores. Built-in devtools middleware. Immer middleware for immutable updates.</p>
+      <div class="code">
+<span class="kw">const</span> useAuth = <span class="fn">create</span><<span class="ty">AuthState</span>>()(<span class="fn">set</span> => ({
+  user: <span class="kw">null</span>,
+  login: <span class="kw">async</span> (creds) => {
+    <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">api.login</span>(creds)
+    <span class="fn">set</span>({ user })
+  },
+  logout: () => <span class="fn">set</span>({ user: <span class="kw">null</span> })
+}))
+        <div class="code-lang">TS</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">~1kb</span><span class="chip chip-s">Zero Provider</span><span class="chip chip-s">DevTools</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🔮</div><div><div class="card-title">React Query v5</div><div class="card-kw">SERVER STATE KING</div></div></div>
+      <p>Caching, background refetch, stale-while-revalidate, pagination, infinite scroll, optimistic updates, mutations. Eliminates 80% of custom async state management code.</p>
+      <div class="code">
+<span class="kw">const</span> { data, isLoading, error } =
+  <span class="fn">useQuery</span>({
+    queryKey: [<span class="st">'user'</span>, userId],
+    queryFn: () => <span class="fn">fetchUser</span>(userId),
+    staleTime: <span class="nm">5</span> * <span class="nm">60</span> * <span class="nm">1000</span>, <span class="cm">// 5min</span>
+    retry: <span class="nm">2</span>
+  })
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-c">Cache</span><span class="chip chip-c">Background Sync</span><span class="chip chip-c">DevTools</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">⚛️</div><div><div class="card-title">Jotai — Atomic State</div><div class="card-kw">FINE-GRAINED REACTIVITY</div></div></div>
+      <p>Bottom-up atoms compose into molecules. Only components using changed atoms re-render. Similar to Recoil but simpler. Great for complex derived state, form fields, charts.</p>
+      <div class="code">
+<span class="kw">const</span> <span class="nm">countAtom</span> = <span class="fn">atom</span>(<span class="nm">0</span>)
+<span class="kw">const</span> <span class="nm">doubleAtom</span> = <span class="fn">atom</span>(
+  (get) => get(<span class="nm">countAtom</span>) * <span class="nm">2</span>
+)
+<span class="cm">// Component only re-renders on its atom</span>
+<span class="kw">const</span> [count, setCount] = <span class="fn">useAtom</span>(<span class="nm">countAtom</span>)
+        <div class="code-lang">TS</div>
+      </div>
+      <div class="chips"><span class="chip chip-p">Atomic</span><span class="chip chip-s">Derived atoms</span><span class="chip chip-s">Async atoms</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-red"></div>
+      <div class="card-hd"><div class="card-ico">🎰</div><div><div class="card-title">useReducer + Context</div><div class="card-kw">REDUX LITE</div></div></div>
+      <p>For complex local state with multiple sub-values. Co-locate state logic in reducer. Combine with Context to share without external library. Good for modals, forms, multi-step flows.</p>
+      <div class="code">
+<span class="kw">type</span> <span class="ty">Action</span> = 
+  | { type: <span class="st">'INCREMENT'</span> }
+  | { type: <span class="st">'RESET'</span> }
+<span class="kw">const</span> reducer = (s: <span class="ty">State</span>, a: <span class="ty">Action</span>) => {
+  <span class="kw">switch</span>(a.type) {
+    <span class="kw">case</span> <span class="st">'INCREMENT'</span>: <span class="kw">return</span> { ...s, n: s.n+<span class="nm">1</span> }
+    <span class="kw">default</span>: <span class="kw">return</span> s
+  }
+}
+        <div class="code-lang">TS</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">Zero deps</span><span class="chip chip-s">Predictable</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §7  NEXT.JS 15 APP ROUTER -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="nextjs">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,255,255,0.06)">▲</div>
+    <h2>NEXT.JS 15 APP ROUTER</h2>
+    <span class="sec-sub">full-stack react framework</span>
+  </div>
+
+  <div class="wcard">
+    <div class="wcard-hd"><span>📁</span><div class="wcard-title">App Router File Conventions</div><div class="wcard-sub">route segments</div></div>
+    <table class="tbl">
+      <thead><tr><th>File</th><th>Purpose</th><th>Rendered</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>page.tsx</td><td>Route UI, unique per segment</td><td>Server by default</td><td>Receives searchParams, params props</td></tr>
+        <tr><td>layout.tsx</td><td>Persistent UI wrapper</td><td>Server by default</td><td>Does NOT re-render on navigation</td></tr>
+        <tr><td>loading.tsx</td><td>Suspense fallback UI</td><td>Server</td><td>Auto-wrapped Suspense boundary</td></tr>
+        <tr><td>error.tsx</td><td>Error boundary UI</td><td>'use client'</td><td>Catches segment + children errors</td></tr>
+        <tr><td>not-found.tsx</td><td>404 for notFound() calls</td><td>Server</td><td>Auto triggered by notFound()</td></tr>
+        <tr><td>route.ts</td><td>API Route Handler</td><td>Server / Edge</td><td>GET, POST, PUT, DELETE, PATCH</td></tr>
+        <tr><td>middleware.ts</td><td>Request interception at edge</td><td>Edge Runtime</td><td>Auth, redirects, rewrites</td></tr>
+        <tr><td>template.tsx</td><td>Like layout but re-renders</td><td>Server</td><td>Use for per-navigation animations</td></tr>
+        <tr><td>default.tsx</td><td>Parallel route fallback</td><td>Server</td><td>Shown when slot has no active match</td></tr>
+        <tr><td>opengraph-image.tsx</td><td>Dynamic OG image generation</td><td>Edge</td><td>ImageResponse API</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gauto" style="margin-top:14px">
+    <div class="card">
+      <div class="card-top-bar ct-multi"></div>
+      <div class="card-hd"><div class="card-ico">🔀</div><div><div class="card-title">Caching Model (Next.js 15)</div><div class="card-kw">CHANGED IN v15</div></div></div>
+      <p><strong>Next.js 15 reversal:</strong> fetch() requests are now <strong>uncached by default</strong>. Opt-in to caching explicitly. GET Route Handlers are also uncached by default. Breaking change from v14.</p>
+      <div class="code">
+<span class="cm">// No cache (default in v15)</span>
+<span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(url)
+
+<span class="cm">// Cached permanently (opt-in)</span>
+<span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(url,
+  { next: { revalidate: <span class="kw">false</span> } })
+
+<span class="cm">// Cache with time (ISR-like)</span>
+<span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(url,
+  { next: { revalidate: <span class="nm">3600</span> } })
+
+<span class="cm">// On-demand revalidation</span>
+<span class="fn">revalidatePath</span>(<span class="st">'/products'</span>)
+<span class="fn">revalidateTag</span>(<span class="st">'product-list'</span>)
+        <div class="code-lang">Next.js 15</div>
+      </div>
+      <div class="chips"><span class="chip chip-r">Breaking Change v15</span><span class="chip chip-a">Opt-in caching</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">Async Params (Next.js 15)</div><div class="card-kw">BREAKING CHANGE</div></div></div>
+      <p>params and searchParams are now async Promises in Next.js 15. Must await them. Use React.use() for client components or await in server components.</p>
+      <div class="code">
+<span class="cm">// Next.js 15 — ASYNC params</span>
+<span class="kw">export default async function</span> <span class="fn">Page</span>({
+  params, searchParams
+}: {
+  params: <span class="ty">Promise</span><{ id: <span class="kw">string</span> }>
+  searchParams: <span class="ty">Promise</span><{ q?: <span class="kw">string</span> }>
+}) {
+  <span class="kw">const</span> { id } = <span class="kw">await</span> params
+  <span class="kw">const</span> { q } = <span class="kw">await</span> searchParams
+}
+        <div class="code-lang">Next.js 15</div>
+      </div>
+      <div class="chips"><span class="chip chip-r">Breaking Change</span><span class="chip chip-s">use() for client</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">🌊</div><div><div class="card-title">Streaming & Suspense</div><div class="card-kw">PROGRESSIVE RENDERING</div></div></div>
+      <p>Wrap slow data-fetching components in Suspense. HTML streams to browser immediately. Critical UI first, slow parts fill in. Dramatically improves TTFB + user-perceived performance.</p>
+      <div class="code">
+<span class="cm">// Fast shell renders immediately</span>
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> (
+    <<span class="ty">Shell</span>>
+      <<span class="ty">Suspense</span> fallback={<<span class="ty">Skeleton</span>/>}>
+        <<span class="ty">SlowDataComponent</span>/>
+      </<span class="ty">Suspense</span>>
+    </<span class="ty">Shell</span>>
+  )
+}
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🔀</div><div><div class="card-title">Parallel & Intercepting Routes</div><div class="card-kw">ADVANCED ROUTING</div></div></div>
+      <p><strong>Parallel Routes (@slot):</strong> Render multiple pages simultaneously in one layout (dashboard with @analytics, @team). <strong>Intercepting Routes ((.)):</strong> Open modal while keeping URL, full page on refresh.</p>
+      <div class="code">
+<span class="cm">// Parallel routes</span>
+app/
+  @analytics/page.tsx
+  @team/page.tsx
+  layout.tsx  <span class="cm">// receives both as props</span>
+
+<span class="cm">// Intercepting routes</span>
+app/(.)photo/[id]/page.tsx <span class="cm">// modal</span>
+app/photo/[id]/page.tsx    <span class="cm">// full page</span>
+        <div class="code-lang">Next.js 15</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §8  SERVER COMPONENTS & SERVER ACTIONS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="server-components">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,214,143,0.1)">🖥️</div>
+    <h2>RSC & SERVER ACTIONS</h2>
+    <span class="sec-sub">zero-bundle server logic</span>
+  </div>
+
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">🔒</div><div><div class="card-title">Server Components (RSC)</div><div class="card-kw">DEFAULT IN APP ROUTER</div></div></div>
+      <p>Run on server only. Zero client-side JS. Direct DB access, use secrets. Can be async. Cannot use useState, useEffect, event handlers, or browser APIs.</p>
+      <div class="code">
+<span class="cm">// server-component.tsx (no directive needed)</span>
+<span class="kw">async function</span> <span class="fn">UserProfile</span>({ id }: { id: <span class="kw">string</span> }) {
+  <span class="cm">// Direct DB access — no API needed</span>
+  <span class="kw">const</span> user = <span class="kw">await</span> <span class="nm">db</span>.user.<span class="fn">findUnique</span>({ where: { id } })
+  <span class="kw">return</span> <<span class="ty">div</span>>{user?.name}</<span class="ty">div</span>>
+}
+        <div class="code-lang">RSC</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">0kb JS bundle</span><span class="chip chip-s">DB direct</span><span class="chip chip-s">Secrets safe</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">💻</div><div><div class="card-title">Client Components</div><div class="card-kw">'USE CLIENT' DIRECTIVE</div></div></div>
+      <p>Add 'use client' at top of file. Can use hooks, event handlers, browser APIs. Still server-rendered HTML for initial paint (SSR), then hydrated. Keep client components as leaf nodes.</p>
+      <div class="code">
+<span class="st">'use client'</span>
+<span class="kw">import</span> { <span class="nm">useState</span> } <span class="kw">from</span> <span class="st">'react'</span>
+
+<span class="kw">export function</span> <span class="fn">Counter</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="nm">0</span>)
+  <span class="kw">return</span> <<span class="ty">button</span> onClick={() => <span class="fn">setCount</span>(c => c+<span class="nm">1</span>)}>
+    {count}
+  </<span class="ty">button</span>>
+}
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-a">Has bundle cost</span><span class="chip chip-s">Push to leaves</span></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">Server Actions</div><div class="card-kw">FULL-STACK MUTATIONS</div></div></div>
+      <p>Async functions that run on server, called from client. Replace REST endpoints for mutations. Progressive enhancement — work without JS. Integrated with React forms, useTransition, React 19 useActionState.</p>
+      <div class="code">
+<span class="st">'use server'</span> <span class="cm">// can be at top of file or inline</span>
+
+<span class="kw">export async function</span> <span class="fn">createUser</span>(data: <span class="ty">FormData</span>) {
+  <span class="kw">const</span> parsed = <span class="nm">UserSchema</span>.<span class="fn">safeParse</span>(
+    <span class="ty">Object</span>.<span class="fn">fromEntries</span>(data)
+  )
+  <span class="kw">if</span> (!parsed.success) <span class="kw">return</span> { error: parsed.error }
+  <span class="kw">await</span> <span class="nm">db</span>.user.<span class="fn">create</span>({ data: parsed.data })
+  <span class="fn">revalidatePath</span>(<span class="st">'/users'</span>)
+}
+        <div class="code-lang">Server Action</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">Progressive Enhancement</span><span class="chip chip-p">useActionState</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🧠</div><div><div class="card-title">RSC Composition Rules</div><div class="card-kw">CRITICAL MENTAL MODEL</div></div></div>
+      <p>Server Components can import and render Client Components. Client Components <strong>cannot</strong> import Server Components (but can receive them as children/props). Pass SC as children to CC for island architecture.</p>
+      <div class="code">
+<span class="cm">// ✅ Pass RSC as children to Client</span>
+<<span class="ty">ClientWrapper</span>>
+  <<span class="ty">ServerFeed</span> />  <span class="cm">// passed as children</span>
+</<span class="ty">ClientWrapper</span>>
+
+<span class="cm">// ❌ Cannot import RSC inside CC</span>
+<span class="cm">// import ServerFeed inside 'use client' = error</span>
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-r">Critical Rule</span><span class="chip chip-s">Children pattern</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §9  ROUTING PATTERNS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="routing">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(56,189,248,0.1)">🗺️</div>
+    <h2>ROUTING PATTERNS</h2>
+    <span class="sec-sub">next.js 15 file-based routing</span>
+  </div>
+
+  <div class="g2" style="margin-bottom:14px">
+    <div class="wcard">
+      <div class="wcard-hd"><span>📁</span><div class="wcard-title">Dynamic Segment Patterns</div></div>
+      <table class="tbl">
+        <thead><tr><th>Segment</th><th>Matches</th><th>Param Type</th></tr></thead>
+        <tbody>
+          <tr><td>[id]</td><td>/user/123</td><td>{ id: '123' }</td></tr>
+          <tr><td>[...slug]</td><td>/a/b/c</td><td>{ slug: ['a','b','c'] }</td></tr>
+          <tr><td>[[...slug]]</td><td>/a/b or /</td><td>{ slug?: string[] }</td></tr>
+          <tr><td>(group)</td><td>No URL match</td><td>Organization only</td></tr>
+          <tr><td>_private</td><td>Excluded from routes</td><td>Private folders</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="wcard">
+      <div class="wcard-hd"><span>🔗</span><div class="wcard-title">Navigation Patterns</div></div>
+      <table class="tbl">
+        <thead><tr><th>Method</th><th>Use Case</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>&lt;Link href&gt;</td><td>Standard navigation</td><td>Prefetches on hover</td></tr>
+          <tr><td>router.push()</td><td>Programmatic nav</td><td>useRouter() client only</td></tr>
+          <tr><td>router.replace()</td><td>No history entry</td><td>Login redirects</td></tr>
+          <tr><td>redirect()</td><td>Server-side redirect</td><td>In RSC, Route Handlers</td></tr>
+          <tr><td>permanentRedirect()</td><td>301 permanent</td><td>URL changes</td></tr>
+          <tr><td>usePathname()</td><td>Current path</td><td>Active nav states</td></tr>
+          <tr><td>useSearchParams()</td><td>Query params</td><td>Client-side search</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout co-p">
+    <span>🔒</span>
+    <div><strong>Middleware Pattern (Auth Guard):</strong> Use middleware.ts at root to protect routes. Check JWT/session token at edge before rendering. Redirect to /login if unauthenticated. Run before any page renders — fastest possible auth check.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §10  DATA FETCHING STRATEGIES -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="data-fetching">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,229,204,0.1)">🔌</div>
+    <h2>DATA FETCHING STRATEGIES</h2>
+    <span class="sec-sub">ssr · ssg · isr · csr</span>
+  </div>
+
+  <table class="tbl" style="margin-bottom:20px">
+    <thead>
+      <tr><th>Strategy</th><th>When HTML Renders</th><th>Data Freshness</th><th>Best For</th><th>Next.js How</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SSR (Dynamic)</td><td>Per request</td><td>Always fresh</td><td>Auth pages, dashboards, real-time</td><td>Default RSC, no cache</td></tr>
+      <tr><td>SSG (Static)</td><td>At build time</td><td>Build-time data</td><td>Marketing pages, docs, blogs</td><td>fetch with cache:'force-cache'</td></tr>
+      <tr><td>ISR (Incremental)</td><td>On-demand or timed</td><td>Minutes stale</td><td>E-commerce, news, catalogs</td><td>revalidate: 3600</td></tr>
+      <tr><td>CSR (Client)</td><td>Client hydrates</td><td>Fetch on mount</td><td>User-specific, after-auth data</td><td>React Query on client</td></tr>
+      <tr><td>Streaming</td><td>Progressive chunks</td><td>Real-time per chunk</td><td>AI responses, large pages</td><td>Suspense + async RSC</td></tr>
+      <tr><td>On-demand ISR</td><td>On webhook trigger</td><td>Near real-time</td><td>CMS-driven pages</td><td>revalidatePath/Tag</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🎣</div><div><div class="card-title">Fetch with Tags & Revalidation</div><div class="card-kw">NEXT.JS CACHING</div></div></div>
+      <div class="code">
+<span class="cm">// Tag for on-demand invalidation</span>
+<span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="st">'/api/posts'</span>, {
+  next: { tags: [<span class="st">'posts'</span>], revalidate: <span class="nm">3600</span> }
+})
+<span class="cm">// In Server Action or Route Handler:</span>
+<span class="fn">revalidateTag</span>(<span class="st">'posts'</span>) <span class="cm">// purge all tagged</span>
+<span class="fn">revalidatePath</span>(<span class="st">'/blog'</span>) <span class="cm">// purge path</span>
+        <div class="code-lang">Next.js</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🔄</div><div><div class="card-title">Parallel Data Fetching</div><div class="card-kw">PERFORMANCE PATTERN</div></div></div>
+      <div class="code">
+<span class="cm">// ❌ Sequential — slow</span>
+<span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">getUser</span>(id)
+<span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">getPosts</span>(id)
+
+<span class="cm">// ✅ Parallel — fast</span>
+<span class="kw">const</span> [user, posts] = <span class="kw">await</span> <span class="ty">Promise</span>.<span class="fn">all</span>([
+  <span class="fn">getUser</span>(id),
+  <span class="fn">getPosts</span>(id)
+])
+        <div class="code-lang">RSC</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">📡</div><div><div class="card-title">tRPC — End-to-End Types</div><div class="card-kw">TYPE-SAFE API</div></div></div>
+      <p>Define procedures on server, call them from client with full TypeScript inference. No codegen, no OpenAPI. Zod validation built-in. Works with Next.js App Router.</p>
+      <div class="code">
+<span class="cm">// Server router</span>
+<span class="kw">const</span> router = <span class="fn">createTRPCRouter</span>({
+  getUser: <span class="nm">publicProcedure</span>
+    .<span class="fn">input</span>(<span class="nm">z</span>.<span class="fn">string</span>().<span class="fn">uuid</span>())
+    .<span class="fn">query</span>(({ input }) => <span class="fn">db.findUser</span>(input))
+})
+<span class="cm">// Client — fully typed</span>
+<span class="kw">const</span> { data } = trpc.getUser.<span class="fn">useQuery</span>(userId)
+        <div class="code-lang">tRPC</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §11  STYLING -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="styling">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,45,120,0.12)">🎨</div>
+    <h2>STYLING APPROACHES</h2>
+    <span class="sec-sub">css · tailwind · tokens</span>
+  </div>
+
+  <table class="matrix" style="margin-bottom:18px">
+    <thead>
+      <tr><th>Approach</th><th>Runtime?</th><th>Type-Safe</th><th>SSR</th><th>DX</th><th>Bundle</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Tailwind CSS v4</td><td class="xx">No</td><td class="pt">Partial</td><td class="ck">✓</td><td>⭐⭐⭐⭐⭐</td><td>Minimal</td><td>Most projects — FBT default</td></tr>
+      <tr><td>CSS Modules</td><td class="xx">No</td><td class="ck">Yes</td><td class="ck">✓</td><td>⭐⭐⭐⭐</td><td>Minimal</td><td>Scoped, complex styles</td></tr>
+      <tr><td>vanilla-extract</td><td class="xx">No</td><td class="ck">Yes</td><td class="ck">✓</td><td>⭐⭐⭐</td><td>Zero</td><td>Design system foundations</td></tr>
+      <tr><td>Styled Components</td><td class="ck">Yes</td><td class="ck">Yes</td><td class="pt">Partial</td><td>⭐⭐⭐</td><td>~15kb</td><td>Legacy/CSS-in-JS teams</td></tr>
+      <tr><td>Panda CSS</td><td class="xx">No</td><td class="ck">Yes</td><td class="ck">✓</td><td>⭐⭐⭐⭐</td><td>Minimal</td><td>Type-safe utility CSS</td></tr>
+      <tr><td>Plain CSS/Custom Props</td><td class="xx">No</td><td class="xx">No</td><td class="ck">✓</td><td>⭐⭐⭐</td><td>Zero</td><td>Simple sites, theming</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🌊</div><div><div class="card-title">Tailwind v4 — New Model</div><div class="card-kw">CSS-FIRST CONFIG</div></div></div>
+      <p>v4 changes: CSS-first configuration (no tailwind.config.js by default). Lightning CSS engine. @import-based setup. 10x faster builds. @theme directive replaces config object.</p>
+      <div class="code">
+<span class="cm">/* globals.css — v4 style */</span>
+<span class="at">@import</span> <span class="st">"tailwindcss"</span>;
+<span class="at">@theme</span> {
+  --color-fbt: <span class="nm">#512BD4</span>;
+  --font-display: <span class="st">"Syne"</span>, sans-serif;
+  --radius-card: <span class="nm">0.75rem</span>;
+}
+        <div class="code-lang">CSS</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">10x faster</span><span class="chip chip-c">CSS-first</span><span class="chip chip-s">Lightning CSS</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🎨</div><div><div class="card-title">CSS Custom Properties</div><div class="card-kw">DESIGN TOKENS IN CSS</div></div></div>
+      <p>Define design tokens as CSS variables. Theme switching via :root class swap or data-theme attribute. Works everywhere — JS, CSS, inline styles. The bridge between Figma and code.</p>
+      <div class="code">
+<span class="at">:root</span> {
+  --color-bg: <span class="nm">#05050F</span>;
+  --color-primary: <span class="nm">#512BD4</span>;
+  --space-4: <span class="nm">1rem</span>;
+  --radius-md: <span class="nm">0.5rem</span>;
+}
+[data-theme=<span class="st">"light"</span>] {
+  --color-bg: <span class="nm">#FFFFFF</span>;
+}
+        <div class="code-lang">CSS</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🔀</div><div><div class="card-title">CVA — Class Variance Authority</div><div class="card-kw">TYPED VARIANTS</div></div></div>
+      <p>Type-safe component variants with Tailwind. Define variants (size, intent, state) as objects. Auto-generates TypeScript types. Used by shadcn/ui. Pair with cn() utility.</p>
+      <div class="code">
+<span class="kw">const</span> button = <span class="fn">cva</span>(<span class="st">'rounded font-medium'</span>, {
+  variants: {
+    intent: {
+      primary: <span class="st">'bg-fbt text-white'</span>,
+      ghost: <span class="st">'border border-fbt text-fbt'</span>
+    },
+    size: {
+      sm: <span class="st">'px-3 py-1.5 text-sm'</span>,
+      lg: <span class="st">'px-6 py-3 text-base'</span>
+    }
+  }
+})
+        <div class="code-lang">CVA</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">🌙</div><div><div class="card-title">Dark Mode Strategy</div><div class="card-kw">NEXT.JS + TAILWIND</div></div></div>
+      <p>next-themes library for SSR-safe theme switching. Tailwind darkMode: 'class'. CSS variables per theme. No flash of unstyled content (FOUC) prevention via script in _document or layout.</p>
+      <div class="code">
+<span class="cm">// layout.tsx</span>
+<<span class="ty">ThemeProvider</span>
+  attribute=<span class="st">"class"</span>
+  defaultTheme=<span class="st">"dark"</span>
+  enableSystem
+  disableTransitionOnChange
+>
+  {children}
+</<span class="ty">ThemeProvider</span>>
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-p">next-themes</span><span class="chip chip-s">No FOUC</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §12  DESIGN SYSTEM -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="design-system">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(124,77,255,0.12)">🏛️</div>
+    <h2>DESIGN SYSTEM</h2>
+    <span class="sec-sub">tokens · components · docs</span>
+  </div>
+
+  <div class="gauto-sm">
+    <div class="card"><div class="card-top-bar ct-purple"></div><div class="card-hd"><div class="card-ico">🎨</div><div><div class="card-title">Design Tokens</div><div class="card-kw">FOUNDATION</div></div></div><p>Single source of truth for colors, spacing, typography, radii, shadows, z-index, animations. Defined in CSS variables. Exported to JS. Synced from Figma via Style Dictionary or Tokens Studio.</p><div class="chips"><span class="chip chip-s">Style Dictionary</span><span class="chip chip-s">Tokens Studio</span><span class="chip chip-s">Figma</span></div></div>
+    <div class="card"><div class="card-top-bar ct-cyan"></div><div class="card-hd"><div class="card-ico">📚</div><div><div class="card-title">Storybook 8</div><div class="card-kw">COMPONENT DOCS</div></div></div><p>Develop components in isolation. Visual tests with Chromatic. Accessibility audits built-in. ArgTypes for live props editing. MDX docs. Interaction testing. Design + dev alignment tool.</p><div class="chips"><span class="chip chip-c">Chromatic</span><span class="chip chip-s">ArgTypes</span><span class="chip chip-s">a11y addon</span></div></div>
+    <div class="card"><div class="card-top-bar ct-amber"></div><div class="card-hd"><div class="card-ico">🧩</div><div><div class="card-title">shadcn/ui — FBT Base</div><div class="card-kw">COPY-OWN COMPONENTS</div></div></div><p>Not a component library — a collection you copy into your codebase. Radix UI primitives + Tailwind styling. You own every line. Customize freely. FBT standard base layer for all projects.</p><div class="chips"><span class="chip chip-a">Copy-own model</span><span class="chip chip-p">Radix primitives</span></div></div>
+    <div class="card"><div class="card-top-bar ct-green"></div><div class="card-hd"><div class="card-ico">📐</div><div><div class="card-title">Typography Scale</div><div class="card-kw">FLUID TYPE</div></div></div><p>Modular type scale with CSS clamp() for fluid sizing. Min/max bounds. Define in CSS variables. Consistent heading hierarchy. Respect line-height and letter-spacing per size. No arbitrary font sizes.</p><div class="chips"><span class="chip chip-s">clamp()</span><span class="chip chip-s">Modular Scale</span></div></div>
+    <div class="card"><div class="card-top-bar ct-red"></div><div class="card-hd"><div class="card-ico">📏</div><div><div class="card-title">Spacing System</div><div class="card-kw">4px BASE GRID</div></div></div><p>All spacing in multiples of 4px (Tailwind default: 4=1rem). Space-1 through Space-96. Never use arbitrary values. Consistent visual rhythm. padding-x and padding-y symmetry.</p><div class="chips"><span class="chip chip-s">4px grid</span><span class="chip chip-s">8-point grid</span></div></div>
+    <div class="card"><div class="card-top-bar ct-sky"></div><div class="card-hd"><div class="card-ico">🎭</div><div><div class="card-title">Icon System</div><div class="card-kw">SVG SPRITES</div></div></div><p>Lucide React or Heroicons. SVG sprite technique for performance. Icon component with size/color props. Never use icon fonts. Accessible title/aria-label on all meaningful icons.</p><div class="chips"><span class="chip chip-s">Lucide</span><span class="chip chip-s">SVG sprites</span><span class="chip chip-s">ARIA</span></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §13  RESPONSIVE DESIGN -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="responsive">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,229,204,0.1)">📱</div>
+    <h2>RESPONSIVE DESIGN</h2>
+    <span class="sec-sub">mobile-first · fluid · adaptive</span>
+  </div>
+
+  <div class="g2" style="margin-bottom:14px">
+    <div class="wcard">
+      <div class="wcard-hd"><span>📐</span><div class="wcard-title">Tailwind Breakpoints (FBT Standard)</div></div>
+      <table class="tbl">
+        <thead><tr><th>Name</th><th>Min-Width</th><th>Use For</th></tr></thead>
+        <tbody>
+          <tr><td>base (default)</td><td>0px</td><td>Mobile first, all widths</td></tr>
+          <tr><td>sm:</td><td>640px</td><td>Large phone / small tablet</td></tr>
+          <tr><td>md:</td><td>768px</td><td>Tablet portrait</td></tr>
+          <tr><td>lg:</td><td>1024px</td><td>Tablet landscape / laptop</td></tr>
+          <tr><td>xl:</td><td>1280px</td><td>Desktop</td></tr>
+          <tr><td>2xl:</td><td>1536px</td><td>Large desktop</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="wcard">
+      <div class="wcard-hd"><span>🔮</span><div class="wcard-title">Modern Responsive Techniques</div></div>
+      <table class="tbl">
+        <thead><tr><th>Technique</th><th>What</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td>Container Queries</td><td>Respond to parent width, not viewport</td><td>Reusable components in varied contexts</td></tr>
+          <tr><td>Fluid Typography</td><td>clamp(min, preferred, max)</td><td>Headings that scale with viewport</td></tr>
+          <tr><td>CSS Grid auto-fill</td><td>Intrinsic sizing, no breakpoints</td><td>Card grids, galleries</td></tr>
+          <tr><td>Logical Properties</td><td>start/end instead of left/right</td><td>RTL support, internationalization</td></tr>
+          <tr><td>has(), :is(), :where()</td><td>Complex responsive selectors</td><td>Conditional sibling styling</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="gauto-sm">
+    <div class="card"><div class="card-top-bar ct-cyan"></div><div class="card-hd"><div class="card-ico">📦</div><div><div class="card-title">Container Queries</div><div class="card-kw">@CONTAINER</div></div></div><p>Style based on parent container size, not viewport. Reuse same component in sidebar (narrow) and main (wide) — different layouts. Game-changer for component libraries.</p><div class="code"><span class="at">@container</span> sidebar (max-width: 400px) {<br>  .card { flex-direction: column; }<br>}<div class="code-lang">CSS</div></div></div>
+    <div class="card"><div class="card-top-bar ct-amber"></div><div class="card-hd"><div class="card-ico">✏️</div><div><div class="card-title">Fluid Typography</div><div class="card-kw">CLAMP()</div></div></div><p>Scale text between min and max sizes based on viewport with no JS or media queries. Typography that breathes with the screen.</p><div class="code">h1 {<br>  font-size: clamp(2rem, 5vw + 1rem, 4rem);<br>  <span class="cm">/* min: 2rem, fluid, max: 4rem */</span><br>}<div class="code-lang">CSS</div></div></div>
+    <div class="card"><div class="card-top-bar ct-purple"></div><div class="card-hd"><div class="card-ico">🖼️</div><div><div class="card-title">Next.js Image Component</div><div class="card-kw">RESPONSIVE IMAGES</div></div></div><p>Automatic WebP/AVIF conversion, lazy loading, responsive srcset generation, blur placeholder. Use sizes prop to tell browser which breakpoint needs which image. Avoids CLS.</p><div class="code"><<span class="ty">Image</span> src={src} fill alt="..." sizes=<span class="st">"(max-width:768px) 100vw, 50vw"</span>/><div class="code-lang">TSX</div></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §14  ANIMATION & MOTION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="animation">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,64,96,0.12)">✨</div>
+    <h2>ANIMATION & MOTION</h2>
+    <span class="sec-sub">delight · feedback · performance</span>
+  </div>
+
+  <div class="callout co-a">
+    <span>🎯</span>
+    <div><strong>Motion Philosophy:</strong> Animate for purpose — feedback, orientation, delight. Respect prefers-reduced-motion. Duration: 150ms (micro), 300ms (standard), 500ms (complex). Use CSS for simple, Framer Motion for complex. Never block interaction.</div>
+  </div>
+
+  <div class="gauto" style="margin-top:14px">
+    <div class="card">
+      <div class="card-top-bar ct-pink"></div>
+      <div class="card-hd"><div class="card-ico">🎬</div><div><div class="card-title">Framer Motion</div><div class="card-kw">DECLARATIVE ANIMATION</div></div></div>
+      <p>Spring physics, gesture recognition, layout animations, AnimatePresence for exit animations, scroll-triggered animations. Gold standard for React animation.</p>
+      <div class="code">
+<span class="cm">// Layout animation + exit</span>
+<<span class="ty">AnimatePresence</span>>
+  {items.<span class="fn">map</span>(item => (
+    <<span class="ty">motion.div</span>
+      key={item.id}
+      layout
+      initial={{ opacity:<span class="nm">0</span>, y:<span class="nm">20</span> }}
+      animate={{ opacity:<span class="nm">1</span>, y:<span class="nm">0</span> }}
+      exit={{ opacity:<span class="nm">0</span> }}
+      transition={{ type: <span class="st">"spring"</span>, damping:<span class="nm">25</span> }}
+    />
+  ))}
+</<span class="ty">AnimatePresence</span>>
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-p">framer-motion</span><span class="chip chip-s">Spring physics</span><span class="chip chip-s">Gestures</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🔮</div><div><div class="card-title">View Transitions API</div><div class="card-kw">NATIVE BROWSER</div></div></div>
+      <p>Native browser transition between DOM states. Next.js App Router integration. Page-level transitions without JS animation library. startViewTransition() wraps DOM updates.</p>
+      <div class="code">
+<span class="cm">// next.config.ts</span>
+<span class="kw">const</span> config = {
+  experimental: {
+    viewTransition: <span class="kw">true</span>
+  }
+}
+<span class="cm">// CSS: name elements for matching</span>
+.card { view-transition-name: card-{id}; }
+        <div class="code-lang">Next.js 15</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">Native</span><span class="chip chip-s">0kb JS</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">📜</div><div><div class="card-title">CSS Animations (Performance)</div><div class="card-kw">COMPOSITOR-ONLY</div></div></div>
+      <p>Only animate transform and opacity for 60fps. These run on GPU compositor thread, don't trigger layout/paint. Use will-change sparingly. animation-fill-mode: both. Keyframes via @keyframes.</p>
+      <div class="code">
+<span class="cm">/* ✅ GPU composited */</span>
+.slide-in {
+  animation: slideIn 300ms ease;
+}
+<span class="at">@keyframes</span> slideIn {
+  from { transform: translateY(16px); opacity:0 }
+  to   { transform: translateY(0);    opacity:1 }
+}
+        <div class="code-lang">CSS</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">60fps</span><span class="chip chip-s">GPU thread</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">🦽</div><div><div class="card-title">Reduced Motion</div><div class="card-kw">ACCESSIBILITY</div></div></div>
+      <p>Always check prefers-reduced-motion. Vestibular disorders can be triggered by animation. Disable or simplify animations when media query matches. Framer Motion has built-in support.</p>
+      <div class="code">
+<span class="at">@media</span> (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms <span class="kw">!important</span>;
+    transition-duration: 0.01ms <span class="kw">!important</span>;
+  }
+}
+        <div class="code-lang">CSS</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">WCAG 2.1</span><span class="chip chip-r">Required</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §15  FORMS & VALIDATION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="forms">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,176,32,0.1)">📋</div>
+    <h2>FORMS & VALIDATION</h2>
+    <span class="sec-sub">rhf · zod · server actions</span>
+  </div>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🎣</div><div><div class="card-title">React Hook Form + Zod</div><div class="card-kw">GOLD STANDARD</div></div></div>
+      <p>RHF uses uncontrolled inputs for near-zero re-renders. Zod schema as single source of validation truth. zodResolver bridges them. TypeScript-first. Best DX + performance combo available.</p>
+      <div class="code">
+<span class="kw">const</span> form = <span class="fn">useForm</span><<span class="ty">LoginInput</span>>({
+  resolver: <span class="fn">zodResolver</span>(<span class="nm">LoginSchema</span>),
+  defaultValues: { email: <span class="st">''</span>, password: <span class="st">''</span> }
+})
+<span class="kw">const</span> { field } = <span class="fn">useController</span>({
+  name: <span class="st">'email'</span>,
+  control: form.control
+})
+        <div class="code-lang">TSX</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">~0 re-renders</span><span class="chip chip-a">zodResolver</span><span class="chip chip-p">TypeScript</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">Server Actions Form</div><div class="card-kw">PROGRESSIVE ENHANCEMENT</div></div></div>
+      <p>React 19 + Next.js 15 native form handling. useActionState hook for pending/error state. Works without JS enabled. Form data as FormData. Zod validate on server.</p>
+      <div class="code">
+<span class="st">'use client'</span>
+<span class="kw">const</span> [state, action, isPending] =
+  <span class="fn">useActionState</span>(createUser, null)
+<span class="kw">return</span> (
+  <<span class="ty">form</span> action={action}>
+    <<span class="ty">input</span> name=<span class="st">"email"</span> type=<span class="st">"email"</span>/>
+    <<span class="ty">button</span> disabled={isPending}>Submit</<span class="ty">button</span>>
+    {state?.error && <<span class="ty">p</span>>{state.error}</<span class="ty">p</span>>}
+  </<span class="ty">form</span>>
+)
+        <div class="code-lang">React 19</div>
+      </div>
+      <div class="chips"><span class="chip chip-g">No JS needed</span><span class="chip chip-c">React 19</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🛡️</div><div><div class="card-title">Validation Layers</div><div class="card-kw">DEFENSE IN DEPTH</div></div></div>
+      <p>Layer 1: Browser HTML5 (required, type, min/max). Layer 2: Client Zod schema (instant feedback). Layer 3: Server Zod schema (safe, canonical). Layer 4: DB constraints (last resort). Never skip server-side validation.</p>
+      <div class="mgrid">
+        <div class="mi"><div class="mi-l">L1 — Browser</div><div class="mi-v">HTML attributes</div></div>
+        <div class="mi"><div class="mi-l">L2 — Client Zod</div><div class="mi-v">UX feedback</div></div>
+        <div class="mi"><div class="mi-l">L3 — Server Zod</div><div class="mi-v">Canonical truth</div></div>
+        <div class="mi"><div class="mi-l">L4 — DB</div><div class="mi-v">Last line</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🎨</div><div><div class="card-title">Form UX Patterns</div><div class="card-kw">BEST PRACTICES</div></div></div>
+      <p>Validate on blur, not on keystroke. Show errors after first submit attempt. Inline errors below field. Error summary at top for long forms. Auto-focus first error. Disable submit during pending. Success feedback visible.</p>
+      <div class="chips"><span class="chip chip-g">Blur validation</span><span class="chip chip-s">Inline errors</span><span class="chip chip-s">Loading state</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §16  TESTING STRATEGIES -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="testing">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,214,143,0.1)">🧪</div>
+    <h2>TESTING STRATEGIES</h2>
+    <span class="sec-sub">confidence · coverage · speed</span>
+  </div>
+
+  <div class="wcard" style="margin-bottom:16px">
+    <div class="wcard-hd"><span>🏔️</span><div class="wcard-title">Frontend Testing Trophy</div><div class="wcard-sub">kent c. dodds model</div></div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end">
+      <div style="text-align:center"><div style="background:rgba(0,229,204,0.15);border:1px solid var(--cyan);border-radius:5px;padding:10px 4px;font-size:11px;margin-bottom:4px">Unit<br><span style="font-size:9px;color:var(--t3)">~20%</span></div><div style="font-size:10px;color:var(--t3)">Fast</div></div>
+      <div style="text-align:center"><div style="background:rgba(124,77,255,0.2);border:1px solid var(--fbt-hi);border-radius:5px;padding:10px 4px;font-size:11px;margin-bottom:4px">Integration<br><span style="font-size:9px;color:var(--t3)">~50%</span></div><div style="font-size:10px;color:var(--t3)">Moderate</div></div>
+      <div style="text-align:center"><div style="background:rgba(255,176,32,0.15);border:1px solid var(--amber);border-radius:5px;padding:10px 4px;font-size:11px;margin-bottom:4px">E2E<br><span style="font-size:9px;color:var(--t3)">~20%</span></div><div style="font-size:10px;color:var(--t3)">Slow</div></div>
+      <div style="text-align:center"><div style="background:rgba(255,64,96,0.12);border:1px solid var(--red);border-radius:5px;padding:10px 4px;font-size:11px;margin-bottom:4px">Visual<br><span style="font-size:9px;color:var(--t3)">~8%</span></div><div style="font-size:10px;color:var(--t3)">Targeted</div></div>
+      <div style="text-align:center"><div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:5px;padding:10px 4px;font-size:11px;margin-bottom:4px">Static<br><span style="font-size:9px;color:var(--t3)">TypeScript</span></div><div style="font-size:10px;color:var(--t3)">Always</div></div>
+    </div>
+  </div>
+
+  <table class="tbl">
+    <thead>
+      <tr><th>Type</th><th>What to Test</th><th>Tool</th><th>Approach</th><th>FBT Rule</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Unit</td><td>Pure functions, hooks, utils</td><td>Vitest + Testing Library</td><td>Test behavior, not implementation</td><td>All hooks, util functions</td></tr>
+      <tr><td>Component Integration</td><td>Component with real interactions</td><td>Testing Library + jsdom</td><td>Render, act user, assert DOM</td><td>Every interactive component</td></tr>
+      <tr><td>E2E</td><td>Critical user flows end-to-end</td><td>Playwright</td><td>User-perspective flows</td><td>Login, checkout, core CRUD</td></tr>
+      <tr><td>Visual Regression</td><td>UI matches approved snapshots</td><td>Storybook + Chromatic</td><td>Screenshot diff per story</td><td>Design system components</td></tr>
+      <tr><td>Accessibility</td><td>ARIA, keyboard nav, contrast</td><td>axe-core + Storybook a11y</td><td>Auto-scan every story/test</td><td>All components</td></tr>
+      <tr><td>Performance</td><td>Core Web Vitals in CI</td><td>Lighthouse CI + Playwright</td><td>Threshold gates in CI</td><td>Every release branch</td></tr>
+      <tr><td>Static</td><td>Type errors, lint violations</td><td>TypeScript + ESLint</td><td>Pre-commit, CI</td><td>Zero errors policy</td></tr>
+      <tr><td>MSW Mocking</td><td>API integration without server</td><td>MSW (Mock Service Worker)</td><td>Intercept fetch at Service Worker</td><td>Integration test suite</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gauto" style="margin-top:14px">
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">Vitest + React Testing Library</div><div class="card-kw">UNIT + INTEGRATION</div></div></div>
+      <div class="code">
+<span class="fn">it</span>(<span class="st">'shows error when email invalid'</span>, <span class="kw">async</span> () => {
+  <span class="fn">render</span>(<<span class="ty">LoginForm</span> />)
+  <span class="kw">await</span> userEvent.<span class="fn">type</span>(
+    screen.<span class="fn">getByLabelText</span>(<span class="st">'Email'</span>), <span class="st">'invalid'</span>
+  )
+  <span class="kw">await</span> userEvent.<span class="fn">click</span>(
+    screen.<span class="fn">getByRole</span>(<span class="st">'button'</span>, { name: <span class="st">/submit/i</span> })
+  )
+  <span class="fn">expect</span>(screen.<span class="fn">getByRole</span>(<span class="st">'alert'</span>))
+    .<span class="fn">toBeInTheDocument</span>()
+})
+        <div class="code-lang">Vitest</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🎭</div><div><div class="card-title">Playwright E2E</div><div class="card-kw">END-TO-END</div></div></div>
+      <div class="code">
+<span class="fn">test</span>(<span class="st">'user can login'</span>, <span class="kw">async</span> ({ page }) => {
+  <span class="kw">await</span> page.<span class="fn">goto</span>(<span class="st">'/login'</span>)
+  <span class="kw">await</span> page.<span class="fn">fill</span>(<span class="st">'[name=email]'</span>, <span class="st">'test@fbt.io'</span>)
+  <span class="kw">await</span> page.<span class="fn">fill</span>(<span class="st">'[name=password]'</span>, <span class="st">'secret'</span>)
+  <span class="kw">await</span> page.<span class="fn">click</span>(<span class="st">'button[type=submit]'</span>)
+  <span class="kw">await</span> expect(page).<span class="fn">toHaveURL</span>(<span class="st">'/dashboard'</span>)
+})
+        <div class="code-lang">Playwright</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §17  ACCESSIBILITY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="accessibility">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,214,143,0.1)">♿</div>
+    <h2>ACCESSIBILITY (A11Y)</h2>
+    <span class="sec-sub">wcag 2.2 aa · aria · inclusive</span>
+  </div>
+
+  <div class="callout co-g">
+    <span>🏆</span>
+    <div><strong>FBT Standard: WCAG 2.2 AA minimum on all projects.</strong> Accessibility is not optional — it's engineering excellence. 15% of users have disabilities. Accessible code is better code.</div>
+  </div>
+
+  <div class="gauto" style="margin-top:14px">
+    <div class="card"><div class="card-top-bar ct-green"></div><div class="card-hd"><div class="card-ico">⌨️</div><div><div class="card-title">Keyboard Navigation</div><div class="card-kw">WCAG 2.1.1</div></div></div><p>All functionality via keyboard. Tab order logical. Focus visible (WCAG 2.4.11: focus not obscured). Escape closes modals. Arrow keys for composite widgets (menus, tabs, sliders). Trap focus in modals.</p><div class="chips"><span class="chip chip-g">Required</span><span class="chip chip-s">focus-visible CSS</span></div></div>
+    <div class="card"><div class="card-top-bar ct-cyan"></div><div class="card-hd"><div class="card-ico">👁️</div><div><div class="card-title">Colour Contrast</div><div class="card-kw">WCAG 1.4.3 / 1.4.6</div></div></div><p>AA: 4.5:1 normal text, 3:1 large text. AAA: 7:1 normal. Check with axe DevTools, Figma plugins. Don't rely on color alone to convey information — add icon, pattern, or text.</p><div class="chips"><span class="chip chip-r">4.5:1 minimum</span><span class="chip chip-s">axe-core</span></div></div>
+    <div class="card"><div class="card-top-bar ct-purple"></div><div class="card-hd"><div class="card-ico">🗣️</div><div><div class="card-title">ARIA Roles & Labels</div><div class="card-kw">WHEN HTML INSUFFICIENT</div></div></div><p>Use semantic HTML first — button, nav, main, article, aside. Only add ARIA when HTML semantics aren't enough. aria-label for icons. aria-describedby for hints. aria-live for dynamic updates. aria-expanded for toggles.</p><div class="chips"><span class="chip chip-s">Semantic HTML first</span><span class="chip chip-s">aria-live</span></div></div>
+    <div class="card"><div class="card-top-bar ct-amber"></div><div class="card-hd"><div class="card-ico">📝</div><div><div class="card-title">Forms Accessibility</div><div class="card-kw">INPUTS</div></div></div><p>Every input needs a visible label (htmlFor). Error messages linked via aria-describedby. Required fields marked (aria-required). Error state: aria-invalid="true". Group related fields in fieldset + legend.</p><div class="chips"><span class="chip chip-r">Required</span><span class="chip chip-s">aria-describedby</span></div></div>
+    <div class="card"><div class="card-top-bar ct-red"></div><div class="card-hd"><div class="card-ico">📊</div><div><div class="card-title">Screen Reader Testing</div><div class="card-kw">NVDA · JAWS · VoiceOver</div></div></div><p>Test with NVDA (Windows), JAWS (Windows), VoiceOver (Mac/iOS), TalkBack (Android). macOS VoiceOver + Safari is free. Test flow, not just individual components. Announce dynamic changes.</p><div class="chips"><span class="chip chip-s">VoiceOver</span><span class="chip chip-s">NVDA free</span></div></div>
+    <div class="card"><div class="card-top-bar ct-sky"></div><div class="card-hd"><div class="card-ico">🎬</div><div><div class="card-title">Motion & Cognitive</div><div class="card-kw">WCAG 2.3 / 1.4.12</div></div></div><p>prefers-reduced-motion respected. No autoplaying video. No flashing content (seizure risk). Adequate time for timed interactions. Complex UI has clear instructions. Error prevention for irreversible actions.</p><div class="chips"><span class="chip chip-r">No autoplay</span><span class="chip chip-g">reduced-motion</span></div></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §18  SECURITY (FRONTEND) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="security-fe">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,64,96,0.12)">🔐</div>
+    <h2>FRONTEND SECURITY</h2>
+    <span class="sec-sub">xss · csp · headers · auth</span>
+  </div>
+
+  <table class="tbl" style="margin-bottom:16px">
+    <thead>
+      <tr><th>Threat</th><th>Attack</th><th>Mitigation</th><th>How in Next.js</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>XSS</td><td>Inject scripts via user input</td><td>Never dangerouslySetInnerHTML. DOMPurify for HTML. Escape all user content</td><td>React escapes by default. CSP as backup</td></tr>
+      <tr><td>CSRF</td><td>Forged cross-origin requests</td><td>SameSite cookies, CSRF tokens, Origin header check</td><td>Next.js Actions include CSRF token automatically</td></tr>
+      <tr><td>Clickjacking</td><td>Iframe overlay tricks</td><td>X-Frame-Options or CSP frame-ancestors</td><td>next.config.ts headers()</td></tr>
+      <tr><td>Data Exposure</td><td>Sensitive data in client bundle</td><td>Never expose secrets in NEXT_PUBLIC_. Server Actions for sensitive ops</td><td>env validation with @t3-oss/env-nextjs</td></tr>
+      <tr><td>Open Redirect</td><td>Redirect to malicious URL</td><td>Validate redirect target against allowlist</td><td>Check redirect param in middleware</td></tr>
+      <tr><td>Prototype Pollution</td><td>Pollute Object.prototype</td><td>Safe JSON parse, avoid eval/Function()</td><td>TypeScript + eslint-plugin-security</td></tr>
+      <tr><td>Dependency Attack</td><td>Compromised npm packages</td><td>npm audit, Snyk, lockfile commits</td><td>Dependabot + npm audit in CI</td></tr>
+      <tr><td>Auth Token Leak</td><td>Token in localStorage</td><td>HttpOnly cookies for tokens, not localStorage</td><td>next-auth / Auth.js httpOnly cookies</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-top-bar ct-red"></div>
+    <div class="card-hd"><div class="card-ico">🛡️</div><div><div class="card-title">Content Security Policy (CSP)</div><div class="card-kw">CRITICAL DEFENCE</div></div></div>
+    <div class="code">
+<span class="cm">// next.config.ts — strict CSP</span>
+headers: [{ key: <span class="st">'Content-Security-Policy'</span>, value: [
+  <span class="st">"default-src 'self'"</span>,
+  <span class="st">"script-src 'self' 'nonce-{nonce}'"</span>,
+  <span class="st">"style-src 'self' 'unsafe-inline'"</span>,
+  <span class="st">"img-src 'self' data: blob: cdn.example.com"</span>,
+  <span class="st">"connect-src 'self' api.example.com"</span>,
+  <span class="st">"frame-ancestors 'none'"</span>,
+].<span class="fn">join</span>(<span class="st">';'</span>) }]
+      <div class="code-lang">Next.js</div>
+    </div>
+    <div class="chips"><span class="chip chip-r">Required in prod</span><span class="chip chip-s">nonce-based</span><span class="chip chip-s">frame-ancestors none</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §19  PERFORMANCE & CORE WEB VITALS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="performance">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,229,204,0.1)">🚀</div>
+    <h2>PERFORMANCE & CORE WEB VITALS</h2>
+    <span class="sec-sub">fcp · lcp · cls · inp · ttfb</span>
+  </div>
+
+  <div class="g2" style="margin-bottom:16px">
+    <div class="wcard">
+      <div class="wcard-hd"><span>📊</span><div class="wcard-title">FBT Performance Targets</div></div>
+      <div class="perf-bar"><div class="perf-label"><span>FCP (First Contentful Paint)</span><span>FBT: &lt;1.5s · Good: &lt;1.8s</span></div><div class="perf-track"><div class="perf-fill pf-fbt" style="width:85%"></div></div></div>
+      <div class="perf-bar"><div class="perf-label"><span>LCP (Largest Contentful Paint)</span><span>FBT: &lt;2.5s · Good: &lt;2.5s</span></div><div class="perf-track"><div class="perf-fill pf-good" style="width:80%"></div></div></div>
+      <div class="perf-bar"><div class="perf-label"><span>INP (Interaction to Next Paint)</span><span>FBT: &lt;200ms · Good: &lt;200ms</span></div><div class="perf-track"><div class="perf-fill pf-good" style="width:90%"></div></div></div>
+      <div class="perf-bar"><div class="perf-label"><span>CLS (Cumulative Layout Shift)</span><span>FBT: &lt;0.1 · Good: &lt;0.1</span></div><div class="perf-track"><div class="perf-fill pf-good" style="width:95%"></div></div></div>
+      <div class="perf-bar"><div class="perf-label"><span>TTFB (Time to First Byte)</span><span>FBT: &lt;600ms · Good: &lt;800ms</span></div><div class="perf-track"><div class="perf-fill pf-fbt" style="width:88%"></div></div></div>
+    </div>
+
+    <div class="wcard">
+      <div class="wcard-hd"><span>⚡</span><div class="wcard-title">What Affects Each Metric</div></div>
+      <table class="tbl">
+        <thead><tr><th>Metric</th><th>Primary Causes</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>FCP</td><td>Render-blocking resources, TTFB</td><td>Inline critical CSS, preload fonts</td></tr>
+          <tr><td>LCP</td><td>Slow image, SSR time, large JS</td><td>Optimize hero image, RSC, code split</td></tr>
+          <tr><td>INP</td><td>Long tasks, large event handlers</td><td>Debounce, defer, useTransition</td></tr>
+          <tr><td>CLS</td><td>Images w/o dimensions, injected ads</td><td>Width+height on all images, skeleton</td></tr>
+          <tr><td>TTFB</td><td>Server compute, cold start</td><td>Edge runtime, ISR/SSG, CDN</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §20  OPTIMIZATION TECHNIQUES -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="optimization">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(124,77,255,0.12)">⚙️</div>
+    <h2>OPTIMIZATION TECHNIQUES</h2>
+    <span class="sec-sub">bundle · render · network</span>
+  </div>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">✂️</div><div><div class="card-title">Code Splitting & Lazy Loading</div><div class="card-kw">DYNAMIC IMPORT</div></div></div>
+      <p>Split bundle at route and component level. Dynamic import for heavy components. Next.js next/dynamic for SSR-safe lazy loading. Route-level code splitting is automatic in Next.js App Router.</p>
+      <div class="code">
+<span class="kw">const</span> <span class="ty">Chart</span> = <span class="fn">dynamic</span>(
+  () => <span class="kw">import</span>(<span class="st">'./Chart'</span>),
+  { loading: () => <<span class="ty">Skeleton</span>/>, ssr: <span class="kw">false</span> }
+)
+        <div class="code-lang">Next.js</div>
+      </div>
+      <div class="chips"><span class="chip chip-p">next/dynamic</span><span class="chip chip-s">React.lazy</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🧠</div><div><div class="card-title">Memoization</div><div class="card-kw">RENDER OPTIMIZATION</div></div></div>
+      <p>React.memo for component memoization. useMemo for expensive calculations. useCallback for stable function references. Don't over-memoize — it has cost too. Profile first, optimize second.</p>
+      <div class="code">
+<span class="cm">// Only re-render if props change</span>
+<span class="kw">const</span> <span class="ty">UserCard</span> = <span class="ty">React</span>.<span class="fn">memo</span>(({ user }) =>
+  <<span class="ty">div</span>>{user.name}</<span class="ty">div</span>>
+)
+<span class="cm">// Memoize expensive computation</span>
+<span class="kw">const</span> sorted = <span class="fn">useMemo</span>(
+  () => items.<span class="fn">sort</span>(compare), [items]
+)
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🔀</div><div><div class="card-title">useTransition & useDeferredValue</div><div class="card-kw">REACT 18 CONCURRENT</div></div></div>
+      <p>useTransition marks state update as non-urgent. UI stays responsive during update. useDeferredValue defers re-rendering of slow tree. Both keep INP &lt;200ms during heavy updates.</p>
+      <div class="code">
+<span class="kw">const</span> [isPending, startTransition] = <span class="fn">useTransition</span>()
+<span class="cm">// UI stays responsive — update is non-urgent</span>
+startTransition(() => <span class="fn">setHeavyState</span>(newValue))
+
+<span class="cm">// Defer rendering of slow list</span>
+<span class="kw">const</span> deferred = <span class="fn">useDeferredValue</span>(searchQuery)
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">📜</div><div><div class="card-title">Virtual Scrolling</div><div class="card-kw">LONG LISTS</div></div></div>
+      <p>Only render visible rows. TanStack Virtual (react-virtual) for lists, grids, tables. Handles 100k+ rows. Windowing technique — calculate which items are in viewport, render only those.</p>
+      <div class="chips"><span class="chip chip-p">TanStack Virtual</span><span class="chip chip-s">react-window</span><span class="chip chip-s">react-virtuoso</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-red"></div>
+      <div class="card-hd"><div class="card-ico">🖼️</div><div><div class="card-title">Image Optimization</div><div class="card-kw">LCP IMPACT</div></div></div>
+      <p>Next/Image auto WebP/AVIF conversion, lazy loading, srcset generation. Preload LCP image with priority prop. Blur placeholder prevents CLS. Define width+height always. Use sizes for responsive.</p>
+      <div class="code">
+<<span class="ty">Image</span>
+  src={heroImage}
+  priority  <span class="cm">// preload — LCP image</span>
+  placeholder=<span class="st">"blur"</span>
+  blurDataURL={blurUrl}
+  width={1280} height={720}
+  alt=<span class="st">"Hero"</span>
+/>
+        <div class="code-lang">Next.js</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">📦</div><div><div class="card-title">Bundle Analysis</div><div class="card-kw">SHIP LESS JS</div></div></div>
+      <p>@next/bundle-analyzer for Next.js. Track bundle size in CI with bundlesize or size-limit. Target: &lt;200kb initial JS. Import costs: lodash (whole lib vs /pick), date-fns, moment.js alternatives.</p>
+      <div class="chips"><span class="chip chip-p">@next/bundle-analyzer</span><span class="chip chip-s">size-limit</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §21  API INTEGRATION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="api-integration">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(56,189,248,0.1)">🌐</div>
+    <h2>API INTEGRATION PATTERNS</h2>
+    <span class="sec-sub">fetch · react query · trpc · msw</span>
+  </div>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-sky"></div>
+      <div class="card-hd"><div class="card-ico">🏗️</div><div><div class="card-title">API Client Layer</div><div class="card-kw">ABSTRACTION PATTERN</div></div></div>
+      <p>Centralize all API calls in a typed client layer. Never call fetch() directly from components. Enables easy mocking, error handling, auth token injection, and type safety end-to-end.</p>
+      <div class="code">
+<span class="cm">// lib/api/users.ts</span>
+<span class="kw">export const</span> usersApi = {
+  list: () => <span class="fn">apiClient</span>.get<<span class="ty">User[]</span>>(<span class="st">'/users'</span>),
+  byId: (id: <span class="kw">string</span>) =>
+    <span class="fn">apiClient</span>.get<<span class="ty">User</span>>(<span class="st">`/users/${id}`</span>),
+  create: (data: <span class="ty">CreateUserInput</span>) =>
+    <span class="fn">apiClient</span>.post<<span class="ty">User</span>>(<span class="st">'/users'</span>, data),
+}
+        <div class="code-lang">TS</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">📡</div><div><div class="card-title">Loading / Error / Empty States</div><div class="card-kw">ALWAYS ALL THREE</div></div></div>
+      <p>Every async component must handle all three states. Never render undefined data. Use React Query's isLoading, isError, data states. Skeleton for loading, error boundary for errors, empty state illustration for zero results.</p>
+      <div class="code">
+<span class="kw">const</span> { data, isLoading, error } = <span class="fn">useUsers</span>()
+<span class="kw">if</span> (isLoading) <span class="kw">return</span> <<span class="ty">UserListSkeleton</span>/>
+<span class="kw">if</span> (error) <span class="kw">return</span> <<span class="ty">ErrorState</span> error={error}/>
+<span class="kw">if</span> (!data?.length) <span class="kw">return</span> <<span class="ty">EmptyState</span>/>
+<span class="kw">return</span> <<span class="ty">UserList</span> users={data}/>
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🔄</div><div><div class="card-title">Infinite Scroll / Pagination</div><div class="card-kw">TANSTACK QUERY</div></div></div>
+      <p>useInfiniteQuery for infinite scroll. Cursor-based pagination. Intersection Observer triggers next page. React Query handles all page caching, prefetching, and state merging automatically.</p>
+      <div class="code">
+<span class="kw">const</span> { data, fetchNextPage, hasNextPage } =
+  <span class="fn">useInfiniteQuery</span>({
+    queryKey: [<span class="st">'posts'</span>],
+    queryFn: ({ pageParam }) => <span class="fn">fetchPosts</span>(pageParam),
+    getNextPageParam: (last) => last.nextCursor,
+    initialPageParam: <span class="kw">undefined</span>
+  })
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">🎭</div><div><div class="card-title">MSW — Mock Service Worker</div><div class="card-kw">API MOCKING</div></div></div>
+      <p>Intercept actual fetch calls at Service Worker level. Works in browser AND Node.js (tests). Same handlers for both. Realistic mocking — no axios-mock-adapter. Next.js compatible. Storybook integration.</p>
+      <div class="code">
+<span class="cm">// handlers.ts</span>
+<span class="kw">export const</span> handlers = [
+  http.<span class="fn">get</span>(<span class="st">'/api/users'</span>, () => {
+    <span class="kw">return</span> <span class="ty">HttpResponse</span>.<span class="fn">json</span>(mockUsers)
+  })
+]
+        <div class="code-lang">MSW</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §22  SEO & METADATA -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="seo">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(255,176,32,0.1)">🔍</div>
+    <h2>SEO & METADATA</h2>
+    <span class="sec-sub">next.js metadata api · og · schema</span>
+  </div>
+
+  <div class="gauto">
+    <div class="card">
+      <div class="card-top-bar ct-amber"></div>
+      <div class="card-hd"><div class="card-ico">📋</div><div><div class="card-title">Next.js Metadata API</div><div class="card-kw">APP ROUTER</div></div></div>
+      <div class="code">
+<span class="cm">// app/blog/[slug]/page.tsx</span>
+<span class="kw">export async function</span> <span class="fn">generateMetadata</span>(
+  { params }: { params: { slug: <span class="kw">string</span> } }
+): <span class="ty">Promise</span><<span class="ty">Metadata</span>> {
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">getPost</span>(params.slug)
+  <span class="kw">return</span> {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      images: [{ url: post.ogImage }]
+    }
+  }
+}
+        <div class="code-lang">Next.js</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-cyan"></div>
+      <div class="card-hd"><div class="card-ico">🖼️</div><div><div class="card-title">Dynamic OG Images</div><div class="card-kw">OPENGRAPH-IMAGE.TSX</div></div></div>
+      <div class="code">
+<span class="cm">// app/blog/[slug]/opengraph-image.tsx</span>
+<span class="kw">import</span> { <span class="nm">ImageResponse</span> } <span class="kw">from</span> <span class="st">'next/og'</span>
+<span class="kw">export default async function</span> <span class="fn">Image</span>({ params }) {
+  <span class="kw">return new</span> <span class="fn">ImageResponse</span>(
+    <<span class="ty">div</span> style={{ display:<span class="st">'flex'</span>, ... }}>
+      {params.slug}
+    </<span class="ty">div</span>>,
+    { width: <span class="nm">1200</span>, height: <span class="nm">630</span> }
+  )
+}
+        <div class="code-lang">Next.js</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-purple"></div>
+      <div class="card-hd"><div class="card-ico">🗺️</div><div><div class="card-title">Sitemap & Robots</div><div class="card-kw">DISCOVERY</div></div></div>
+      <div class="code">
+<span class="cm">// app/sitemap.ts</span>
+<span class="kw">export default async function</span> <span class="fn">sitemap</span>() {
+  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">getAllPosts</span>()
+  <span class="kw">return</span> posts.<span class="fn">map</span>(p => ({
+    url: <span class="st">`https://fbt.io/blog/${p.slug}`</span>,
+    lastModified: p.updatedAt,
+    changeFrequency: <span class="st">'weekly'</span>,
+    priority: <span class="nm">0.8</span>
+  }))
+}
+        <div class="code-lang">Next.js</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top-bar ct-green"></div>
+      <div class="card-hd"><div class="card-ico">📊</div><div><div class="card-title">Structured Data (Schema.org)</div><div class="card-kw">JSON-LD</div></div></div>
+      <p>Add JSON-LD for rich results. Article, Product, FAQ, BreadcrumbList, Organization. Inject via script tag in layout or page. Google Search Console for validation.</p>
+      <div class="code">
+<span class="kw">const</span> jsonLd = {
+  <span class="st">'@context'</span>: <span class="st">'https://schema.org'</span>,
+  <span class="st">'@type'</span>: <span class="st">'Article'</span>,
+  headline: post.title,
+  datePublished: post.date,
+}
+<<span class="ty">script</span> type=<span class="st">"application/ld+json"</span>
+  dangerouslySetInnerHTML={{ __html: JSON.<span class="fn">stringify</span>(jsonLd) }}/>
+        <div class="code-lang">TSX</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §23  BUILD TOOLING -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="tooling">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(124,77,255,0.12)">🔧</div>
+    <h2>BUILD & TOOLING</h2>
+    <span class="sec-sub">turbopack · eslint · ci · dx</span>
+  </div>
+
+  <div class="gauto" style="margin-bottom:16px">
+    <div class="card"><div class="card-top-bar ct-purple"></div><div class="card-hd"><div class="card-ico">⚡</div><div><div class="card-title">Turbopack</div><div class="card-kw">NEXT.JS DEFAULT</div></div></div><p>Rust-based bundler, default in Next.js 15 dev. 700x faster than Webpack on large apps. Incremental computation — only rebuilds what changed. Stable in Next.js 15 for dev.</p><div class="chips"><span class="chip chip-g">700x faster dev</span><span class="chip chip-p">Next.js 15</span></div></div>
+    <div class="card"><div class="card-top-bar ct-cyan"></div><div class="card-hd"><div class="card-ico">🔍</div><div><div class="card-title">ESLint + TypeScript ESLint</div><div class="card-kw">CODE QUALITY</div></div></div><p>@typescript-eslint for TS-aware rules. next/core-web-vitals config. eslint-plugin-jsx-a11y for accessibility. eslint-plugin-import for import order. Flat config (ESLint 9).</p><div class="chips"><span class="chip chip-s">@typescript-eslint</span><span class="chip chip-s">jsx-a11y</span></div></div>
+    <div class="card"><div class="card-top-bar ct-amber"></div><div class="card-hd"><div class="card-ico">✨</div><div><div class="card-title">Prettier + Import Sort</div><div class="card-kw">FORMATTING</div></div></div><p>Prettier for auto-formatting. @ianvs/prettier-plugin-sort-imports for import organization. prettier-plugin-tailwindcss for class sort. No debates about formatting — it's automated.</p><div class="chips"><span class="chip chip-s">Prettier 3</span><span class="chip chip-s">Tailwind sort</span></div></div>
+    <div class="card"><div class="card-top-bar ct-green"></div><div class="card-hd"><div class="card-ico">🐶</div><div><div class="card-title">Husky + lint-staged</div><div class="card-kw">PRE-COMMIT GATES</div></div></div><p>Husky adds git hooks. lint-staged runs linters only on staged files (fast). Pre-commit: ESLint, Prettier, TypeScript check. Pre-push: tests. Never ship unformatted or broken code.</p><div class="chips"><span class="chip chip-s">husky</span><span class="chip chip-s">lint-staged</span><span class="chip chip-s">commitlint</span></div></div>
+    <div class="card"><div class="card-top-bar ct-red"></div><div class="card-hd"><div class="card-ico">🏗️</div><div><div class="card-title">Turborepo (Monorepo)</div><div class="card-kw">MULTI-PACKAGE</div></div></div><p>Task pipeline with caching. Only rebuild affected packages. Remote cache (Vercel). CatchMoment polyrepo coordination. apps/ and packages/ structure. Shared configs as packages.</p><div class="chips"><span class="chip chip-p">Turborepo</span><span class="chip chip-s">Remote cache</span></div></div>
+    <div class="card"><div class="card-top-bar ct-sky"></div><div class="card-hd"><div class="card-ico">🔎</div><div><div class="card-title">Bundle Analyzer</div><div class="card-kw">SIZE TRACKING</div></div></div><p>@next/bundle-analyzer shows per-page bundle breakdown. Run with ANALYZE=true next build. Track third-party impact. size-limit in CI enforces max bundle budget. Lighthouse CI for CWV budget.</p><div class="chips"><span class="chip chip-s">@next/bundle-analyzer</span><span class="chip chip-s">size-limit</span></div></div>
+  </div>
+
+  <div class="wcard">
+    <div class="wcard-hd"><span>🔧</span><div class="wcard-title">CI Pipeline (FBT Grade)</div><div class="wcard-sub">github actions</div></div>
+    <div class="flow">
+      <div class="fstep"><div class="fnum">1</div><div class="fcontent"><div class="ftitle">Type Check + Lint</div><div class="fdesc">tsc --noEmit (zero type errors) + ESLint (zero violations). Fail fast — fastest gate.</div></div></div>
+      <div class="fstep"><div class="fnum">2</div><div class="fcontent"><div class="ftitle">Unit + Integration Tests</div><div class="fdesc">Vitest with coverage threshold (80%+ branches). Fail build below threshold.</div></div></div>
+      <div class="fstep"><div class="fnum">3</div><div class="fcontent"><div class="ftitle">Build + Bundle Analysis</div><div class="fdesc">next build. Bundle size check. Fail if over budget. Generate build stats.</div></div></div>
+      <div class="fstep"><div class="fnum">4</div><div class="fcontent"><div class="ftitle">E2E Tests (Playwright)</div><div class="fdesc">Run against preview deployment. Critical flows only. Parallel sharded runs.</div></div></div>
+      <div class="fstep"><div class="fnum">5</div><div class="fcontent"><div class="ftitle">Visual Regression (Chromatic)</div><div class="fdesc">Screenshot diff vs baseline. Review changes. Auto-approve if no visual change.</div></div></div>
+      <div class="fstep"><div class="fnum">6</div><div class="fcontent"><div class="ftitle">Lighthouse CI</div><div class="fdesc">CWV against targets. Fail if FCP &gt;1.8s or LCP &gt;2.5s. Performance budget enforced.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §24  DEPLOYMENT -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="deployment-fe">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,229,204,0.1)">🚢</div>
+    <h2>DEPLOYMENT STRATEGIES</h2>
+    <span class="sec-sub">vercel · edge · cdn · cache</span>
+  </div>
+
+  <div class="gauto" style="margin-bottom:16px">
+    <div class="card"><div class="card-top-bar ct-multi"></div><div class="card-hd"><div class="card-ico">▲</div><div><div class="card-title">Vercel (FBT Primary)</div><div class="card-kw">NEXT.JS NATIVE</div></div></div><p>Zero-config Next.js deployment. Automatic preview deployments per PR. Edge Network CDN. Incremental Static Regeneration native. Analytics + Speed Insights. Custom domains + SSL automatic.</p><div class="chips"><span class="chip chip-g">Zero config</span><span class="chip chip-c">Preview per PR</span><span class="chip chip-s">Edge CDN</span></div></div>
+    <div class="card"><div class="card-top-bar ct-cyan"></div><div class="card-hd"><div class="card-ico">🌐</div><div><div class="card-title">Edge Runtime</div><div class="card-kw">CLOUDFLARE / VERCEL EDGE</div></div></div><p>Middleware runs at Edge (closest server to user). Sub-millisecond auth. Route rewriting. A/B testing at edge. Rate limiting. Geo-targeting. Use Web APIs only (no Node.js APIs in edge).</p><div class="chips"><span class="chip chip-g">&lt;10ms cold start</span><span class="chip chip-s">Web APIs only</span></div></div>
+    <div class="card"><div class="card-top-bar ct-purple"></div><div class="card-hd"><div class="card-ico">🔄</div><div><div class="card-title">Environment Variables</div><div class="card-kw">T3 ENV VALIDATION</div></div></div><p>@t3-oss/env-nextjs validates all env vars at build time. Zod schema for NEXT_PUBLIC_ and server vars. Fail build if required vars missing. Never expose server secrets to client.</p><div class="chips"><span class="chip chip-p">@t3-oss/env-nextjs</span><span class="chip chip-r">Never NEXT_PUBLIC secrets</span></div></div>
+    <div class="card"><div class="card-top-bar ct-amber"></div><div class="card-hd"><div class="card-ico">🚀</div><div><div class="card-title">Deployment Strategies</div><div class="card-kw">ZERO DOWNTIME</div></div></div><p>Atomic deployments (Vercel default). Feature flags via LaunchDarkly/Unleash for dark launches. Preview deployments for QA. Environment promotion: dev → staging → prod with approval gates.</p><div class="chips"><span class="chip chip-s">Atomic deploy</span><span class="chip chip-s">Feature flags</span><span class="chip chip-s">Preview envs</span></div></div>
+  </div>
+
+  <div class="wcard">
+    <div class="wcard-hd"><span>💾</span><div class="wcard-title">Frontend Caching Strategy</div></div>
+    <table class="tbl">
+      <thead><tr><th>Asset Type</th><th>Cache-Control</th><th>Why</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td>JS/CSS (hashed filename)</td><td>public, max-age=31536000, immutable</td><td>Content-hashed = safe to cache forever</td><td>Next.js automatic</td></tr>
+        <tr><td>HTML pages</td><td>no-cache (or s-maxage for ISR)</td><td>HTML changes with deploys</td><td>Vercel CDN + revalidation headers</td></tr>
+        <tr><td>API responses</td><td>Depends on data freshness</td><td>Balance freshness vs performance</td><td>Cache-Control header in Route Handler</td></tr>
+        <tr><td>Images</td><td>public, max-age=86400</td><td>CDN serves, 24hr freshness</td><td>Next/Image + CDN</td></tr>
+        <tr><td>Fonts</td><td>public, max-age=31536000, immutable</td><td>Versioned, never change</td><td>Next/font automatic</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- §25  FBT FRONTEND STANDARDS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="fbt-standards">
+  <div class="sec-hd">
+    <div class="sec-ico" style="background:rgba(0,229,204,0.15)">🏆</div>
+    <h2>FBT FRONTEND STANDARDS</h2>
+    <span class="sec-sub">non-negotiables · project structure · checklist</span>
+  </div>
+
+  <div class="callout co-c" style="margin-bottom:20px">
+    <span>⚡</span>
+    <div><strong>These standards apply to ALL FBT projects:</strong> RentFlow, Zentra, CatchMoment, Neat & Fresh, FIROSE Group — every frontend codebase runs under these rules.</div>
+  </div>
+
+  <div class="wcard" style="margin-bottom:16px">
+    <div class="wcard-hd"><span>📁</span><div class="wcard-title">FBT Next.js 15 Project Structure</div></div>
+    <div class="code" style="font-size:11.5px;line-height:1.8">
+src/
+├── app/                   <span class="cm"># Next.js App Router</span>
+│   ├── (auth)/            <span class="cm"># Route group: auth pages</span>
+│   ├── (dashboard)/       <span class="cm"># Route group: app pages</span>
+│   ├── api/               <span class="cm"># Route Handlers</span>
+│   ├── layout.tsx         <span class="cm"># Root layout</span>
+│   └── globals.css        <span class="cm"># Tailwind import + tokens</span>
+├── components/
+│   ├── ui/                <span class="cm"># shadcn/ui base components</span>
+│   ├── features/          <span class="cm"># Feature-specific components</span>
+│   └── layouts/           <span class="cm"># Layout components</span>
+├── lib/
+│   ├── api/               <span class="cm"># API client layer</span>
+│   ├── utils.ts           <span class="cm"># cn(), helpers</span>
+│   └── validations/       <span class="cm"># Zod schemas</span>
+├── hooks/                 <span class="cm"># Custom React hooks</span>
+├── stores/                <span class="cm"># Zustand stores</span>
+├── types/                 <span class="cm"># Shared TypeScript types</span>
+├── server/                <span class="cm"># Server actions, DB queries</span>
+└── config/                <span class="cm"># App config, constants</span>
+      <div class="code-lang">Structure</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div>
+      <div class="wcard-hd" style="margin-bottom:12px"><span>✅</span><div class="wcard-title">Non-Negotiable Checklist</div></div>
+      <div class="hrow"><div class="hrow-t">TypeScript Strict</div><div class="hrow-b">Zero <code>any</code>, zero type errors. tsconfig strict: true + noUncheckedIndexedAccess</div></div>
+      <div class="hrow"><div class="hrow-t">WCAG 2.2 AA</div><div class="hrow-b">All components pass axe-core, keyboard navigable, 4.5:1 contrast minimum</div></div>
+      <div class="hrow"><div class="hrow-t">Performance Budget</div><div class="hrow-b">FCP &lt;1.5s, LCP &lt;2.5s, CLS &lt;0.1, INP &lt;200ms — enforced in CI via Lighthouse CI</div></div>
+      <div class="hrow"><div class="hrow-t">Error + Loading + Empty</div><div class="hrow-b">Every async surface has all three states. No undefined renders in production</div></div>
+      <div class="hrow"><div class="hrow-t">Server Components First</div><div class="hrow-b">'use client' only when needed. Push client components to leaves. Zero secrets in client</div></div>
+      <div class="hrow"><div class="hrow-t">Semantic HTML</div><div class="hrow-b">button for actions, a for navigation, heading hierarchy, landmark regions</div></div>
+      <div class="hrow"><div class="hrow-t">No Prop Drilling &gt;2</div><div class="hrow-b">More than 2 levels? Extract context or use Zustand</div></div>
+      <div class="hrow"><div class="hrow-t">Co-located Tests</div><div class="hrow-b">Test file next to component file. Storybook story for every UI component</div></div>
+      <div class="hrow"><div class="hrow-t">Zero Console Errors</div><div class="hrow-b">No React key warnings, no hydration errors, no unhandled promise rejections</div></div>
+      <div class="hrow"><div class="hrow-t">Env Validation</div><div class="hrow-b">@t3-oss/env-nextjs validates all env vars at build time. No runtime env surprises</div></div>
+    </div>
+    <div>
+      <div class="wcard-hd" style="margin-bottom:12px"><span>📦</span><div class="wcard-title">FBT Tech Stack (Frontend)</div></div>
+      <table class="tbl">
+        <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Framework</td><td>Next.js 15</td><td>RSC, App Router, full-stack</td></tr>
+          <tr><td>Language</td><td>TypeScript 5 strict</td><td>Zero runtime type errors</td></tr>
+          <tr><td>Styling</td><td>Tailwind v4</td><td>Utility-first, fast builds</td></tr>
+          <tr><td>Components</td><td>shadcn/ui + Radix</td><td>Accessible, copy-own</td></tr>
+          <tr><td>State</td><td>Zustand + React Query</td><td>Minimal, powerful</td></tr>
+          <tr><td>Forms</td><td>React Hook Form + Zod</td><td>Perf + type-safe</td></tr>
+          <tr><td>Animation</td><td>Framer Motion</td><td>Spring physics, gestures</td></tr>
+          <tr><td>Testing</td><td>Vitest + Playwright</td><td>Fast unit, real E2E</td></tr>
+          <tr><td>Storybook</td><td>Storybook 8</td><td>Component isolation</td></tr>
+          <tr><td>API types</td><td>tRPC or Zod+fetch</td><td>End-to-end type safety</td></tr>
+          <tr><td>Auth</td><td>Auth.js v5</td><td>Next.js native</td></tr>
+          <tr><td>Deploy</td><td>Vercel</td><td>Next.js native CDN</td></tr>
+          <tr><td>Fonts</td><td>next/font</td><td>Zero layout shift</td></tr>
+          <tr><td>Icons</td><td>Lucide React</td><td>MIT, tree-shakeable</td></tr>
+          <tr><td>Env</td><td>@t3-oss/env-nextjs</td><td>Validated at build</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- QUICK REFERENCE CLOUD -->
+  <div style="margin-bottom:40px">
+    <div style="font-family:var(--display);font-size:22px;letter-spacing:0.08em;margin-bottom:16px;color:var(--t2)">QUICK REFERENCE — ALL TECHNIQUES</div>
+    <div class="tags">
+      <span class="tag">SRP</span><span class="tag">DRY</span><span class="tag">KISS</span><span class="tag">YAGNI</span><span class="tag">CDD</span><span class="tag">Unidirectional Flow</span><span class="tag">Co-Location</span><span class="tag">Progressive Enhancement</span>
+      <span class="tag">TypeScript Strict</span><span class="tag">Zod</span><span class="tag">Generics</span><span class="tag">Type Guards</span><span class="tag">Discriminated Unions</span><span class="tag">Utility Types</span>
+      <span class="tag">Atomic Design</span><span class="tag">Islands Architecture</span><span class="tag">Streaming SSR</span><span class="tag">Micro-Frontends</span>
+      <span class="tag">Compound Components</span><span class="tag">Custom Hooks</span><span class="tag">Render Props</span><span class="tag">HOC</span><span class="tag">Headless Components</span><span class="tag">Portals</span><span class="tag">Virtualization</span>
+      <span class="tag">Provider Pattern</span><span class="tag">Container/Presenter</span><span class="tag">Skeleton Loading</span><span class="tag">Optimistic Updates</span><span class="tag">Error Boundary</span><span class="tag">Suspense Boundary</span>
+      <span class="tag">Zustand</span><span class="tag">Jotai</span><span class="tag">React Query v5</span><span class="tag">SWR</span><span class="tag">Redux Toolkit</span><span class="tag">XState</span><span class="tag">useReducer+Context</span>
+      <span class="tag">App Router</span><span class="tag">Server Components</span><span class="tag">Client Components</span><span class="tag">Server Actions</span><span class="tag">Parallel Routes</span><span class="tag">Intercepting Routes</span>
+      <span class="tag">SSR</span><span class="tag">SSG</span><span class="tag">ISR</span><span class="tag">CSR</span><span class="tag">Streaming</span><span class="tag">On-demand ISR</span><span class="tag">Parallel Fetch</span>
+      <span class="tag">Tailwind v4</span><span class="tag">CSS Modules</span><span class="tag">vanilla-extract</span><span class="tag">CVA</span><span class="tag">CSS Custom Props</span><span class="tag">Dark Mode</span>
+      <span class="tag">Design Tokens</span><span class="tag">Storybook 8</span><span class="tag">shadcn/ui</span><span class="tag">Fluid Typography</span><span class="tag">4px Grid</span>
+      <span class="tag">Container Queries</span><span class="tag">clamp()</span><span class="tag">Mobile-First</span><span class="tag">Next/Image</span><span class="tag">Logical Properties</span>
+      <span class="tag">Framer Motion</span><span class="tag">View Transitions API</span><span class="tag">CSS Animations</span><span class="tag">prefers-reduced-motion</span><span class="tag">Spring Physics</span>
+      <span class="tag">React Hook Form</span><span class="tag">zodResolver</span><span class="tag">useActionState</span><span class="tag">Validation Layers</span>
+      <span class="tag">Vitest</span><span class="tag">Testing Library</span><span class="tag">Playwright</span><span class="tag">Chromatic</span><span class="tag">MSW</span><span class="tag">axe-core</span><span class="tag">Lighthouse CI</span>
+      <span class="tag">WCAG 2.2 AA</span><span class="tag">ARIA</span><span class="tag">Keyboard Nav</span><span class="tag">Contrast Ratio</span><span class="tag">Focus Management</span>
+      <span class="tag">CSP</span><span class="tag">XSS Prevention</span><span class="tag">CSRF</span><span class="tag">HttpOnly Cookies</span><span class="tag">Env Validation</span>
+      <span class="tag">FCP &lt;1.5s</span><span class="tag">LCP &lt;2.5s</span><span class="tag">CLS &lt;0.1</span><span class="tag">INP &lt;200ms</span><span class="tag">TTFB &lt;600ms</span>
+      <span class="tag">Code Splitting</span><span class="tag">Lazy Loading</span><span class="tag">React.memo</span><span class="tag">useMemo</span><span class="tag">useTransition</span><span class="tag">useDeferredValue</span>
+      <span class="tag">tRPC</span><span class="tag">API Layer</span><span class="tag">Infinite Query</span><span class="tag">Optimistic Mutation</span><span class="tag">MSW Mocking</span>
+      <span class="tag">Next.js Metadata API</span><span class="tag">OG Image</span><span class="tag">JSON-LD</span><span class="tag">Sitemap API</span><span class="tag">Robots.txt</span>
+      <span class="tag">Turbopack</span><span class="tag">ESLint Flat Config</span><span class="tag">Husky</span><span class="tag">lint-staged</span><span class="tag">Turborepo</span><span class="tag">Bundle Analyzer</span>
+      <span class="tag">Vercel Edge</span><span class="tag">CDN Cache</span><span class="tag">Atomic Deploy</span><span class="tag">Feature Flags</span><span class="tag">Preview Envs</span>
+    </div>
+  </div>
+
+</section>
+
+</div><!-- /content -->
+</main>
+</div><!-- /shell -->
+
+<script>
+// ─── ACTIVE NAV HIGHLIGHT ───
+const secs = document.querySelectorAll('section[id]');
+const links = document.querySelectorAll('.nav-link');
+const dots = [];
+
+// Build progress dots
+const prog = document.getElementById('progressDots');
+secs.forEach((sec, i) => {
+  const d = document.createElement('div');
+  d.className = 'sp-dot';
+  d.title = sec.id;
+  d.onclick = () => sec.scrollIntoView({ behavior:'smooth' });
+  prog.appendChild(d);
+  dots.push(d);
+});
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      dots.forEach((d, i) => d.classList.toggle('active', secs[i]?.id === id));
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+secs.forEach(s => io.observe(s));
+
+// ─── SEARCH ───
+function searchContent(q) {
+  const clean = q.toLowerCase().trim();
+  const content = document.getElementById('searchableContent');
+  if (!clean) {
+    content.querySelectorAll('.card, .prow, .hrow').forEach(el => el.style.opacity = '');
+    return;
+  }
+  content.querySelectorAll('.card, .prow, .hrow').forEach(el => {
+    const match = el.textContent.toLowerCase().includes(clean);
+    el.style.opacity = match ? '1' : '0.25';
+  });
+}
+
+// ─── ACCORDIONS ───
+document.querySelectorAll('.acc-hd').forEach(hd => {
+  hd.addEventListener('click', () => hd.closest('.acc').classList.toggle('open'));
+});
+
+// ─── TABS ───
+document.querySelectorAll('.tabs').forEach(tabGroup => {
+  tabGroup.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const panel = tab.dataset.panel;
+      const container = tabGroup.nextElementSibling;
+      tabGroup.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+      tab.classList.add('on');
+      container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+      container.querySelector('[data-panel="' + panel + '"]')?.classList.add('on');
+    });
+  });
+});
+
+// ─── STAGGER ANIMATIONS ───
+const animObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.animationDelay = '0.05s';
+      animObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.05 });
+document.querySelectorAll('section').forEach(s => animObs.observe(s));
+
+// ─── KEYBOARD SHORTCUT ───
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+});
+</script>
+</body>
+</html>

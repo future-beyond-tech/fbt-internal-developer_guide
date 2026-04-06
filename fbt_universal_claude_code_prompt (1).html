@@ -1,0 +1,335 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-mono,monospace)}
+.wrap{padding:1rem 0}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+.logo{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.08em;text-transform:uppercase}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;background:#EAF3DE;color:#3B6D11;border:0.5px solid #97C459}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem}
+.tab{font-size:12px;font-weight:500;padding:5px 12px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+.tab:hover{background:var(--color-background-secondary)}
+.tab.active{background:#3C3489;color:#EEEDFE;border-color:#3C3489}
+.form{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.field{padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.field:nth-child(even){border-left:0.5px solid var(--color-border-tertiary)}
+.field.full{grid-column:1/-1}
+.field label{display:block;font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;font-size:13px;background:transparent;border:none;outline:none;color:var(--color-text-primary);font-family:var(--font-mono,monospace);resize:none}
+.field textarea{min-height:56px;line-height:1.5}
+.actions{display:flex;gap:8px;padding:12px 14px;background:var(--color-background-secondary);border-top:0.5px solid var(--color-border-tertiary)}
+.btn{font-size:12px;font-weight:500;padding:6px 14px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.btn:hover{background:var(--color-background-tertiary)}
+.btn.primary{background:#3C3489;color:#EEEDFE;border-color:#3C3489}
+.btn.primary:hover{background:#26215C}
+.output-wrap{margin-top:1.25rem}
+.output-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.output-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em}
+.copy-btn{font-size:11px;font-weight:500;padding:4px 10px;border-radius:5px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer}
+.copy-btn:hover{background:var(--color-background-secondary)}
+.copy-btn.copied{color:#3B6D11;border-color:#97C459}
+.output{font-size:12px;line-height:1.7;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px 16px;white-space:pre-wrap;font-family:var(--font-mono,monospace);max-height:420px;overflow-y:auto}
+.hint{font-size:11px;color:var(--color-text-secondary);margin-top:8px;line-height:1.6}
+</style>
+
+<div class="wrap">
+  <div class="header">
+    <span class="logo">FBT Universal Claude Code Prompt</span>
+    <span class="badge">v1.0</span>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-mode="FEATURE">Feature Build</div>
+    <div class="tab" data-mode="BUG_FIX">Bug Fix</div>
+    <div class="tab" data-mode="REFACTOR">Refactor</div>
+    <div class="tab" data-mode="API_CHANGE">API / Schema</div>
+    <div class="tab" data-mode="SECURITY">Security / Auth</div>
+    <div class="tab" data-mode="PERFORMANCE">Performance</div>
+    <div class="tab" data-mode="TEST">Test Suite</div>
+    <div class="tab" data-mode="AUDIT">Audit</div>
+    <div class="tab" data-mode="MIGRATION">Migration</div>
+    <div class="tab" data-mode="DEPLOY">Deploy Prep</div>
+  </div>
+
+  <div class="form">
+    <div class="form-row">
+      <div class="field">
+        <label>Project</label>
+        <select id="project">
+          <option value="RentFlow">RentFlow</option>
+          <option value="Zentra">Zentra</option>
+          <option value="CatchMoment">CatchMoment</option>
+          <option value="Neat &amp; Fresh">Neat &amp; Fresh</option>
+          <option value="FIROSE Website">FIROSE Website</option>
+          <option value="Vyxnos Shield">Vyxnos Shield</option>
+          <option value="FBT Custom">FBT Custom</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Stack / Layer</label>
+        <input type="text" id="stack" placeholder="e.g. .NET 8 API / Next.js 15 / Railway" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Module / Domain</label>
+        <input type="text" id="module" placeholder="e.g. ResidentOnboarding / AuthFlow" />
+      </div>
+      <div class="field">
+        <label>Phase</label>
+        <input type="text" id="phase" placeholder="e.g. Phase 2 of 5" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field full">
+        <label>Objective (one sentence)</label>
+        <input type="text" id="objective" placeholder="e.g. Build QR-based resident self-registration with JWT issuance" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field full">
+        <label>Inputs / Context</label>
+        <textarea id="inputs" placeholder="Files, endpoints, schemas, error logs, or paste relevant code snippets"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field full">
+        <label>Requirements</label>
+        <textarea id="requirements" placeholder="Functional requirements, user stories, or constraints specific to this task"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field full">
+        <label>Acceptance Criteria</label>
+        <textarea id="acceptance" placeholder="How do we know this is done? e.g. All unit tests pass, API returns 201, no TypeScript errors"></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" onclick="generate()">Generate Prompt</button>
+      <button class="btn" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+
+  <div class="output-wrap" id="output-wrap" style="display:none">
+    <div class="output-header">
+      <span class="output-label">Generated Claude Code Prompt</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">Copy</button>
+    </div>
+    <div class="output" id="output"></div>
+    <div class="hint">Paste directly into Claude Code. All FBT non-negotiables are pre-embedded.</div>
+  </div>
+</div>
+
+<script>
+const STANDARDS = `── NON-NEGOTIABLE ENGINEERING STANDARDS ──────────────────
+Architecture  : SOLID · KISS · DRY · YAGNI
+TypeScript    : Zero \`any\`. Strict mode. Explicit return types.
+Accessibility : WCAG 2.2 AA minimum
+Performance   : FCP < 1.5s. Lazy load non-critical paths.
+API contracts : Extend-only. No breaking changes without migration.
+Code hygiene  : Read all referenced files before writing. No invented APIs.
+Security      : No secrets in code. Validate all inputs server-side.
+──────────────────────────────────────────────────────────`;
+
+const MODE_META = {
+  FEATURE: {
+    label: 'Feature Build',
+    directive: 'Build the described feature end-to-end. Scaffold all layers (API → Service → Repo → UI) in a single coherent pass. Do NOT invent endpoints or schemas — read existing files first.',
+    extra: `PHASE GATES:
+  [ ] Read all relevant existing files before writing a single line
+  [ ] Define or extend interfaces/DTOs before implementation
+  [ ] Implement in dependency order: DB → Repo → Service → Controller → UI
+  [ ] Write inline XML docs for all public methods
+  [ ] Add input validation at every boundary`
+  },
+  BUG_FIX: {
+    label: 'Bug Fix',
+    directive: 'Diagnose and fix the described bug. Provide root cause analysis before making any changes. Do NOT refactor unrelated code in this pass.',
+    extra: `FIX PROTOCOL:
+  [ ] Read the failing file(s) in full before touching anything
+  [ ] State the root cause in a single sentence
+  [ ] Make the minimal change that resolves the issue
+  [ ] Confirm the fix does not break adjacent functionality
+  [ ] Add a regression test or comment explaining why this won't recur`
+  },
+  REFACTOR: {
+    label: 'Refactor',
+    directive: 'Refactor the described code for maintainability and clarity. Preserve all existing behaviour exactly. No feature changes in this pass.',
+    extra: `REFACTOR RULES:
+  [ ] Read the entire module before restructuring anything
+  [ ] Eliminate duplication (DRY) without over-abstracting (YAGNI)
+  [ ] Rename for clarity — never abbreviate domain concepts
+  [ ] Split any file over 300 lines into cohesive units
+  [ ] Confirm public interfaces are unchanged after refactoring`
+  },
+  API_CHANGE: {
+    label: 'API / Schema Change',
+    directive: 'Implement the described API or schema change using an extend-only strategy. Zero breaking changes. Provide a migration path if a schema change is required.',
+    extra: `CONTRACT RULES:
+  [ ] Read openapi.json / existing DTOs before any edit
+  [ ] Add new fields as optional; never remove or rename existing fields
+  [ ] Version the endpoint if a breaking change is unavoidable
+  [ ] Update the OpenAPI spec and DTOs atomically
+  [ ] Document the change in CHANGELOG.md`
+  },
+  SECURITY: {
+    label: 'Security / Auth',
+    directive: 'Implement or harden the described security or authentication concern. Follow OWASP Top 10. No security-sensitive logic in client code.',
+    extra: `SECURITY DIRECTIVES:
+  [ ] Never expose secrets, keys, or tokens in any code layer
+  [ ] Validate and sanitise ALL inputs server-side — never trust the client
+  [ ] Use parameterised queries only — no string-interpolated SQL
+  [ ] Enforce least-privilege on all role/claim checks
+  [ ] Log security events (success and failure) to the audit trail`
+  },
+  PERFORMANCE: {
+    label: 'Performance Optimisation',
+    directive: 'Optimise the described bottleneck. Measure before and after. No speculative optimisation — target only the identified hot path.',
+    extra: `PERF PROTOCOL:
+  [ ] Identify the bottleneck with profiling data or a documented hypothesis
+  [ ] Establish a baseline metric before changing anything
+  [ ] Apply the single most impactful fix first
+  [ ] Add caching only where the data is provably stable
+  [ ] Verify FCP < 1.5s and no regression on other metrics`
+  },
+  TEST: {
+    label: 'Test Suite',
+    directive: 'Write a comprehensive test suite for the described module. Cover happy paths, edge cases, and failure modes. No mocking of the unit under test.',
+    extra: `TEST STANDARDS:
+  [ ] Unit tests: pure logic, no I/O
+  [ ] Integration tests: DB interactions, service boundaries
+  [ ] Name tests as: Given_When_Then
+  [ ] Aim for > 80% branch coverage on critical paths
+  [ ] Use factory helpers — no hardcoded fixture data`
+  },
+  AUDIT: {
+    label: 'Code Audit',
+    directive: 'Audit the described codebase or module for quality, security, and performance issues. Produce a structured report with severity ratings. Do NOT make any code changes — report only.',
+    extra: `AUDIT OUTPUT FORMAT:
+  ## Critical   — must fix before deploy
+  ## High       — fix in current sprint
+  ## Medium     — address in backlog
+  ## Low        — nice-to-have improvements
+  ## Summary    — overall health score and top 3 recommendations`
+  },
+  MIGRATION: {
+    label: 'Migration',
+    directive: 'Execute the described data or infrastructure migration safely. Migrations are irreversible — read the current schema in full before writing a single migration file.',
+    extra: `MIGRATION PROTOCOL:
+  [ ] Read the current schema/state in full before writing anything
+  [ ] Write the migration as idempotent where possible
+  [ ] Provide a rollback script alongside every migration
+  [ ] Test on a snapshot of production data before running live
+  [ ] Document the migration in MIGRATIONS.md`
+  },
+  DEPLOY: {
+    label: 'Deploy Preparation',
+    directive: 'Prepare the codebase for production deployment. Check environment variables, health endpoints, Docker config, and Railway/Vercel settings. Do NOT alter business logic in this pass.',
+    extra: `DEPLOY CHECKLIST:
+  [ ] All secrets in environment variables — none hardcoded
+  [ ] Health endpoint responds 200 with no auth requirement
+  [ ] Dockerfile / railway.toml reviewed and correct
+  [ ] Database migrations queued in correct order
+  [ ] Rollback procedure documented`
+  }
+};
+
+let currentMode = 'FEATURE';
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  currentMode = t.dataset.mode;
+  document.getElementById('output-wrap').style.display = 'none';
+});
+
+function v(id){ return document.getElementById(id).value.trim(); }
+
+function generate(){
+  const m = MODE_META[currentMode];
+  const project = v('project') || '[PROJECT]';
+  const stack = v('stack') || '[STACK]';
+  const module_ = v('module') || '[MODULE]';
+  const phase = v('phase') || '—';
+  const objective = v('objective') || '[OBJECTIVE]';
+  const inputs = v('inputs') || '(none provided)';
+  const reqs = v('requirements') || '(none provided)';
+  const ac = v('acceptance') || '(none provided)';
+  const now = new Date().toISOString().slice(0,10);
+
+  const prompt = `╔══════════════════════════════════════════════════════════╗
+║  FBT CLAUDE CODE PROMPT                                  ║
+║  Action  : ${m.label.padEnd(46)}║
+║  Project : ${project.padEnd(46)}║
+║  Phase   : ${phase.padEnd(46)}║
+║  Date    : ${now.padEnd(46)}║
+╚══════════════════════════════════════════════════════════╝
+
+━━ CONTEXT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Project  : ${project}
+Stack    : ${stack}
+Module   : ${module_}
+
+━━ OBJECTIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${objective}
+
+━━ DIRECTIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${m.directive}
+
+━━ INPUTS / CONTEXT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${inputs}
+
+━━ REQUIREMENTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${reqs}
+
+━━ ACCEPTANCE CRITERIA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${ac}
+
+━━ ${m.label.toUpperCase()} PROTOCOL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${m.extra}
+
+━━ ${STANDARDS}
+
+━━ ANTI-HALLUCINATION DIRECTIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━
+→ Read every referenced file in full before writing any code.
+→ Do NOT invent method names, endpoints, or schema fields.
+→ If a file or dependency is unclear, state the ambiguity and ask.
+→ Never assume existing code structure — verify by reading first.
+
+━━ OUTPUT FORMAT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Summary of what you are about to do (2–3 sentences)
+2. List of files you will read before writing
+3. Implementation / changes
+4. Verification steps taken
+5. Any open questions or risks flagged
+
+BEGIN.`;
+
+  document.getElementById('output').textContent = prompt;
+  document.getElementById('output-wrap').style.display = 'block';
+  document.getElementById('copy-btn').textContent = 'Copy';
+  document.getElementById('copy-btn').classList.remove('copied');
+  document.getElementById('output-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyPrompt(){
+  const text = document.getElementById('output').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function clearAll(){
+  ['stack','module','phase','objective','inputs','requirements','acceptance'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.getElementById('output-wrap').style.display='none';
+}
+</script>

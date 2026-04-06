@@ -1,0 +1,255 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-mono,monospace)}
+.wrap{padding:1rem 0}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+.logo{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.08em;text-transform:uppercase}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;background:#EEEDFE;color:#3C3489;border:0.5px solid #AFA9EC}
+.section-bar{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-secondary);padding:8px 14px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);border-top:0.5px solid var(--color-border-tertiary)}
+.form{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.field{padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.field:nth-child(even){border-left:0.5px solid var(--color-border-tertiary)}
+.field.full{grid-column:1/-1}
+.field label{display:block;font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;font-size:13px;background:transparent;border:none;outline:none;color:var(--color-text-primary);font-family:var(--font-mono,monospace);resize:none}
+.field textarea{min-height:60px;line-height:1.6}
+.toggles{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.toggle{font-size:11px;font-weight:500;padding:4px 10px;border-radius:5px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;user-select:none}
+.toggle.on{background:#3C3489;color:#EEEDFE;border-color:#3C3489}
+.toggle-label{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;align-self:center;margin-right:4px}
+.actions{display:flex;gap:8px;padding:12px 14px;background:var(--color-background-secondary);border-top:0.5px solid var(--color-border-tertiary)}
+.btn{font-size:12px;font-weight:500;padding:6px 14px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.btn.primary{background:#3C3489;color:#EEEDFE;border-color:#3C3489}
+.btn.primary:hover{background:#26215C}
+.out-wrap{margin-top:1.25rem;display:none}
+.out-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.out-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em}
+.copy-btn{font-size:11px;padding:4px 10px;border-radius:5px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer}
+.copy-btn.ok{color:#3B6D11;border-color:#97C459}
+.output{font-size:12px;line-height:1.75;color:var(--color-text-primary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px 16px;white-space:pre-wrap;font-family:var(--font-mono,monospace);max-height:480px;overflow-y:auto}
+.hint{font-size:11px;color:var(--color-text-secondary);margin-top:8px;line-height:1.6}
+</style>
+
+<div class="wrap">
+  <div class="header">
+    <span class="logo">FBT New Project Kickoff Prompt</span>
+    <span class="badge">Full Stack</span>
+  </div>
+
+  <div class="form">
+
+    <div class="section-bar">01 — Identity</div>
+    <div class="form-row">
+      <div class="field"><label>Project Name</label><input id="name" placeholder="e.g. CatchMoment" /></div>
+      <div class="field"><label>Codename / Slug</label><input id="slug" placeholder="e.g. catchmoment" /></div>
+    </div>
+    <div class="form-row">
+      <div class="field full"><label>One-line Product Description</label><input id="desc" placeholder="e.g. AI-powered event video capture and highlight generation platform" /></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Primary User</label><input id="user" placeholder="e.g. Event organisers, wedding photographers" /></div>
+      <div class="field"><label>Core Problem Solved</label><input id="problem" placeholder="e.g. Manual video highlight creation takes hours" /></div>
+    </div>
+
+    <div class="section-bar">02 — Tech Stack</div>
+    <div class="form-row">
+      <div class="field"><label>Frontend</label><input id="fe" placeholder="e.g. Next.js 15, TypeScript, Tailwind" /></div>
+      <div class="field"><label>Backend</label><input id="be" placeholder="e.g. .NET 8 Clean Architecture, EF Core" /></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Database</label><input id="db" placeholder="e.g. PostgreSQL + Redis" /></div>
+      <div class="field"><label>Auth / Identity</label><input id="auth" placeholder="e.g. Zentra OAuth 2.0 / NextAuth / Clerk" /></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Infra / Deployment</label><input id="infra" placeholder="e.g. Railway, Vercel, AWS S3 Mumbai" /></div>
+      <div class="field"><label>Repo Structure</label><input id="repo" placeholder="e.g. Monorepo / Polyrepo (list repos)" /></div>
+    </div>
+
+    <div class="section-bar">03 — Architecture</div>
+    <div class="form-row">
+      <div class="field full"><label>Core Modules / Domains</label><textarea id="modules" placeholder="e.g.&#10;- UserManagement&#10;- EventCapture&#10;- VideoProcessing&#10;- NotificationService"></textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="field full"><label>Key Integrations / Third-party Services</label><textarea id="integrations" placeholder="e.g. Razorpay, AWS S3, BunnyCDN, Modal GPU, Temporal Cloud, SendGrid"></textarea></div>
+    </div>
+
+    <div class="section-bar">04 — Scaffold Flags</div>
+    <div class="toggles" id="flags">
+      <span class="toggle-label">Include:</span>
+      <span class="toggle on" data-f="docker">Docker / Compose</span>
+      <span class="toggle on" data-f="ci">GitHub Actions CI</span>
+      <span class="toggle on" data-f="lint">ESLint / .editorconfig</span>
+      <span class="toggle on" data-f="env">env.example</span>
+      <span class="toggle on" data-f="makefile">Makefile / scripts</span>
+      <span class="toggle on" data-f="readme">README skeleton</span>
+      <span class="toggle" data-f="storybook">Storybook</span>
+      <span class="toggle" data-f="openapi">OpenAPI spec</span>
+      <span class="toggle on" data-f="healthcheck">Health endpoints</span>
+      <span class="toggle" data-f="sentry">Sentry / Observability</span>
+    </div>
+
+    <div class="section-bar">05 — Constraints & Goals</div>
+    <div class="form-row">
+      <div class="field"><label>MVP Deadline / Timeline</label><input id="timeline" placeholder="e.g. 14 weeks, Phase 1 in 3 weeks" /></div>
+      <div class="field"><label>Team Size</label><input id="team" placeholder="e.g. Solo (Claude Code) / 2 devs" /></div>
+    </div>
+    <div class="form-row">
+      <div class="field full"><label>Anything to Avoid / Special Constraints</label><textarea id="avoid" placeholder="e.g. No serverless functions, avoid vendor lock-in, must run on Railway"></textarea></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="generate()">Generate Kickoff Prompt</button>
+      <button class="btn" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+
+  <div class="out-wrap" id="out-wrap">
+    <div class="out-header">
+      <span class="out-label">Generated Claude Code Kickoff Prompt</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">Copy</button>
+    </div>
+    <div class="output" id="output"></div>
+    <div class="hint">Paste this as your first Claude Code message for any new FBT project. Claude Code will scaffold everything in one pass.</div>
+  </div>
+</div>
+
+<script>
+document.getElementById('flags').addEventListener('click', e=>{
+  const t=e.target.closest('.toggle');
+  if(t) t.classList.toggle('on');
+});
+
+function v(id){return document.getElementById(id).value.trim();}
+function flags(){
+  return [...document.querySelectorAll('.toggle.on')].map(t=>t.dataset.f);
+}
+
+const FLAG_DETAIL = {
+  docker:      '→ Docker Compose dev environment with hot reload for all services',
+  ci:          '→ GitHub Actions: lint + test + build on PR, deploy on merge to main',
+  lint:        '→ ESLint (strict), Prettier, .editorconfig — zero warnings policy',
+  env:         '→ .env.example with all required keys documented and typed',
+  makefile:    '→ Makefile with: make dev, make build, make test, make migrate, make deploy',
+  readme:      '→ README.md with: project overview, setup guide, architecture diagram placeholder, env vars table',
+  storybook:   '→ Storybook 8 for all shared UI components',
+  openapi:     '→ openapi.json spec scaffolded and kept in sync with controllers',
+  healthcheck: '→ /health and /ready endpoints on all services (no auth required)',
+  sentry:      '→ Sentry SDK initialised for error tracking + performance monitoring',
+};
+
+function generate(){
+  const name = v('name')||'[PROJECT]';
+  const slug = v('slug')||name.toLowerCase().replace(/\s+/g,'-');
+  const desc = v('desc')||'[DESCRIPTION]';
+  const user = v('user')||'[PRIMARY USER]';
+  const problem = v('problem')||'[PROBLEM]';
+  const fe = v('fe')||'[FRONTEND]';
+  const be = v('be')||'[BACKEND]';
+  const db = v('db')||'[DATABASE]';
+  const auth = v('auth')||'[AUTH]';
+  const infra = v('infra')||'[INFRA]';
+  const repo = v('repo')||'[REPO STRUCTURE]';
+  const modules = v('modules')||'[MODULES]';
+  const integrations = v('integrations')||'(none)';
+  const timeline = v('timeline')||'[TIMELINE]';
+  const team = v('team')||'Solo (Claude Code)';
+  const avoid = v('avoid')||'(none)';
+  const now = new Date().toISOString().slice(0,10);
+  const activeFlags = flags();
+  const flagLines = activeFlags.map(f=>FLAG_DETAIL[f]||f).join('\n  ');
+
+  const prompt = `╔══════════════════════════════════════════════════════════╗
+║  FBT NEW PROJECT KICKOFF                                 ║
+║  Project : ${name.padEnd(46)}║
+║  Slug    : ${slug.padEnd(46)}║
+║  Date    : ${now.padEnd(46)}║
+╚══════════════════════════════════════════════════════════╝
+
+━━ PRODUCT IDENTITY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name        : ${name}
+Description : ${desc}
+Primary User: ${user}
+Problem     : ${problem}
+
+━━ TECH STACK ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Frontend    : ${fe}
+Backend     : ${be}
+Database    : ${db}
+Auth        : ${auth}
+Infra       : ${infra}
+Repos       : ${repo}
+
+━━ ARCHITECTURE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Core Modules:
+${modules.split('\n').map(l=>'  '+l).join('\n')}
+
+Integrations:
+${integrations.split('\n').map(l=>'  '+l).join('\n')}
+
+━━ SCAFFOLD DIRECTIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Scaffold the complete project foundation for ${name}.
+Produce a production-ready starting point — not a tutorial boilerplate.
+Every file must be real and runnable, not a placeholder comment.
+
+SCAFFOLD INCLUDES:
+  ${flagLines||'(no flags selected)'}
+
+FOLDER STRUCTURE RULES:
+  → Backend : Clean Architecture (Domain → Application → Infrastructure → API)
+  → Frontend: feature-based folders (/features/[domain]/components|hooks|api)
+  → Shared  : /packages/shared-types for DTOs shared across frontend and backend
+  → Config  : all environment config centralised, never scattered
+
+━━ CONSTRAINTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Timeline : ${timeline}
+Team     : ${team}
+Avoid    : ${avoid}
+
+━━ NON-NEGOTIABLE ENGINEERING STANDARDS ━━━━━━━━━━━━━━━━━━
+Architecture  : SOLID · KISS · DRY · YAGNI
+TypeScript    : Zero \`any\`. Strict mode. Explicit return types on all functions.
+Accessibility : WCAG 2.2 AA minimum across all UI
+Performance   : FCP < 1.5s. Code-split by route. Lazy load non-critical paths.
+API contracts : Extend-only from day one. OpenAPI spec is source of truth.
+Security      : No secrets in code. Server-side input validation everywhere.
+Naming        : Domain language in all names — no abbreviations, no generic names.
+
+━━ ANTI-HALLUCINATION DIRECTIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━
+→ This is a NEW project — there are no existing files to read.
+→ Do NOT invent third-party APIs or package names. Use only well-known, stable packages.
+→ If a stack choice is ambiguous, state the assumption and proceed.
+→ Every generated package.json / .csproj dependency must be real and current.
+
+━━ OUTPUT FORMAT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Architecture decision summary (3–5 sentences)
+2. Full folder/repo structure as a tree
+3. All scaffold files, complete and runnable
+4. Setup instructions (how to run locally in < 5 commands)
+5. What is NOT included and why (scope boundaries)
+
+BEGIN SCAFFOLD FOR: ${name.toUpperCase()}`;
+
+  document.getElementById('output').textContent = prompt;
+  document.getElementById('out-wrap').style.display = 'block';
+  const btn = document.getElementById('copy-btn');
+  btn.textContent='Copy'; btn.classList.remove('ok');
+  document.getElementById('out-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyPrompt(){
+  navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    btn.textContent='Copied'; btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('ok');},2000);
+  });
+}
+
+function clearAll(){
+  ['name','slug','desc','user','problem','fe','be','db','auth','infra','repo','modules','integrations','timeline','team','avoid'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('out-wrap').style.display='none';
+}
+</script>

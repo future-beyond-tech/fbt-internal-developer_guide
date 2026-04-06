@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBT Cowork Command Center v2</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --canvas:#060B16;
+  --surf:#0D1626;
+  --surf2:#121D30;
+  --surf3:#1A2540;
+  --border:rgba(255,255,255,0.06);
+  --border-hover:rgba(255,107,43,0.35);
+  --accent:#FF6B2B;
+  --accent-hi:#FF8C55;
+  --accent-dim:rgba(255,107,43,0.10);
+  --text:#EDE8E0;
+  --text-dim:#7A7F96;
+  --text-muted:#363C56;
+  --green:#2DD4A0;
+  --blue:#5B9EF8;
+  --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--canvas);color:var(--text);min-height:100vh;padding:24px 16px 60px;max-width:980px;margin:0 auto}
+
+/* ── HEADER ─────────────────────────────────────── */
+.hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.hd-left{}
+.logo{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+h1{font-size:23px;font-weight:900;letter-spacing:-.6px;color:var(--text);margin-bottom:4px;line-height:1.1}
+.tagline{font-size:11px;color:var(--text-muted)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;padding-top:4px}
+.badge{font-size:9px;font-weight:700;letter-spacing:.06em;padding:3px 9px;border-radius:20px;background:var(--surf2);border:1px solid var(--border);color:var(--text-dim);white-space:nowrap}
+.badge.hi{background:var(--accent-dim);border-color:rgba(255,107,43,.25);color:var(--accent-hi)}
+
+/* ── STEP LABEL ──────────────────────────────────── */
+.section{margin-bottom:22px}
+.sl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sl-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--surf2);border:1px solid var(--border);font-size:9px;font-weight:800;color:var(--text-muted);flex-shrink:0;transition:all .2s}
+.sl.done .sl-num{background:var(--accent-dim);border-color:rgba(255,107,43,.4);color:var(--accent)}
+.sl-sub{font-size:9px;color:var(--text-muted);font-weight:400;letter-spacing:0;text-transform:none;margin-left:2px}
+
+/* ── PROJECT GRID ────────────────────────────────── */
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.pc{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.pc::after{content:'';position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-hi));opacity:0;transition:opacity .15s}
+.pc:hover{border-color:var(--border-hover);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.pc.active{border-color:var(--accent);background:var(--accent-dim)}
+.pc.active::after{opacity:1}
+.pt{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px}
+.pn{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-.2px}
+.ps{font-size:10px;color:var(--text-dim);line-height:1.5}
+.pc.active .pt{color:var(--accent)}
+
+/* ── CONTEXT BOX ─────────────────────────────────── */
+.ctx{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:border-color .15s}
+.ctx:focus-within{border-color:rgba(255,107,43,.3)}
+.ctx-label{font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.ctx-badge{background:var(--accent-dim);color:var(--accent-hi);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.04em}
+textarea.ci{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;line-height:1.75;resize:vertical;min-height:58px;max-height:160px}
+textarea.ci::placeholder{color:var(--text-muted)}
+
+/* ── MODE GRID ───────────────────────────────────── */
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px}
+.mc{background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s}
+.mc:hover{border-color:var(--border-hover);transform:translateY(-1px)}
+.mc.active{border-color:var(--accent);background:var(--accent-dim)}
+.mn{font-size:9px;font-weight:700;color:var(--text-muted);margin-bottom:4px;font-family:var(--mono)}
+.mname{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:-.1px}
+.mdesc{font-size:10px;color:var(--text-dim);line-height:1.4}
+.mc.active .mn{color:var(--accent)}
+
+/* ── OUTPUT CARD ─────────────────────────────────── */
+.oc{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.otb{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border);background:var(--surf2);flex-wrap:wrap;gap:8px}
+.otb-left{display:flex;flex-direction:column;gap:5px}
+.otitle{font-size:12px;font-weight:600;color:var(--text-dim)}
+.otitle span{color:var(--accent)}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--accent-dim);color:var(--accent-hi);letter-spacing:.04em}
+.otb-right{display:flex;align-items:center;gap:10px}
+.hint{font-size:10px;color:var(--text-muted);font-style:italic;max-width:280px;display:none}
+@media(min-width:700px){.hint{display:block}}
+.copied{font-size:11px;color:var(--green);display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .2s}
+.copied.show{opacity:1}
+.cbtn{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.01em}
+.cbtn:hover{background:var(--accent-hi);transform:translateY(-1px);box-shadow:0 4px 14px rgba(255,107,43,.35)}
+.cbtn:disabled{background:var(--surf3);color:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none}
+textarea.po{width:100%;font-family:var(--mono);font-size:10.5px;line-height:1.8;padding:16px;border:none;background:var(--canvas);color:#BDC8E0;resize:vertical;min-height:540px;outline:none}
+.sb{display:flex;align-items:center;gap:16px;padding:8px 14px;border-top:1px solid var(--border);background:var(--surf2);flex-wrap:wrap}
+.st{font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.st strong{color:var(--text-dim)}
+.proj-stat{margin-left:auto;font-size:10px;color:var(--text-muted)}
+.proj-stat span{color:var(--accent-hi);font-weight:700}
+
+/* ── DIVIDER ─────────────────────────────────────── */
+.div{height:1px;background:var(--border);margin:24px 0}
+
+.mc.bridge{background:linear-gradient(135deg,rgba(91,158,248,.08),rgba(45,212,160,.06));border-color:rgba(91,158,248,.25)}
+.mc.bridge:hover{border-color:rgba(91,158,248,.6);box-shadow:0 0 20px rgba(91,158,248,.12)}
+.mc.bridge.active{border-color:var(--blue);background:rgba(91,158,248,.12)}
+.mc.bridge .mn{color:var(--blue)}
+.mc.bridge .mname{background:linear-gradient(90deg,var(--blue),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.mc.bridge.active .mn{color:var(--blue)}
+.bridge-pill{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.08em;padding:1px 6px;border-radius:8px;background:rgba(91,158,248,.15);color:var(--blue);border:1px solid rgba(91,158,248,.25);margin-top:3px;text-transform:uppercase}
+
+/* ── NEW PRODUCT CARD ────────────────────────────── */
+.pc.newprod{background:linear-gradient(135deg,rgba(45,212,160,.06),rgba(91,158,248,.04));border:1.5px dashed rgba(45,212,160,.3);position:relative}
+.pc.newprod::after{background:linear-gradient(90deg,var(--green),var(--blue));opacity:0}
+.pc.newprod:hover{border-color:rgba(45,212,160,.7);border-style:solid;box-shadow:0 8px 28px rgba(45,212,160,.12)}
+.pc.newprod.active{border-color:var(--green);border-style:solid;background:rgba(45,212,160,.07)}
+.pc.newprod.active::after{opacity:1}
+.pc.newprod .pt{color:var(--green)}
+.pc.newprod .pn{background:linear-gradient(90deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.newprod-icon{font-size:18px;margin-bottom:4px;display:block}
+
+/* ── NEW PRODUCT DEFINITION FORM ─────────────────── */
+#npForm{display:none;margin-top:14px;background:var(--surf);border:1px solid rgba(45,212,160,.2);border-radius:12px;overflow:hidden;animation:slideIn .2s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.npf-header{padding:12px 16px;background:linear-gradient(90deg,rgba(45,212,160,.08),rgba(91,158,248,.04));border-bottom:1px solid rgba(45,212,160,.15);display:flex;align-items:center;gap:8px}
+.npf-title{font-size:11px;font-weight:800;color:var(--green);letter-spacing:.04em}
+.npf-sub{font-size:10px;color:var(--text-muted);margin-left:auto}
+.npf-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.04)}
+@media(max-width:600px){.npf-grid{grid-template-columns:1fr}}
+.npf-cell{background:var(--surf);padding:11px 14px}
+.npf-cell.full{grid-column:1/-1}
+.npf-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.npf-req{color:var(--accent);font-size:9px}
+.npf-label .tip{font-size:8px;color:var(--text-muted);font-weight:400;letter-spacing:0;text-transform:none;opacity:.7}
+.npf-input{width:100%;background:var(--canvas);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .15s}
+.npf-input:focus{border-color:rgba(45,212,160,.4)}
+.npf-input::placeholder{color:var(--text-muted)}
+select.npf-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237A7F96'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+textarea.npf-input{resize:vertical;min-height:54px;line-height:1.6}
+.npf-footer{padding:10px 16px;border-top:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:8px;background:var(--surf2)}
+.npf-status{font-size:10px;color:var(--text-muted);flex:1}
+.npf-status.ready{color:var(--green)}
+.npf-status.warn{color:#F59E0B}
+.gen-pill{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.08em;padding:1px 6px;border-radius:8px;background:rgba(45,212,160,.12);color:var(--green);border:1px solid rgba(45,212,160,.2);text-transform:uppercase}
+@media(max-width:600px){
+  .pg{grid-template-columns:repeat(2,1fr)}
+  .mg{grid-template-columns:repeat(3,1fr)}
+  h1{font-size:19px}
+}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="hd-left">
+    <div class="logo">Future Beyond Technology · FBT</div>
+    <h1>⚡ Cowork Command Center</h1>
+    <div class="tagline">Universal · All FBT products · New Product scaffold · Mode 13: Full-Stack Bridge · Mode 14: Product Genesis</div>
+  </div>
+  <div class="badges">
+    <span class="badge hi">v2.2</span>
+    <span class="badge">15 Modes</span>
+    <span class="badge">5 + ∞ Products</span>
+    <span class="badge">Anti-Hallucination</span>
+    <span class="badge">Read-Before-Write</span>
+  </div>
+</div>
+
+<!-- STEP 1 -->
+<div class="section" id="s1">
+  <div class="sl" id="sl1"><span class="sl-num">1</span> Select Product <span class="sl-sub">— injects project-specific stack, rules, and architecture context</span></div>
+  <div class="pg" id="pg"></div>
+  <!-- NEW PRODUCT DEFINITION FORM -->
+  <div id="npForm">
+    <div class="npf-header">
+      <div class="npf-title">⬡ Define New Product</div>
+      <div class="npf-sub">Fields marked <span style="color:var(--accent)">*</span> required to generate prompt · All others improve precision</div>
+    </div>
+    <div class="npf-grid">
+      <div class="npf-cell">
+        <div class="npf-label">Product Name <span class="npf-req">*</span></div>
+        <input class="npf-input" id="np_name" type="text" placeholder="e.g. FlowTrack, PulseDesk, VaultPay" oninput="npChange()">
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Product Category <span class="npf-req">*</span></div>
+        <select class="npf-input" id="np_category" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>SaaS · B2B</option>
+          <option>SaaS · B2C</option>
+          <option>E-commerce</option>
+          <option>API / Platform</option>
+          <option>Mobile App</option>
+          <option>Internal Tool</option>
+          <option>Marketing Site</option>
+          <option>Identity / Auth Provider</option>
+          <option>Data / Analytics</option>
+          <option>IoT / Hardware Interface</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Frontend Stack <span class="npf-req">*</span></div>
+        <select class="npf-input" id="np_frontend" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Next.js 15 (App Router)</option>
+          <option>Next.js 14 (App Router)</option>
+          <option>React + Vite</option>
+          <option>Expo / React Native</option>
+          <option>Next.js + Expo (both)</option>
+          <option>None (API only)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Backend Stack <span class="npf-req">*</span></div>
+        <select class="npf-input" id="np_backend" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>.NET 8 (Minimal API)</option>
+          <option>.NET 8 (MVC)</option>
+          <option>Node.js + Express</option>
+          <option>Node.js + Fastify</option>
+          <option>Python + FastAPI</option>
+          <option>Go (Chi / Gin)</option>
+          <option>None (frontend only)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Database</div>
+        <select class="npf-input" id="np_db" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>PostgreSQL (Railway)</option>
+          <option>PostgreSQL (Supabase)</option>
+          <option>MySQL</option>
+          <option>MongoDB</option>
+          <option>SQLite (dev only)</option>
+          <option>None / External API</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Architecture Pattern</div>
+        <select class="npf-input" id="np_arch" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Vertical Slice Architecture</option>
+          <option>Clean Architecture + CQRS + DDD</option>
+          <option>Layered / N-Tier</option>
+          <option>Serverless / Edge Functions</option>
+          <option>Monolith (start simple)</option>
+          <option>Microservices</option>
+          <option>Event-Driven</option>
+          <option>Next.js only (full-stack)</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Auth Strategy</div>
+        <select class="npf-input" id="np_auth" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Zentra (FBT OAuth 2.0/OIDC)</option>
+          <option>NextAuth.js v5</option>
+          <option>Clerk</option>
+          <option>Auth0</option>
+          <option>Custom JWT</option>
+          <option>Magic Link / Passwordless</option>
+          <option>None (public product)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Hosting / Infra</div>
+        <select class="npf-input" id="np_hosting" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Railway (full)</option>
+          <option>Vercel + Railway (DB)</option>
+          <option>Vercel + Supabase</option>
+          <option>AWS (ECS + RDS)</option>
+          <option>Self-hosted VPS</option>
+          <option>Cloudflare Workers + D1</option>
+          <option>Undecided</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Design System</div>
+        <select class="npf-input" id="np_design" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Tailwind CSS + Radix UI + Framer Motion</option>
+          <option>Tailwind CSS + shadcn/ui</option>
+          <option>Tailwind CSS only</option>
+          <option>MUI (Material UI)</option>
+          <option>Chakra UI</option>
+          <option>Custom CSS</option>
+          <option>None (API only)</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Multi-Tenant? <span class="tip">affects isolation rules injected</span></div>
+        <select class="npf-input" id="np_tenant" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Yes — tenant_id on every table</option>
+          <option>Yes — subdomain-based isolation</option>
+          <option>No — single tenant / personal</option>
+          <option>Undecided</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Monetisation Model</div>
+        <select class="npf-input" id="np_money" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>SaaS subscription (Razorpay)</option>
+          <option>SaaS subscription (Stripe)</option>
+          <option>One-time purchase</option>
+          <option>E-commerce / marketplace</option>
+          <option>Free / Internal tool</option>
+          <option>Freemium</option>
+          <option>Usage-based billing</option>
+          <option>None / TBD</option>
+        </select>
+      </div>
+      <div class="npf-cell">
+        <div class="npf-label">Current Phase</div>
+        <select class="npf-input" id="np_phase" onchange="npChange()">
+          <option value="">— select —</option>
+          <option>Idea — nothing exists yet</option>
+          <option>Scaffold — empty repo exists</option>
+          <option>MVP in progress</option>
+          <option>Pre-launch (feature complete)</option>
+          <option>Post-launch (live users)</option>
+        </select>
+      </div>
+      <div class="npf-cell full">
+        <div class="npf-label">Primary Users &amp; Key Personas <span class="tip">who uses this product and how</span></div>
+        <input class="npf-input" id="np_personas" type="text" placeholder="e.g. Admin (manages platform), Client (self-serves), Employee (daily ops) — mobile-first" oninput="npChange()">
+      </div>
+      <div class="npf-cell full">
+        <div class="npf-label">Core Problem Solved <span class="npf-req">*</span> <span class="tip">one sentence — what pain does this product eliminate?</span></div>
+        <input class="npf-input" id="np_problem" type="text" placeholder="e.g. Service businesses lose 30% of revenue to manual scheduling and no-shows — this eliminates both" oninput="npChange()">
+      </div>
+      <div class="npf-cell full">
+        <div class="npf-label">Special Rules / Constraints <span class="tip">industry compliance, integrations, hard limits</span></div>
+        <textarea class="npf-input" id="np_rules" placeholder="e.g. HIPAA compliance required — no PHI in logs&#10;WhatsApp Business API for all user notifications&#10;Payments: Razorpay only — no Stripe (India regulations)&#10;Offline-first mobile — must sync when connectivity resumes" oninput="npChange()"></textarea>
+      </div>
+    </div>
+    <div class="npf-footer">
+      <div class="npf-status" id="npStatus">Fill Product Name, Category, Frontend, Backend, and Core Problem to enable prompt generation</div>
+      <span class="gen-pill">Auto-generates on input</span>
+    </div>
+  </div>
+
+<!-- STEP 2 -->
+<div class="section" id="s2">
+  <div class="sl" id="sl2"><span class="sl-num">2</span> Task Context <span class="sl-sub">— optional but dramatically increases prompt precision</span></div>
+  <div class="ctx">
+    <div class="ctx-label">Describe exactly what you're working on <span class="ctx-badge">injected into prompt</span></div>
+    <textarea class="ci" id="ctxIn" placeholder="e.g. Resident onboarding Path B — QR self-registration crashes after OAuth callback with NullReferenceException in Zentra token handler. CorrelationId: req-abc-123. Happens only on Railway, not local. Last working deploy was 3 days ago.&#10;&#10;Or: Implement document upload feature on resident profile page. Owner persona. Mobile-first. Needs S3 storage + virus scan before allowing download."></textarea>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="section" id="s3">
+  <div class="sl" id="sl3"><span class="sl-num">3</span> Select Mode <span class="sl-sub">— Mode 00 first in every new Cowork session</span></div>
+  <div class="mg" id="mg"></div>
+</div>
+
+<div class="div"></div>
+
+<!-- STEP 4 -->
+<div class="section" id="s4">
+  <div class="sl" id="sl4"><span class="sl-num">4</span> Generated Prompt <span class="sl-sub">— copy and paste directly into Cowork</span></div>
+  <div class="oc">
+    <div class="otb">
+      <div class="otb-left">
+        <div class="otitle" id="otitle">Select product + mode above to generate prompt</div>
+        <div class="tags" id="tagRow"></div>
+      </div>
+      <div class="otb-right">
+        <div class="hint" id="hint">15 modes · 5 products + any new product · Universal standards</div>
+        <span class="copied" id="copied">✓ Copied!</span>
+        <button class="cbtn" id="cbtn" onclick="doCopy()" disabled>Copy Prompt</button>
+      </div>
+    </div>
+    <textarea class="po" id="po" readonly placeholder="Your generated prompt will appear here once you select a product and mode above..."></textarea>
+    <div class="sb">
+      <div class="st"><strong id="sc">—</strong> chars</div>
+      <div class="st"><strong id="lc">—</strong> lines</div>
+      <div class="st"><strong id="wc">—</strong> words</div>
+      <div class="proj-stat" id="pstat">No product selected</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PROJECT CONFIGS
+// ═══════════════════════════════════════════════════════════
+const P = {
+  rentflow:{
+    id:'rentflow',name:'RentFlow',type:'SaaS · Property Management',
+    stack:'Next.js 15 | .NET 8 | PostgreSQL | Railway | Expo',
+    stackFull:'Next.js 15 (Control Plane + Public Site) | .NET 8 (RentFlow API) | PostgreSQL (Railway) | Pino (logging) | Zentra OAuth | Expo / React Native (Mobile)',
+    services:'Control Plane (Next.js 15) | RentFlow API (.NET 8) | Mobile (Expo/React Native) | Public Site (Next.js 15)',
+    arch:'Vertical Slice Architecture (API) | Multi-tenant property isolation | BFF pattern (Next.js → .NET API)',
+    auth:'Zentra (OAuth 2.0/OIDC) + HttpOnly cookies + BFF proxy pattern + single-flight refresh mutex',
+    db:'PostgreSQL (Railway managed) · EF Core · Npgsql · Additive migrations only · Never drop/rename',
+    design:'Tailwind CSS + Radix UI + Framer Motion | canvas:#0A0F1E | accent:#FF6B2B | text:#F5F0E8',
+    rules:[
+      'output:standalone in next.config → start: node server.js — NEVER next start (Railway crash)',
+      'pino-pretty transport block MUST NOT exist in any Next.js logger.ts — causes thread-stream crash',
+      'Railway PostgreSQL URI → ADO.NET: postgresql://u:p@h:port/db → Host=h;Port=port;Database=db;Username=u;Password=p;SSL Mode=Require',
+      'DataProtection → PersistKeysToDbContext<AppDbContext>() — never in-memory (Railway pod restarts kill sessions)',
+      'Refresh token race → single-flight mutex: Map<sessionId, Promise<TokenSet>> in BFF refresh handler',
+      'IDOR: CanAccessPropertyAsync + CanAccessResidentAsync REQUIRED on every property/resident resource',
+      'Multi-tenant isolation: every SQL query MUST filter by property_id AND tenant_id — no exceptions',
+      'API contracts: extend-only — NEVER rename or remove existing DTO fields (all consumers break)',
+      'DB migrations: additive only — nullable column first, NOT NULL constraint in a separate later deploy',
+      'OIDC discovery: cache with 5-min TTL — never fetch per-request (6 concurrent tabs = 6 discovery calls)',
+      'Standalone monorepo path: add postbuild script: find . -name server.js -path "*standalone*" — read actual path from Railway build log before hardcoding start command',
+    ]
+  },
+  zentra:{
+    id:'zentra',name:'Zentra',type:'Identity Provider · OAuth 2.0/OIDC',
+    stack:'.NET 8 | PostgreSQL | Railway',
+    stackFull:'.NET 8 | PostgreSQL (Railway) | Clean Architecture | CQRS + MediatR | Domain-Driven Design | Railway',
+    services:'Zentra API (.NET 8) | Zentra Admin (Next.js)',
+    arch:'Clean Architecture | CQRS + MediatR | Domain-Driven Design (DDD)',
+    auth:'Self-contained OIDC provider — issues access + refresh + id tokens for ALL FBT products',
+    db:'PostgreSQL (Railway managed) · EF Core · Npgsql',
+    design:'Tailwind CSS + Framer Motion | Futuristic dark UI | iframe embedding in Zentra Admin via CSP frame-ancestors',
+    rules:[
+      'Extend-only: NEVER remove or rename claims, scopes, or token fields — all FBT consumers depend on them',
+      'PKCE enforced on ALL OAuth 2.0 flows — code_challenge + code_verifier required',
+      'State parameter validated on every authorization response — CSRF prevention, non-negotiable',
+      'CSP frame-ancestors: configured for Zentra Admin iframe embedding in Control Plane',
+      'DataProtection → PersistKeysToDbContext — never in-memory on Railway (pod restarts destroy keys)',
+      'NuGet restore on Railway: may need --no-cache flag if packages fail (network transient errors)',
+      'NullReferenceException in auth pipeline: always trace the nullable chain before the failing token handler call',
+      'Every token endpoint: validate client_id + redirect_uri before processing — never issue tokens to unknown clients',
+      'Client secrets: stored hashed (BCrypt) — never in plaintext in DB',
+    ]
+  },
+  neatfresh:{
+    id:'neatfresh',name:'Neat & Fresh',type:'E-commerce · FMCG',
+    stack:'Next.js 14 | .NET 8 | PostgreSQL | Razorpay',
+    stackFull:'Next.js 14 (Storefront) | .NET 8 (Commerce API) | PostgreSQL | Razorpay (payments) | Railway | next-intl (5 languages)',
+    services:'Storefront (Next.js 14) | Commerce API (.NET 8)',
+    arch:'Vertical Slice Architecture (API) | Next.js App Router | ISR for product catalogue pages',
+    auth:'Zentra (OAuth 2.0/OIDC) for admin/owner | Public storefront = no auth',
+    db:'PostgreSQL · EF Core · Npgsql',
+    design:'Tailwind CSS | Brand: fresh/clean palette | next/image for all product images (CLS = 0)',
+    rules:[
+      'Razorpay: verify X-Razorpay-Signature webhook header BEFORE processing any order state change',
+      'Idempotency keys on ALL Razorpay payment mutations — no duplicate charges under any condition',
+      'Order state machine: PENDING → CONFIRMED → SHIPPED → DELIVERED — never skip or reverse states',
+      'All product images: next/image with explicit width + height — CLS = 0 is mandatory',
+      'Multilingual: next-intl · all user-facing strings in translation files — no hardcoded strings in components',
+      'Price: always display INR with ₹ symbol — never ambiguous currency',
+      'Stock: check available quantity BEFORE confirming order — never allow negative inventory',
+      'Product catalogue: 55+ products — virtualise long lists, lazy-load images below fold',
+    ]
+  },
+  firose:{
+    id:'firose',name:'FIROSE Enterprises',type:'Corporate · FMCG Conglomerate',
+    stack:'Next.js | Tailwind | Railway',
+    stackFull:'Next.js (App Router) | Tailwind CSS | Railway | next-intl (5 languages) | Static generation + ISR',
+    services:'Corporate Site | Femison brand site | AR Perfumes brand site | Neat & Fresh brand site',
+    arch:'Next.js App Router | Static generation preferred | ISR for product catalogue | No BFF needed (public sites)',
+    auth:'N/A — public marketing sites, no authentication layer',
+    db:'N/A or headless CMS (no relational DB)',
+    design:'Per-brand design system | Femison: premium feminine | Neat & Fresh: fresh/clean | AR Perfumes: luxury/dark',
+    rules:[
+      'Multilingual: next-intl — 5 languages (EN, Tamil, Hindi + locale variants) — no hardcoded UI strings',
+      'Brand isolation: each brand has its own colour token system — NEVER mix brand colours',
+      'All images: WebP format with <picture> / srcset fallbacks',
+      'SEO: structured data (Organization, Product, LocalBusiness schemas) on all key pages — JSON-LD',
+      'Performance: FCP < 1.5s mandatory for ALL marketing pages — static preferred over SSR',
+      'Google Ads: UTM parameters must be preserved through all navigation and form submissions',
+      'Product catalogue: 55+ products — lazy load below-fold images, paginate long lists',
+      'Digital brochure: all 55 products (Femison + Neat & Fresh) — accurate data, no placeholder content',
+    ]
+  },
+  vyxnos:{
+    id:'vyxnos',name:'Vyxnos Shield',type:'Zero-Trust API Gateway',
+    stack:'.NET 8 | PostgreSQL | Railway',
+    stackFull:'.NET 8 | PostgreSQL (Railway) | Clean Architecture | CQRS | Zero-Trust policy engine',
+    services:'Vyxnos Shield (.NET 8 API)',
+    arch:'Clean Architecture | CQRS + MediatR | Zero-Trust policy evaluation | Audit-first design',
+    auth:'Zero-trust: every request authenticated + authorised — no implicit trust for any caller',
+    db:'PostgreSQL · EF Core · Npgsql',
+    design:'N/A — API-only service, no UI',
+    rules:[
+      'Zero-trust: no request is trusted implicitly — authenticate AND authorise every single call',
+      'ALL secrets via environment variables — NEVER hardcoded, NEVER in source, NEVER in logs',
+      'Audit log EVERY policy decision (allow / deny / challenge) — with timestamp, principal, resource, and outcome',
+      'Rate limiting: enforced at gateway level — per-client-id, per-endpoint, per time window',
+      'mTLS: enforce where client-to-gateway communication requires it',
+      'Policy mutations: require explicit two-step confirmation — no single-operator policy changes',
+      'Never return detailed error messages to callers — generic 401/403 only, detailed reason in internal audit log',
+    ]
+  },
+  newproduct:{
+    id:'newproduct',name:'New Product',type:'Define · Scaffold · Launch',
+    isNew:true,
+    stack:'You Define · Any Stack',
+    stackFull:'[Defined by engineer in New Product form]',
+    services:'[Defined by engineer]',
+    arch:'[Defined by engineer]',
+    auth:'[Defined by engineer]',
+    db:'[Defined by engineer]',
+    design:'[Defined by engineer]',
+    rules:['[Defined by engineer in New Product form]']
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// PROMPT BUILDERS
+// ═══════════════════════════════════════════════════════════
+function buildHeader(pid, mode, ctx){
+  const p = P[pid];
+  const ts = new Date().toISOString().slice(0,16).replace('T',' ');
+  const ctxBlock = ctx.trim()
+    ? `\n## ◉ TASK CONTEXT (provided by engineer — read this first)\n${ctx.trim()}\n`
+    : '';
+  return `# ══════════════════════════════════════════════════════════════
+# FBT COWORK — ${p.name.toUpperCase()} — MODE ${mode.num}: ${mode.name.toUpperCase()}
+# Future Beyond Technology (FBT) · ${p.type}
+# Session started: ${ts}
+# ══════════════════════════════════════════════════════════════
+${ctxBlock}
+## PROJECT PROFILE
+PRODUCT  : ${p.name} — ${p.type}
+STACK    : ${p.stackFull}
+SERVICES : ${p.services}
+ARCH     : ${p.arch}
+AUTH     : ${p.auth}
+DB       : ${p.db}${p.design !== 'N/A — API-only service, no UI' ? `\nDESIGN   : ${p.design}` : ''}
+
+## ⛔ ANTI-HALLUCINATION PROTOCOL — MANDATORY, NO EXCEPTIONS
+
+You have ZERO prior knowledge of this codebase.
+EVERY file path, function name, variable, column, endpoint, and component
+in your output MUST come from a file you ACTUALLY READ in this session.
+
+BEFORE READING ANY FILE:
+  [ ] LIST every file you intend to read — before opening any of them
+  [ ] VERIFY each path exists — state "FILE NOT FOUND — searched: [terms]" if missing
+  [ ] READ each file top-to-bottom, completely — no partial reads
+  [ ] NEVER describe, reference, or paraphrase an unread file
+
+BEFORE WRITING ANY CODE:
+  [ ] Confirm Phase 1 (Read) is complete — state file count and names
+  [ ] Confirm Phase 2 (Analyse) is complete — state conclusions
+  [ ] Write ONLY what analysis confirmed is needed
+
+AFTER WRITING:
+  [ ] State EXACTLY what changed and what did NOT change
+  [ ] State regression risks — adjacent code that could be affected
+
+## ⚙ ENGINEERING LAWS — ALL CODE, ALL MODES
+
+SOLID     : Single responsibility · Open/closed · Liskov · Interface segregation · Dependency inversion
+KISS      : Simplest correct implementation — if a comment is needed to explain it, simplify the code
+DRY       : One source of truth per piece of logic — zero duplication
+YAGNI     : Build only what is needed now — no speculative features, no "we might need this"
+SEC-FIRST : Validate all inputs server-side — never log tokens, cookies, PII, or secrets
+TS-STRICT : Zero TypeScript any — every variable, prop, parameter, and return type must be explicit
+API-LOCK  : Extend-only contracts — add fields, NEVER rename or remove existing fields
+NO-DEAD   : Remove all unreachable branches, unused imports, and commented-out code
+
+## 🎯 UX LAWS — ALL UI COMPONENTS (WCAG 2.2 AA NON-NEGOTIABLE)
+
+Jakob's Law       → Match existing mental models. New patterns only when strictly necessary.
+Fitts's Law       → Primary CTAs bottom 33% mobile · Full card = tap target · All targets ≥ 44px
+Hick's Law        → Minimise choices · Progressive disclosure for multi-step flows
+Miller's Law      → Max 7±2 items per list/nav · Paginate or filter beyond that
+Doherty Threshold → Every action → visible feedback ≤ 400ms · Optimistic updates · Skeleton screens (not spinners)
+Aesthetic-Usability → Polished UI is perceived as more trustworthy and functional
+Consistency       → Identical element types look and behave identically across ALL surfaces
+A11Y (mandatory)  → aria-label · aria-describedby · aria-invalid · aria-live
+                    Contrast ≥ 4.5:1 text / ≥ 3:1 UI · Keyboard navigable · Focus always visible
+
+## 📊 PERFORMANCE BUDGETS — NON-NEGOTIABLE
+
+FCP < 1.5s  |  LCP < 2.5s  |  CLS = 0  |  INP < 200ms
+Server response P95 < 200ms  |  DB query P95 < 50ms
+
+## 🏗 PROJECT RULES — ${p.name.toUpperCase()}
+
+${p.rules.map((r,i)=>`  ${String(i+1).padStart(2,'0')}. ${r}`).join('\n')}
+
+## 🌀 MOTION SYSTEM — FRAMER MOTION (UI only · Spring physics ONLY · Never ease-in-out)
+
+  Standard : { type: "spring", stiffness: 400, damping: 30, mass: 1 }
+  Fast     : { type: "spring", stiffness: 600, damping: 35, mass: 0.8 }
+  Bounce   : { type: "spring", stiffness: 300, damping: 20, mass: 1 }
+  RULE     : Every animation MUST check prefers-reduced-motion → fallback: duration: 0
+
+## 📤 OUTPUT CONTRACT (all modes)
+
+  → No workarounds. No "for now" patches. No TODOs. Production-grade only.
+  → State: what changed | what did NOT change | why each decision was made
+  → Every code block must be complete, syntactically correct, and immediately runnable
+  → Declare all verification commands before declaring the task complete
+`;
+}
+
+function buildFooter(pid){
+  const p = P[pid];
+  return `
+## ✅ COMPLETION CHECKLIST — CONFIRM BEFORE DECLARING DONE
+
+  [ ] Zero TypeScript any in all new and modified files
+  [ ] All new API response fields are optional with sensible defaults (extend-only)
+  [ ] DB migrations: additive only — nullable column first, NOT NULL in separate deploy
+  [ ] Logs contain ZERO tokens, cookies, passwords, session IDs, or PII
+  [ ] Every error log includes the full Error object — not just .message or .toString()
+  [ ] cancelAnimationFrame called in cleanup of every useEffect with a RAF loop
+  [ ] Correlation ID present on every BFF log line
+  [ ] IDOR check confirmed on every property / resident resource access point
+  [ ] WCAG 2.2 AA confirmed on all new and modified interactive elements
+  [ ] Performance budgets not regressed (FCP/LCP/CLS/INP confirmed)
+  [ ] No dead code, unused imports, or commented-out blocks left behind
+
+# Product : ${p.name} · ${p.type}
+# Company : Future Beyond Technology (FBT) · FIROSE Enterprises · Chennai, India
+# Stack   : ${p.stackFull}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODE DEFINITIONS
+// ═══════════════════════════════════════════════════════════
+const MODES = [
+  {
+    num:'00',name:'Session Init',desc:'Prime Cowork — run this first',
+    hint:'Always run this at the start of a new Cowork session. Primes anti-hallucination, declares scope, and forces directory scan before any task.',
+    tags:['first-run','priming','scope'],
+    body:`# MODE: SESSION-INIT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PURPOSE: Prime this session before any task. RUN FIRST in every new Cowork session.
+# After confirmation, select Mode 01–12 for your actual work.
+
+## SESSION SCOPE (fill before running)
+WORKING ON   : [what you are building or fixing today — one sentence]
+CODEBASES    : [which projects will be touched]
+BRANCH       : [git branch name]
+ENVIRONMENT  : [local / Railway staging / Railway production]
+KNOWN ISSUES : [any broken state or known constraints going in]
+START FILE   : [path of first file to read, or "begin with directory scan"]
+
+## PRIMING INSTRUCTIONS
+Acknowledge and confirm each of the following before I give you the first task:
+
+  1. You are the SOLE engineering team for this session.
+  2. You have read ZERO files. You know NOTHING about this codebase from prior sessions.
+  3. Every claim about file content requires that file to have been read in THIS session.
+  4. You will follow the phase order: READ → ANALYSE → ACT. Never merge or skip phases.
+  5. You will produce a file list BEFORE opening any file.
+  6. You will NEVER write code until READ and ANALYSE phases are explicitly confirmed complete.
+  7. If any file is not found: state "FILE NOT FOUND — searched: [terms]". Never invent content.
+
+RESPOND ONLY WITH:
+┌─────────────────────────────────────────────────────┐
+│ SESSION READY                                       │
+│ Product  : [product name]                           │
+│ Scope    : [scope summary]                          │
+│ Branch   : [branch]                                 │
+│ Files read so far: 0                               │
+│ Current phase: PRE-FLIGHT                          │
+│ Awaiting first task.                               │
+└─────────────────────────────────────────────────────┘
+
+## DIRECTORY SCAN (perform this before any task — no file reads yet)
+Scan the directory tree of each project in scope.
+For each, produce:
+  - Root structure (2 levels deep)
+  - Key directories and their apparent purpose
+  - Anything missing, unexpected, or worth flagging
+
+DO NOT read any file during this phase — directory structure listing only.`
+  },
+  {
+    num:'01',name:'Bug Fix',desc:'Crash · error · wrong behaviour',
+    hint:'Paste all logs. Diagnose root cause, confirm hypothesis, implement the correct production-grade fix.',
+    tags:['stack trace','root cause','logs'],
+    body:`# MODE: BUG-FIX
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## BUG REPORT (fill all fields before running)
+ERROR MESSAGE  : [exact error — verbatim, never paraphrased]
+FILE + LINE    : [file:line if known from stack trace]
+LOGS           : [paste ALL logs — BFF, API, Zentra, Railway, browser console]
+CORRELATION ID : [paste from log if available]
+REPRODUCTION   : [exact numbered steps to reproduce]
+FREQUENCY      : [always | intermittent | specific condition: ___]
+ENVIRONMENT    : [local | Railway staging | Railway production | both]
+REGRESSION     : [did this ever work? when did it break? last known good state?]
+
+## PHASE 1 — PRE-FLIGHT READ (complete entirely before Phase 2)
+⛔ NO code changes in this phase.
+
+[ ] List every file mentioned in the error and stack trace
+[ ] List every file in the call chain from entry point to crash site
+[ ] READ each file completely — top to bottom
+[ ] Confirm the exact crashing line by reading it — never guess
+[ ] If a file is not found: "FILE NOT FOUND — searched: [terms]"
+
+Answer these questions FROM reading code — never from assumptions:
+  Q1. What is the exact expression that crashes at that line?
+  Q2. What value does it hold at crash time, and why is it wrong?
+  Q3. What is the correct value it should hold?
+  Q4. What code path produces the incorrect state?
+  Q5. Why does this NOT occur in the other environment?
+
+## PHASE 2 — HYPOTHESES (produce before writing any fix)
+⛔ STOP. Do not write a fix until one hypothesis is CONFIRMED by reading code.
+
+  [ ] HYPOTHESIS A: [description] — evidence: [file:line read in Phase 1]
+  [ ] HYPOTHESIS B: [description] — evidence: [file:line read in Phase 1]
+  [ ] HYPOTHESIS C: [description] — evidence: [file:line read in Phase 1]
+
+Eliminate each by re-reading code. Mark ELIMINATED with reason or CONFIRMED.
+Do not proceed to Phase 3 until exactly one hypothesis is marked CONFIRMED.
+
+## PHASE 3 — FIX (only after Phase 2 confirms one hypothesis)
+Rules:
+  → Fix the ROOT CAUSE — never mask with a catch block or null guard
+  → Zero behaviour change outside the confirmed bug scope
+  → If fix requires a migration: additive only, nullable column first
+  → If fix touches API contract: extend-only, no field removals or renames
+
+## OUTPUT CONTRACT
+\`\`\`
+ROOT CAUSE     : [confirmed hypothesis — one sentence — cite file:line evidence]
+CRASH LOCATION : [file:line — read from file, not inferred]
+
+BEFORE (verbatim from file — not paraphrased):
+[exact broken code]
+
+AFTER (complete — no stubs, no TODOs):
+[full corrected code]
+
+BEHAVIOUR CHANGE  : [what changes and what does NOT]
+REGRESSION RISK   : [adjacent code that must be reviewed]
+VERIFICATION      : [exact command(s) to confirm the fix]
+TS ANY            : [zero — confirmed]
+\`\`\``
+  },
+  {
+    num:'02',name:'New Feature',desc:'Build from scratch — complete implementation',
+    hint:'Describe the feature. Analyse existing code first, plan every file in dependency order, then implement completely.',
+    tags:['vertical slice','CQRS','multi-tenant'],
+    body:`# MODE: NEW-FEATURE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## FEATURE BRIEF (fill before running)
+FEATURE NAME     : [name]
+USER STORY       : As a [Owner | Manager | Resident | Admin], I want [action] so that [outcome]
+SCOPE            : [Control Plane | RentFlow API | Zentra | Mobile | Public Site — be specific]
+OUT OF SCOPE     : [what is EXPLICITLY excluded from this feature]
+SUCCESS CRITERIA : [observable behaviour that confirms feature is complete]
+PERSONA DEVICE   : [Owner/mobile | Manager/desktop | etc. — affects UX decisions]
+
+## PHASE 1 — ANALYSIS (read-only — produce before any implementation)
+⛔ NO code changes in this phase.
+
+[ ] Scan directory — list every file that will need to change (before reading any)
+[ ] Read each relevant file completely
+[ ] Answer from code — never from assumptions:
+    → What currently exists related to this feature? (extend vs build new)
+    → What is the minimum change surface to implement this correctly?
+    → What DB schema changes are needed? (additive only — what columns are missing?)
+    → What API contract changes? (extend-only — what fields need to be added?)
+    → What are the tenant / IDOR implications of this feature?
+    → What UX laws govern the UI surface for this persona?
+    → What validation is needed, client-side AND server-side?
+    → What Zentra claims or scopes are required?
+
+## PHASE 2 — IMPLEMENTATION PLAN (produce before writing code)
+List every file in strict dependency order:
+  01. DB migration (if needed) — nullable column first, justification included
+  02. Domain entity / value object update
+  03. Command/Query + Validator + Handler (.NET API)
+  04. API endpoint registration
+  05. OpenAPI spec update
+  06. TypeScript client regeneration: pnpm openapi:generate
+  07. BFF proxy route (if applicable)
+  08. UI component(s) — with UX laws mapped per component
+  09. Mobile screen (if applicable)
+  10. Tests
+
+⛔ STOP. Present this plan and wait for confirmation before Phase 3.
+
+## PHASE 3 — IMPLEMENTATION (one file at a time, in plan order)
+For each file:
+  → READ the file completely before writing a single line
+  → Implement completely — no stubs, no TODOs, no placeholder comments
+  → Confirm SOLID, KISS, DRY, YAGNI for every function/class
+  → Apply all applicable UX laws to every UI component
+  → WCAG 2.2 AA on every interactive element
+
+## OUTPUT CONTRACT (per file)
+\`\`\`
+FILE        : [exact path — confirmed by reading]
+CHANGE TYPE : new | modify
+REASON      : [one sentence]
+BEFORE      : [current code verbatim — if modifying]
+AFTER       : [complete implementation]
+SOLID       : [each principle — confirm or note trade-off]
+KISS/DRY    : [confirm]
+UX LAWS     : [which laws, how each is met — if UI]
+A11Y        : [aria attributes + keyboard behaviour — if UI]
+\`\`\``
+  },
+  {
+    num:'03',name:'Investigation',desc:'Diagnose from logs — zero code changes',
+    hint:'Paste all logs. Produce architecture map, event sequence, and root cause statement. No fixes.',
+    tags:['correlationId','logs','read-only'],
+    body:`# MODE: BUG-INVESTIGATION (READ-ONLY)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ⛔ ZERO code changes. Output: diagnosis report only.
+
+## LOGS (paste everything available)
+BFF LOGS       : [paste]
+API LOGS       : [paste]
+ZENTRA LOGS    : [paste]
+RAILWAY LOGS   : [paste]
+BROWSER LOGS   : [paste]
+NETWORK TAB    : [paste relevant request/response headers]
+CORRELATION ID : [paste]
+
+## PHASE 1 — PRE-FLIGHT READ
+[ ] List every file in the stack trace or referenced in logs
+[ ] List every file in the call chain from entry point to failure
+[ ] READ each file completely — ⛔ NO changes
+
+## PHASE 2 — INVESTIGATION (answer from logs + code)
+  1. Event sequence: map each log line → what it means in the system
+  2. Last known good state: what succeeded before the failure?
+  3. First bad signal: which log line first indicates something is wrong?
+  4. Layer ownership: DB / API / BFF / UI / Auth / Network / Infra
+  5. Determinism: always-fail? race condition? timing? load-dependent?
+  6. Environment delta: why does this NOT occur in the other environment?
+  7. Root cause in one sentence: ___
+
+## PHASE 3 — DELIVERABLES (produce all)
+
+### ARCHITECTURE MAP
+Full request trace from trigger to failure:
+  [User action]
+    → [BFF route: file:line]
+    → [API endpoint: file:line]
+    → [Handler: file:line]
+    → [DB query: file:line]
+    → [FAILURE POINT: file:line — exact reason]
+
+### GAP REPORT
+\`\`\`
+[P0] [LAYER] [FILE:LINE] [DESCRIPTION]
+     RISK: [consequence if not fixed]
+
+[P1] [LAYER] [FILE:LINE] [DESCRIPTION]
+     IMPACT: [what degrades]
+
+[P2] [LAYER] [FILE:LINE] [DESCRIPTION]
+     NOTE: [improvement]
+\`\`\`
+
+### ROOT CAUSE STATEMENT
+[What is broken] | [Why] | [Which layer owns it] | [Evidence: file:line]
+
+### FIX READINESS
+  Files to read before implementing  : [list]
+  DB state to verify                 : [list]
+  Environment config to check        : [list]
+  Estimated change scope             : small | medium | large`
+  },
+  {
+    num:'04',name:'Refactor',desc:'Improve structure — zero behaviour change',
+    hint:'Read, audit tech debt, plan refactor. Observable behaviour must be provably identical before and after.',
+    tags:['SOLID','DRY','zero behaviour change'],
+    body:`# MODE: REFACTOR
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ⛔ HARD CONSTRAINT: Zero observable behaviour change.
+# Every call site must work identically before and after.
+
+## REFACTOR SCOPE
+TARGET              : [file(s) or feature area]
+REASON              : [specific measurable problem — not "feels messy"]
+BEHAVIOUR GUARANTEE : [the exact observable behaviour that must be preserved]
+
+## PHASE 1 — READ + AUDIT (⛔ no changes yet)
+[ ] Read every in-scope file completely
+[ ] List all call sites of every function/class being changed
+[ ] List all tests covering this code
+
+TECH DEBT AUDIT — per file:
+  SOLID violations   : [principle | function/class | file:line]
+  DRY violations     : [duplicated logic | file:line ↔ file:line]
+  KISS violations    : [needlessly complex | description]
+  Dead code          : [unreachable / unused | file:line]
+  TS any usages      : [file:line]
+  N+1 / perf issues  : [description]
+  Type gaps          : [missing or incorrect types]
+
+## PHASE 2 — REFACTOR PLAN (produce before writing)
+List changes in safe execution order (lowest risk first):
+  01. [change] | reason | risk: low/medium/high
+  02. ...
+
+RULES:
+  → Never change public API signatures without updating ALL call sites in the same commit
+  → Never rename exported symbols without updating ALL import sites
+  → Extend-only on any public contract — no removals, no renames
+
+⛔ STOP. Confirm plan before Phase 3.
+
+## PHASE 3 — IMPLEMENTATION (one logical change at a time)
+  → Re-read the file immediately before each change
+  → Make only the planned change — nothing extra
+  → Confirm behaviour is preserved after EACH change before moving to the next
+
+## OUTPUT CONTRACT (per change)
+\`\`\`
+FILE               : [path]
+CHANGE             : [what was refactored — one sentence]
+BEFORE             : [verbatim original]
+AFTER              : [refactored code]
+BEHAVIOUR PRESERVED: [how confirmed]
+CALL SITES UPDATED : [all affected files]
+TESTS TO RUN       : [commands]
+\`\`\``
+  },
+  {
+    num:'05',name:'Gap Analysis',desc:'Find missing + broken — read only',
+    hint:'Read-only deep scan. Produce a P0/P1/P2 gap report + decision surface before planning any fixes.',
+    tags:['P0/P1/P2','isolation','architecture'],
+    body:`# MODE: GAP-ANALYSIS (READ-ONLY)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ⛔ ZERO code changes. Output: architecture map + gap report + decisions.
+
+## SCAN SCOPE
+FEATURE AREA : [what to analyse]
+PROJECTS     : [which services to include]
+FOCUS        : [security | isolation | UX | performance | completeness | all]
+
+## PHASE 1 — DIRECTORY SCAN
+[ ] Scan full directory tree of each project in scope
+[ ] List every relevant file before reading any
+[ ] State "NOT IMPLEMENTED" for absent features — never invent behaviour
+
+## PHASE 2 — DEEP READ
+Read every relevant file completely. No partial reads.
+
+## PHASE 3 — AUDIT CHECKLIST
+
+DB LAYER:
+  [ ] Missing columns logic depends on
+  [ ] Missing indexes on filtered, ordered, or joined columns
+  [ ] Nullable columns that should be NOT NULL
+  [ ] Orphan state possible from multi-step writes without transactions
+  [ ] Missing foreign key constraints with explicit ON DELETE behaviour
+
+API LAYER:
+  [ ] Missing IDOR checks on property / resident resources
+  [ ] Unvalidated caller-controlled parameters
+  [ ] Public endpoints leaking entity names, IDs, or metadata
+  [ ] Missing transaction boundaries (two HTTP calls that should be atomic)
+  [ ] Compensation / rollback gaps on partial write failures
+
+BFF LAYER:
+  [ ] No single-flight mutex on concurrent token refresh
+  [ ] OIDC discovery fetched per-request (uncached)
+  [ ] Token or cookie values appearing in logs
+  [ ] Invite / verification token logic missing or misplaced
+
+UI LAYER:
+  [ ] Missing optimistic updates (Doherty Threshold violated)
+  [ ] Interactive elements not accessible (WCAG 2.2 AA)
+  [ ] Missing error boundaries around heavy or async components
+  [ ] TypeScript any usages
+  [ ] Touch targets below 44px
+
+## OUTPUT CONTRACT
+\`\`\`
+ARCHITECTURE MAP:
+  [data flow per feature: entry → BFF → API → DB]
+
+GAP REPORT:
+  [P0] [LAYER] [FILE:LINE] [DESCRIPTION] | RISK: [consequence]
+  [P1] [LAYER] [FILE:LINE] [DESCRIPTION] | IMPACT: [degradation]
+  [P2] [LAYER] [FILE:LINE] [DESCRIPTION] | NOTE: [improvement]
+
+DECISIONS NEEDED:
+  [D1] [question] | Options: [A] vs [B] | Recommendation: [which + why]
+
+SUMMARY: P0:[n]  P1:[n]  P2:[n]  Decisions:[n]
+\`\`\``
+  },
+  {
+    num:'06',name:'Security Audit',desc:'CRITICAL to LOW — vulnerabilities + risks',
+    hint:'Read-only security review. Produce CRITICAL/HIGH/MEDIUM/LOW findings with file:line evidence and attack vectors.',
+    tags:['IDOR','auth','isolation','PII'],
+    body:`# MODE: SECURITY-AUDIT (READ-ONLY)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ⛔ ZERO code changes. Output: security findings report.
+
+## AUDIT SCOPE
+PROJECTS : [which services]
+FOCUS    : [auth | isolation | input validation | logging | rate limiting | all]
+
+## PHASE 1 — PRE-FLIGHT READ LIST
+[ ] Every auth-related file (middleware, token handlers, validators)
+[ ] Every public / anonymous endpoint
+[ ] Every request pipeline entry point
+[ ] Every place tokens or cookies are stored, forwarded, or logged
+[ ] Every SQL query construction
+
+## PHASE 2 — SECURITY CHECKLIST
+
+AUTH & TOKENS:
+  [ ] Tokens in HttpOnly cookies — not localStorage or sessionStorage?
+  [ ] Refresh token rotation on every use?
+  [ ] Single-flight mutex on concurrent refresh requests?
+  [ ] Token values NEVER in logs? (audit pino redact list)
+  [ ] PKCE enforced on all OAuth flows?
+  [ ] State parameter validated on every auth response (CSRF)?
+  [ ] Token expiry enforced server-side (not only UI redirect)?
+
+MULTI-TENANT ISOLATION:
+  [ ] Every SQL query filtered by tenant_id AND property_id?
+  [ ] IDOR check on every property/resident resource?
+  [ ] Manager of Property A cannot access Property B by mutating URL?
+  [ ] Resident cannot read another resident's data?
+  [ ] Isolation enforced at DB layer — not only UI visibility?
+
+INPUT VALIDATION:
+  [ ] All user input validated server-side (not client-only)?
+  [ ] Emails: trim + lowercase before storage and lookups?
+  [ ] Only parameterised queries — zero string interpolation in SQL?
+  [ ] Duplicate email checks are case-insensitive?
+  [ ] File uploads: type, size, and content validated?
+
+INFORMATION LEAKAGE:
+  [ ] Public endpoints return boolean validity only (no entity names/IDs)?
+  [ ] Stack traces suppressed in production HTTP responses?
+  [ ] PII absent from all log output?
+  [ ] Error messages reveal nothing about system internals?
+
+RATE LIMITING:
+  [ ] All public endpoints rate-limited?
+  [ ] Auth endpoints protected against credential stuffing?
+  [ ] Join/invite links protected against brute force?
+  [ ] Payment endpoints protected against replay attacks?
+
+## OUTPUT CONTRACT
+\`\`\`
+SECURITY AUDIT REPORT — [product] — [scope]
+═════════════════════════════════════════════
+
+[CRITICAL] [LAYER] [FILE:LINE]
+  VULNERABILITY: [description]
+  ATTACK VECTOR: [how it can be exploited]
+  IMPACT       : [consequence if exploited]
+
+[HIGH] [LAYER] [FILE:LINE]
+  FINDING: [description]
+  IMPACT : [consequence]
+
+[MEDIUM] [LAYER] [FILE:LINE]
+  FINDING: [description]
+
+[LOW] [LAYER] [FILE:LINE]
+  FINDING: [description]
+
+SUMMARY: CRITICAL:[n]  HIGH:[n]  MEDIUM:[n]  LOW:[n]
+\`\`\``
+  },
+  {
+    num:'07',name:'Performance',desc:'Optimise against FCP/LCP/CLS/INP budgets',
+    hint:'Audit against performance budgets first. Measure current metrics. Implement targeted, verifiable optimisations.',
+    tags:['LCP','FCP','N+1','bundle','CLS'],
+    body:`# MODE: PERFORMANCE-OPTIMISATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PERFORMANCE BUDGETS (non-negotiable)
+FCP < 1.5s  |  LCP < 2.5s  |  CLS = 0  |  INP < 200ms
+Server P95 < 200ms  |  DB query P95 < 50ms
+
+## SCOPE
+TARGET          : [page | endpoint | component | query]
+CURRENT METRICS : [paste Lighthouse scores / server timing / Railway logs / DB explain output]
+TARGET METRICS  : [specific values to achieve — must meet budgets above]
+
+## PHASE 1 — PRE-FLIGHT READ
+[ ] Read the target component or endpoint completely
+[ ] Read every DB query it executes (with EXPLAIN ANALYSE if available)
+[ ] Read next.config.ts or equivalent build config
+[ ] For frontend: NEXT_ANALYZE=true pnpm build → identify bundle contributors
+
+## PHASE 2 — AUDIT CHECKLIST
+
+FRONTEND:
+  [ ] All images: next/image with explicit width + height? (CLS = 0)
+  [ ] Hero / above-fold images: priority={true}? (LCP improvement)
+  [ ] Three.js / WebGL / heavy viz: next/dynamic with ssr:false?
+  [ ] pino-pretty transport block absent from logger.ts?
+  [ ] Framer Motion: spring physics only (no ease-in-out)?
+  [ ] OIDC discovery: cached with 5-min TTL?
+  [ ] Single-flight mutex on concurrent token refresh?
+  [ ] Optimistic updates on all user interactions?
+  [ ] Skeleton screens replacing spinners on data loads?
+  [ ] Fonts: next/font with preload — no @import in CSS?
+  [ ] Below-fold components lazy loaded?
+
+BACKEND:
+  [ ] N+1 queries eliminated? (check every repository method)
+  [ ] Composite indexes on all filtered + ordered + joined columns?
+  [ ] All list endpoints paginated — no unbounded SELECT *?
+  [ ] Response payloads include only needed fields?
+  [ ] Repeated computation memoised or cached?
+  [ ] Connection pool sized correctly for Railway?
+
+## OUTPUT CONTRACT (per optimisation)
+\`\`\`
+OPTIMISATION   : [name]
+FILE           : [path — confirmed by reading]
+CURRENT METRIC : [measured value]
+TARGET METRIC  : [budget value]
+CHANGE         : [complete implementation]
+EXPECTED GAIN  : [estimated improvement]
+VERIFY BY      : [exact command or tool]
+REGRESSION RISK: [adjacent code to check]
+\`\`\``
+  },
+  {
+    num:'08',name:'DB / Migration',desc:'Schema changes — additive only, never drop',
+    hint:'Read schema, entity, and all repositories first. Write safe additive SQL. Never drop, never rename.',
+    tags:['PostgreSQL','additive','EF Core','Npgsql'],
+    body:`# MODE: DB-MIGRATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## MIGRATION BRIEF
+CHANGE NEEDED    : [describe the schema change and the business reason]
+TABLES AFFECTED  : [list all affected tables]
+HAS EXISTING DATA: [yes | no — critical for NOT NULL strategy]
+
+## PHASE 1 — PRE-FLIGHT READ
+[ ] Read ALL existing migration files for each affected table (in order)
+[ ] Read C# entity class and EF Core configuration
+[ ] Read every repository method querying these tables
+[ ] CONFIRM: does the column or index already exist? (check all migration files)
+[ ] If found: state "ALREADY EXISTS at [migration file:line]" — do not duplicate
+
+## MIGRATION RULES (NON-NEGOTIABLE)
+  01. ADDITIVE ONLY — never drop, rename, or change the type of existing columns
+  02. NOT NULL on existing table → mandatory 3-deploy sequence:
+        Deploy A : Add column as nullable (no data loss, no lock)
+        Deploy B : Backfill existing rows in a data migration
+        Deploy C : Add NOT NULL constraint (only after backfill verified complete)
+  03. All new indexes: CREATE INDEX CONCURRENTLY (zero table locks)
+  04. All constraints: IF NOT EXISTS (idempotent — safe to re-run on failure)
+  05. Foreign keys: explicit ON DELETE behaviour — CASCADE | SET NULL | RESTRICT
+  06. Railway PostgreSQL URI → ADO.NET (for .NET/Npgsql):
+        FROM: postgresql://user:pass@host:port/db
+        TO  : Host=host;Port=port;Database=db;Username=user;Password=pass;SSL Mode=Require
+
+## PHASE 2 — CURRENT SCHEMA (read from files — not from memory)
+\`\`\`
+TABLE   : [name]
+COLUMNS : [list with types and constraints — verbatim from migration]
+INDEXES : [existing indexes]
+GAPS    : [what the feature needs that does not exist]
+\`\`\`
+
+## PHASE 3 — MIGRATION SQL
+\`\`\`sql
+-- Migration : [descriptive-kebab-case-name]
+-- Tables    : [affected tables]
+-- Reason    : [business reason]
+-- Additive  : YES — no drops, no renames, no type changes
+-- Idempotent: YES — IF NOT EXISTS on all statements
+
+ALTER TABLE [table]
+  ADD COLUMN IF NOT EXISTS [column] [type] [NULL | DEFAULT value];
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_[table]_[column]
+  ON [table]([column]);
+\`\`\`
+
+## PHASE 4 — ENTITY + REPOSITORY UPDATE
+For each affected file — READ completely before modifying:
+  → Add property to C# entity
+  → Update EF Core config (HasColumnName, IsRequired, HasDefaultValue)
+  → Update every repository method that needs the new column
+  → Confirm: no breaking changes to existing repository public signatures`
+  },
+  {
+    num:'09',name:'API Contract',desc:'Extend endpoints — never break consumers',
+    hint:'Update spec first, then code. Add fields only — never rename, remove, or change types.',
+    tags:['OpenAPI','extend-only','DTO','FluentValidation'],
+    body:`# MODE: API-CONTRACT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## CONTRACT BRIEF
+ENDPOINT  : [METHOD /path]
+CHANGE    : [what needs to be added — describe as "add X field to response"]
+CONSUMERS : [Control Plane BFF | Mobile | External — all must continue working]
+
+## PHASE 1 — PRE-FLIGHT READ
+[ ] Read OpenAPI spec entry for this endpoint
+[ ] Read request DTO + FluentValidation validator
+[ ] Read response DTO
+[ ] Read every consumer (BFF proxy, mobile API client, generated TS client)
+[ ] Confirm: does a generated TypeScript client exist? (needs regeneration)
+
+## EXTEND-ONLY LAWS (NON-NEGOTIABLE)
+  01. NEVER remove a field from any response — all consumers depend on it
+  02. NEVER rename a field — all consumers break silently
+  03. NEVER change a field's type — all consumers break
+  04. ALWAYS add new fields as optional with explicit, sensible default values
+  05. Only version the endpoint (v2) if a breaking change is truly unavoidable
+  06. Update OpenAPI spec FIRST — then implement the code change
+  07. Regenerate TypeScript client after EVERY spec change: pnpm openapi:generate
+
+## PHASE 2 — CURRENT CONTRACT (read from files — not from memory)
+\`\`\`
+REQUEST FIELDS   : [every field | type | required/optional]
+RESPONSE FIELDS  : [every field | type | nullable]
+VALIDATION RULES : [every FluentValidation rule — verbatim]
+\`\`\`
+
+## PHASE 3 — PROPOSED EXTENSION
+\`\`\`
+NEW REQUEST FIELDS  : [field | type | optional | validation rule]
+NEW RESPONSE FIELDS : [field | type | nullable | default value]
+BACKWARDS COMPAT    : [confirm each existing field is unchanged — list each]
+\`\`\`
+
+## PHASE 4 — IMPLEMENTATION ORDER (never reorder)
+  01. Update OpenAPI spec — never replace, only extend
+  02. pnpm openapi:generate — regenerate TypeScript client
+  03. Update request DTO — add fields, never remove
+  04. Update FluentValidation validator — add rules for new fields
+  05. Update command/query handler to use new fields
+  06. Update response DTO — add fields, never remove
+  07. Update BFF proxy route if it touches this endpoint
+  08. Update UI components if they consume the new fields`
+  },
+  {
+    num:'10',name:'UX / Design',desc:'UI components · design system · a11y',
+    hint:'Apply all UX laws, WCAG 2.2 AA, and spring physics to every component. No ease-in-out. No spinner-only loading.',
+    tags:["Jakob's","Fitts's","WCAG 2.2 AA","spring","skeleton"],
+    body:`# MODE: UX-DESIGN-SYSTEM
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## DESIGN BRIEF
+COMPONENT / PAGE : [what to build or fix]
+USER PERSONA     : [Owner | Manager | Resident | Public visitor | Admin]
+DEVICE TARGET    : [mobile-first | desktop | both]
+DESIGN SYSTEM    : [Tailwind CSS + Radix UI + Framer Motion]
+PRIMARY ACTION   : [the one thing the user must do most easily]
+
+## PHASE 1 — PRE-FLIGHT READ
+[ ] Read the existing component completely if modifying
+[ ] Read 2–3 adjacent components for design consistency reference
+[ ] Read Tailwind config for custom tokens
+[ ] Read design token file if it exists
+
+## PHASE 2 — UX LAW AUDIT (every law, every component, every time)
+
+Jakob's Law:
+  [ ] Uses familiar patterns before inventing new ones?
+  [ ] Mental model matches what this persona already knows?
+
+Fitts's Law:
+  [ ] Primary CTA in bottom 33% of screen on mobile?
+  [ ] Full card / row is the tap target — not just a button inside?
+  [ ] ALL interactive targets ≥ 44px × 44px?
+  [ ] Highest-frequency action closest to thumb zone?
+
+Hick's Law:
+  [ ] Choices reduced to the minimum needed for the task?
+  [ ] Progressive disclosure for complex or multi-step flows?
+
+Miller's Law:
+  [ ] Lists and nav items ≤ 7 (target ≤ 5)?
+  [ ] Pagination, filtering, or grouping for larger sets?
+
+Doherty Threshold:
+  [ ] Every user action → visible feedback within 400ms?
+  [ ] Optimistic updates on save / like / toggle / submit?
+  [ ] Skeleton screens instead of spinners on data loads?
+  [ ] Immediate error states — not after a timeout?
+
+Aesthetic-Usability:
+  [ ] Component is visually polished and matches design language?
+
+Consistency:
+  [ ] Identical component types look and behave identically everywhere?
+
+## PHASE 3 — ACCESSIBILITY (WCAG 2.2 AA — non-negotiable)
+  [ ] Visible <label> for every input — placeholder text alone is NOT sufficient
+  [ ] aria-describedby linking error messages to their inputs
+  [ ] aria-invalid="true" on every input in error state
+  [ ] aria-live="polite" regions for all dynamic content updates
+  [ ] Focus ring always visible — never outline:none without a visible replacement
+  [ ] Tab + Enter/Space navigates all interactive elements
+  [ ] Colour contrast ≥ 4.5:1 for text | ≥ 3:1 for UI component boundaries
+  [ ] No information conveyed by colour alone
+
+## MOTION SYSTEM (Framer Motion — spring physics ONLY)
+  Standard : { type:"spring", stiffness:400, damping:30, mass:1 }
+  Fast     : { type:"spring", stiffness:600, damping:35, mass:0.8 }
+  Bounce   : { type:"spring", stiffness:300, damping:20, mass:1 }
+  RULE     : Check prefers-reduced-motion in EVERY animation → fallback: duration:0
+
+## OUTPUT CONTRACT
+\`\`\`
+COMPONENT  : [name]
+FILE       : [path — confirmed by reading]
+TYPE       : server | client
+UX LAWS    : [each law — how it is concretely met]
+A11Y       : [aria attributes | keyboard behaviour | contrast ratios]
+MOTION     : [spring config | trigger | reduced-motion fallback]
+CODE       : [complete implementation — no stubs, no TODOs]
+\`\`\``
+  },
+  {
+    num:'11',name:'DevOps / Deploy',desc:'Railway · Docker · CI/CD · build failures',
+    hint:'Read config files and logs. Diagnose Railway build/runtime failures. Fix with verified commands.',
+    tags:['Railway','railpack','standalone','PORT','pnpm'],
+    body:`# MODE: DEVOPS-DEPLOY
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PLATFORM CONTEXT
+Platform : Railway (railpack v0.22+)
+Monorepo : pnpm workspaces — filter: @fbt/[service]
+Services : [list the relevant Railway services for this task]
+DB       : PostgreSQL (Railway managed)
+
+## ISSUE BRIEF
+SYMPTOM     : [exact error message or failure behaviour]
+ENVIRONMENT : [build | runtime | both]
+LOGS        : [paste complete Railway build or runtime logs — never trimmed]
+
+## PHASE 1 — PRE-FLIGHT READ
+[ ] Read railway.json or Dockerfile for the affected service
+[ ] Read package.json (build, start, postbuild, prebuild scripts)
+[ ] Read next.config.ts if a Next.js service is involved
+[ ] Read .env.example for all required environment variables
+[ ] Confirm: what PORT does this service bind to?
+
+## RAILWAY RULES (non-negotiable)
+  01. output:standalone → start: node server.js | NEVER next start (Railway crash)
+  02. Monorepo standalone path is NOT predictable — add to postbuild:
+        find . -name server.js -path "*standalone*"
+      Read actual path from Railway build log before setting start command
+  03. PORT: Railway injects process.env.PORT automatically
+      Server MUST read process.env.PORT — never hardcode 3000
+  04. PostgreSQL URI conversion (Railway → .NET/Npgsql):
+        FROM: postgresql://user:pass@host:port/db
+        TO  : Host=host;Port=port;Database=db;Username=user;Password=pass;SSL Mode=Require
+  05. DataProtection: .PersistKeysToDbContext<AppDbContext>()
+      Never in-memory on Railway (pod restarts lose keys → all sessions invalidated)
+  06. pino transport block: MUST NOT exist in Next.js logger.ts
+      (thread-stream worker crashes on Railway — remove the transport block entirely)
+  07. Monorepo build: pnpm --filter @fbt/[service] build
+  08. Railway inter-service: use internal DNS http://[service].railway.internal — not public URL
+
+## KNOWN PATTERNS → FIXES
+\`\`\`
+SYMPTOM : "next start" crashes with output:standalone
+FIX     : node .next/standalone/server.js
+          OR in monorepo: node /app/.next/standalone/apps/[service]/server.js
+          Run postbuild find command to get the actual path
+
+SYMPTOM : Cannot find module '*standalone/server.js'
+FIX     : Add postbuild: find . -name server.js -path "*standalone*"
+          Read Railway build log output — hardcode exact path in start command
+
+SYMPTOM : Refresh token reuse detected / sessions die on concurrent tabs
+FIX     : Map<sessionId, Promise<TokenSet>> mutex in BFF refresh handler
+
+SYMPTOM : thread-stream worker exited / MODULE_NOT_FOUND lib/worker.js
+FIX     : Remove entire transport: { target: "pino-pretty", ... } block from logger.ts
+
+SYMPTOM : DataProtection key error after Railway pod restart
+FIX     : PersistKeysToDbContext<AppDbContext>() — remove in-memory storage
+
+SYMPTOM : e_sqlite3 DllNotFoundException on macOS
+FIX     : xattr -dr com.apple.quarantine ~/.nuget/packages/sqlitepclraw.lib.e_sqlite3/
+
+SYMPTOM : ECONNREFUSED between Railway services
+FIX     : Use internal Railway DNS — not public URLs — for inter-service calls
+\`\`\`
+
+## OUTPUT CONTRACT
+\`\`\`
+CONFIRMED ISSUE  : [one sentence — from reading logs + config]
+FILE             : [config file path — confirmed by reading]
+BEFORE           : [current broken configuration — verbatim]
+AFTER            : [correct configuration]
+ENV VARS NEEDED  : [name | purpose | example format]
+VERIFY BY        : [exact command to confirm fix]
+REGRESSION RISK  : [other services or configs to check]
+\`\`\``
+  },
+  {
+    num:'12',name:'Full Project Scan',desc:'End-to-end architecture analysis',
+    hint:'Deepest mode. Maps architecture end-to-end across all layers, isolation audit, integration map, gap report, and decision surface.',
+    tags:['architecture','all layers','decision surface','isolation audit'],
+    body:`# MODE: FULL-PROJECT-SCAN (READ-ONLY)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ⛔ ZERO code changes. Deepest read mode.
+# Output: 6 deliverables — all required.
+
+## SCAN SCOPE
+PROJECTS : [every service to include in this scan]
+FOCUS    : [auth | onboarding | isolation | payments | performance | all]
+QUESTION : [the core question you need answered before implementation begins]
+
+## PHASE 1 — DIRECTORY SCAN (before reading any file)
+[ ] Scan full directory tree of each project
+[ ] List every relevant file and directory
+[ ] State "NOT IMPLEMENTED" for absent features — NEVER invent behaviour
+[ ] State "FILE NOT FOUND — searched: [terms]" for missing files
+
+## PHASE 2 — COMPLETE READ
+Read every file relevant to the focus area.
+Completely. Top to bottom. No partial reads.
+No summarising while reading — produce deliverables in Phase 3 only.
+
+## PHASE 3 — DELIVERABLES (produce all 6)
+
+### DELIVERABLE 1: ARCHITECTURE MAP
+For each feature in scope:
+  - Entry point: route | component | endpoint | trigger | cron
+  - Full data flow: User → UI → BFF → API → DB (every hop, file, and line that matters)
+  - Auth enforcement at each layer
+  - Tenant/property isolation at each layer
+  - DB schema: relevant tables, columns, constraints, indexes
+  - Zentra integration: claims, endpoints, scopes used
+
+### DELIVERABLE 2: ISOLATION AUDIT
+  DB layer  : tenant_id on every query? List any that are missing or partial
+  API layer : IDOR check on every resource? List any gaps
+  UI layer  : property filter enforced on all surfaces?
+  JWT layer : which claims drive isolation decisions?
+  Role matrix: what each role (Owner / Manager / Resident / Admin) can see and do — confirmed from code
+
+### DELIVERABLE 3: INTEGRATION MAP
+  - Which services call which, and with what auth method
+  - Required environment variables per service (complete list)
+  - Which Railway services share a DB
+  - Token / claim flow: Zentra → API → BFF → UI (every step)
+  - Any circular dependencies or problematic tight coupling
+
+### DELIVERABLE 4: GAP REPORT
+\`\`\`
+[P0] [LAYER] [FILE:LINE] [DESCRIPTION]
+     RISK: [consequence — security | data loss | crash | auth bypass]
+
+[P1] [LAYER] [FILE:LINE] [DESCRIPTION]
+     IMPACT: [what degrades]
+
+[P2] [LAYER] [FILE:LINE] [DESCRIPTION]
+     NOTE: [improvement opportunity]
+
+SUMMARY: P0:[n]  P1:[n]  P2:[n]
+\`\`\`
+
+### DELIVERABLE 5: DECISION SURFACE
+Every decision that must be resolved BEFORE implementation begins:
+\`\`\`
+[D1] [question that must be answered]
+  Options        : [A] description | [B] description
+  Recommendation : [which option and exactly why — cite code evidence]
+  Impact if wrong: [consequence of wrong choice]
+\`\`\`
+
+### DELIVERABLE 6: IMPLEMENTATION READINESS
+For each P0 gap:
+  - Files to read before fixing: [list]
+  - Change surface: small | medium | large
+  - Dependencies: [what must be done first]
+  - Estimated Cowork sessions: [n]`
+  },
+
+  // ── THE BRIDGE ─────────────────────────────────────────────
+  {
+    num:'13',name:'Full-Stack Bridge',desc:'Frontend + Backend · any product · any task',
+    hint:'The universal mode. Maps all layer boundaries FIRST. Defines three explicit contracts before writing a single line. Builds inside-out: DB → API → BFF → UI → Mobile. Enforces type sync at every boundary. Works for any task on any FBT product.',
+    tags:['contract-first','all layers','type sync','inside-out','universal'],
+    bridge:true,
+    body:`# MODE: FULL-STACK-BRIDGE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PURPOSE  : Universal mode for any task touching frontend, backend, or both.
+# PRINCIPLE: Map every layer boundary first. Define contracts before implementing.
+#            Build inside-out (DB → API → BFF → UI → Mobile).
+#            Verify each contract boundary before crossing it.
+#
+# THIS MODE EXISTS BECAUSE the three most common full-stack failures are:
+#   ① DB → API   DRIFT : handler assumes columns or types that do not exist
+#   ② API → BFF  DRIFT : proxy forwards wrong shape, error codes unhandled
+#   ③ BFF → UI   DRIFT : TypeScript types disagree with actual runtime response
+#
+# Each phase in this mode produces a CONTRACT that the next phase consumes.
+# You do not move to the next phase until the contract is verified.
+
+## TASK BRIEF (fill before running)
+TASK TYPE    : [bug fix | new feature | refactor | performance | security fix | ___]
+DESCRIPTION  : [what this task does — one sentence from the user's perspective]
+LAYERS       : [ ] DB  [ ] API (.NET 8)  [ ] BFF (Next.js)  [ ] UI (web)  [ ] Mobile (Expo)  [ ] Auth (Zentra)
+PERSONA      : [Owner | Manager | Resident | Admin | Public visitor]
+DEVICE       : [mobile-first | desktop | both]
+ANCHOR POINT : [the primary API endpoint(s) this task touches — or "NEW" if creating]
+KNOWN STATE  : [any broken or incomplete state you are aware of going in]
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 0 — STACK MAP  (produce BEFORE reading any file)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⛔ NO file reads yet. Draw the map from the task description alone.
+Use UNKNOWN where you cannot determine without reading files.
+
+### LAYER FLOW (draw the complete path for this task)
+\`\`\`
+[User action / trigger / cron]
+  ↓ UI LAYER
+  [Component name] — [file path if known | UNKNOWN]
+  ↓ BFF LAYER
+  [BFF route: METHOD /api/...] — [file path if known | UNKNOWN]
+  ↓ API LAYER
+  [API endpoint: METHOD /...] — [file path if known | UNKNOWN]
+  [Handler / Use Case class] — [file path if known | UNKNOWN]
+  ↓ DB LAYER
+  [Repository method] — [file path if known | UNKNOWN]
+  [Table(s): column(s) read/written] — [known | UNKNOWN]
+\`\`\`
+
+### THREE CONTRACTS (pre-identify — mark UNKNOWN if unclear)
+
+CONTRACT ① — DB → API
+  Table(s)          : [name | UNKNOWN]
+  Columns read      : [list | UNKNOWN]
+  Columns written   : [list | UNKNOWN]
+  Missing columns   : [what the task needs that may not exist | UNKNOWN]
+
+CONTRACT ② — API → BFF
+  Response shape    : [fields | UNKNOWN]
+  Error codes       : [HTTP status codes this endpoint can return | UNKNOWN]
+  Auth required     : [yes/no | which claims | UNKNOWN]
+  Multi-tenant scope: [property_id scoped? | UNKNOWN]
+
+CONTRACT ③ — BFF → UI
+  Data shape to UI  : [TypeScript type | UNKNOWN]
+  Error states UI must handle : [list | UNKNOWN]
+  Loading state     : [skeleton shape | UNKNOWN]
+  Empty state       : [what triggers it | UNKNOWN]
+
+Phase 0 complete when all three contracts are drafted (UNKNOWN is acceptable here).
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 1 — PRE-FLIGHT READ  (resolve every UNKNOWN from Phase 0)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[ ] List every file you will read — in dependency order: DB → API → BFF → UI → Mobile
+[ ] READ each file completely — top to bottom, no skimming
+[ ] If a file is not found: "FILE NOT FOUND — searched: [terms]"
+
+After reading, FINALISE the three contracts:
+
+### CONTRACT ① — DB → API  (confirmed from migration files + entity + repository)
+\`\`\`
+TABLE(S)        : [exact table names]
+COLUMNS READ    : [column name | PostgreSQL type | nullable]
+COLUMNS WRITTEN : [column name | PostgreSQL type | nullable]
+MISSING COLUMNS : [what must be added — these drive Phase 2A]
+EXISTING INDEXES: [relevant indexes]
+MISSING INDEXES : [what filtering/ordering needs an index]
+\`\`\`
+
+### CONTRACT ② — API → BFF  (confirmed from OpenAPI spec + DTOs + endpoint registration)
+\`\`\`
+ENDPOINT        : [METHOD /exact/path]
+REQUEST FIELDS  : [field | C# type | required/optional | validation rule]
+RESPONSE FIELDS : [field | C# type | nullable — EVERY field]
+ERROR CODES     :
+  400 — [when | meaning]
+  401 — [when | meaning]
+  403 — [when | meaning]
+  404 — [when | meaning]
+  409 — [when | meaning]
+AUTH            : [Bearer JWT | which claims required | which claims drive IDOR check]
+TENANT SCOPE    : [property_id in path | query | body | none]
+\`\`\`
+
+### CONTRACT ③ — BFF → UI  (confirmed from BFF route + generated TS client + UI component)
+\`\`\`
+FETCH RESULT    : [TypeScript type — exact field names from generated client]
+CLIENT PROPS    : [prop name | TypeScript type — every prop]
+ERROR STATES    : [error type | UI response — what the user sees]
+LOADING STATE   : [skeleton shape description]
+EMPTY STATE     : [trigger condition | UI response]
+OPTIMISTIC STATE: [if mutation: what the UI shows before server confirms]
+\`\`\`
+
+⛔ STOP. Present all three finalised contracts.
+Do not begin Phase 2 until contracts are confirmed correct.
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 2 — BACKEND  (inside-out: DB → API)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### PHASE 2A — DB LAYER  (only if Contract ① shows missing columns or indexes)
+RULES: additive only · nullable first · CONCURRENTLY · IF NOT EXISTS
+
+\`\`\`sql
+-- Migration : [descriptive-kebab-name]
+-- Contract  : implements Contract ① — [column list]
+-- Additive  : YES — no drops, no renames, no type changes
+-- Idempotent: YES
+
+ALTER TABLE [table]
+  ADD COLUMN IF NOT EXISTS [col] [type] NULL;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_[table]_[col]
+  ON [table]([col]);
+\`\`\`
+
+After migration SQL — read these files completely before modifying:
+  → C# entity: add property, update EF Core config
+  → Repository: add/update every method that needs the new column
+
+### PHASE 2B — API LAYER  (implement Contract ②)
+Read each file completely before writing. Implement in this order:
+  01. Request DTO — add new fields (never remove existing)
+  02. FluentValidation rules — one rule per new required/constrained field
+  03. Response DTO — add new fields (never remove existing)
+  04. Handler — implement logic reading from confirmed repository methods
+  05. Endpoint registration — confirm routing and auth policy
+  06. OpenAPI spec — extend the spec (never replace, always additive)
+
+IDOR CHECK (mandatory for any property/resident resource):
+  → Read the IDOR guard method (CanAccessPropertyAsync / CanAccessResidentAsync)
+  → Call it before the handler returns any data
+  → Return 403 if check fails — never 404 (information leakage)
+
+### PHASE 2C — BACKEND VERIFICATION GATE ✓
+⛔ STOP. Confirm ALL before touching any frontend file:
+
+  [ ] .NET solution builds: dotnet build — zero errors, zero warnings
+  [ ] Contract ② fully implemented: every field in spec, every error code handled
+  [ ] IDOR check in place on every property/resident endpoint
+  [ ] OpenAPI spec extended — never broken
+  [ ] Run: pnpm openapi:generate
+  [ ] READ the generated TypeScript types — confirm they match Contract ③ shape
+  [ ] If generated types do NOT match Contract ③: fix the spec — NEVER patch the UI
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 3 — BRIDGE SYNC  (API contract → TypeScript → BFF)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This phase exists solely to ensure Contract ② and Contract ③ are in exact alignment.
+Do not skip this phase even if changes seem small.
+
+[ ] Read generated TypeScript client (packages/api-client) — confirm Contract ③ field names match
+[ ] Read every BFF route that touches this endpoint — completely
+
+For each BFF route, verify and implement:
+  [ ] Request forwarding: all new request fields forwarded to API?
+  [ ] Response forwarding: all new response fields forwarded to UI? (no dropped fields)
+  [ ] Error handling: EVERY error code from Contract ② caught and mapped to a BFF error response?
+  [ ] Auth header: Bearer token forwarded from HttpOnly cookie — NEVER from client body
+  [ ] Correlation ID: added to EVERY log line — never missing
+  [ ] Log audit: ZERO token, cookie, password, or PII values in any log statement
+
+SINGLE-FLIGHT GUARD (if this BFF route can be called concurrently per session):
+  → Verify Map<sessionId, Promise<T>> mutex is present on token refresh
+  → If not: this is a P0 — implement before proceeding
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 4 — FRONTEND  (BFF → UI → Mobile)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Implement AGAINST Contract ③. No guessing about data shape.
+Every field name must come from the verified generated TypeScript types.
+
+### PHASE 4A — SERVER COMPONENT (if data fetching from BFF)
+Read existing server component completely before modifying. Then:
+  → Extend data fetch to include new fields — use generated TS types, no any
+  → LOADING STATE  : skeleton screen matching final layout (no spinner-only)
+  → ERROR STATE    : error boundary with an actionable user-facing message
+  → EMPTY STATE    : intentional UI — never blank white space
+
+### PHASE 4B — CLIENT COMPONENT (if interactive — mutations, forms, toggles)
+Apply UX laws before writing a single line. Confirm each:
+
+  Fitts's Law (MANDATORY MOBILE CHECK):
+    [ ] Primary CTA in bottom 33% of screen?
+    [ ] FULL card or row is the tap target — not just a button inside it?
+    [ ] Every interactive element ≥ 44px × 44px minimum?
+    [ ] Highest-frequency action in thumb reach zone?
+
+  Doherty Threshold (MANDATORY FEEDBACK CHECK):
+    [ ] Every user action → visible feedback ≤ 400ms?
+    [ ] OPTIMISTIC UPDATE implemented on every mutation (not wait-then-show)?
+    [ ] If optimistic update: rollback logic on error is also implemented?
+
+  Hick's Law:
+    [ ] Minimum number of choices shown at any decision point?
+    [ ] Progressive disclosure for complex or multi-step flows?
+
+  Miller's Law:
+    [ ] Lists capped at 7±2 — pagination or filtering beyond that?
+
+  Consistency:
+    [ ] Component matches equivalent components across all surfaces exactly?
+
+  ACCESSIBILITY (WCAG 2.2 AA — every element, no exceptions):
+    [ ] <label> visible and associated with every input (placeholder ≠ label)
+    [ ] aria-describedby: input → error message
+    [ ] aria-invalid="true" on every input in error state
+    [ ] aria-live="polite" on every region with dynamic content
+    [ ] Focus ring: always visible — never outline:none without a visible replacement
+    [ ] Tab + Enter/Space: all interactive elements keyboard operable
+    [ ] Contrast ≥ 4.5:1 text | ≥ 3:1 UI components
+
+  MOTION (Framer Motion — spring physics ONLY — never ease-in-out):
+    Standard: { type:"spring", stiffness:400, damping:30, mass:1 }
+    Fast    : { type:"spring", stiffness:600, damping:35, mass:0.8 }
+    → Every animation: check prefers-reduced-motion → fallback: duration:0
+
+### PHASE 4C — MOBILE SCREEN (Expo / React Native — if in scope)
+Read existing screen completely before modifying. Then:
+  → Use Pressable (not TouchableOpacity) for correct hit area
+  → KeyboardAvoidingView for any screen with a form
+  → FlatList with keyExtractor for any list (not .map() on mobile)
+  → useCallback on all handlers passed to list items (perf)
+  → Optimistic updates: same discipline as web — feedback ≤ 400ms
+
+### PHASE 4D — PERFORMANCE GATE ✓
+  [ ] All images: next/image with explicit width + height (CLS = 0)
+  [ ] Hero images: priority={true} (LCP improvement)
+  [ ] Heavy components (Three.js, charts): next/dynamic with ssr:false
+  [ ] No N+1 queries — count DB queries in Railway log on page load
+  [ ] FCP < 1.5s on simulated slow 4G (Chrome DevTools Network throttle)
+  [ ] CLS = 0 — verify in Lighthouse or Layout Shift overlay
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 5 — END-TO-END VERIFICATION
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Test the COMPLETE path: user action → UI → BFF → API → DB → UI.
+This phase is not optional. Declare the task complete only after all checks pass.
+
+### HAPPY PATH
+\`\`\`
+  [ ] User performs the primary action in UI
+  [ ] Network tab: request body matches Contract ② — correct fields, correct types
+  [ ] BFF log: correlation ID present | zero token values in log
+  [ ] API log: handler executed | response matches Contract ② shape
+  [ ] DB: data stored or retrieved correctly (verify with direct query if needed)
+  [ ] UI: correct data rendered | CLS = 0 | feedback appeared within 400ms
+  [ ] Optimistic update: shown immediately | confirmed or rolled back correctly
+\`\`\`
+
+### ERROR PATH (test EVERY error code from Contract ②)
+\`\`\`
+  [ ] 400: UI shows field-level validation error — not a generic toast
+  [ ] 401: UI redirects to login or refreshes token (not a crash)
+  [ ] 403: UI shows "access denied" — not a blank screen
+  [ ] 404: UI shows "not found" empty state — not a crash
+  [ ] 409: UI shows conflict message with actionable next step
+  [ ] Network offline: UI shows offline state — not a crash
+  [ ] User can recover from every error without a full page reload
+\`\`\`
+
+### ISOLATION VERIFICATION
+\`\`\`
+  [ ] Log in as User A (Tenant A) — see only Tenant A data
+  [ ] Log in as User B (Tenant B) — see only Tenant B data
+  [ ] IDOR test: User A changes URL to include a Tenant B property_id
+       → Expected: 403 response | actual: [test result]
+  [ ] Role test: Manager cannot perform Owner-only actions
+\`\`\`
+
+## OUTPUT CONTRACT
+\`\`\`
+STACK MAP    : [completed layer flow from Phase 0]
+
+CONTRACT ①   : [DB→API — confirmed table, columns, indexes]
+CONTRACT ②   : [API→BFF — confirmed endpoint, request, response, all error codes]
+CONTRACT ③   : [BFF→UI — confirmed TypeScript types, error/loading/empty states]
+
+─────────────────────────────────────────────
+PER FILE (one block per file changed):
+─────────────────────────────────────────────
+FILE         : [exact path — confirmed by reading]
+LAYER        : DB | API | BFF | UI-server | UI-client | Mobile
+CHANGE TYPE  : new | extend | fix | refactor
+CONTRACT MET : ① | ② | ③
+BEFORE       : [verbatim current code — if modifying]
+AFTER        : [complete implementation — no stubs, no TODOs]
+STANDARDS    : [SOLID/KISS/DRY/YAGNI — confirm]
+UX LAWS      : [each law met — if UI layer]
+A11Y         : [aria attributes + keyboard behaviour — if UI layer]
+─────────────────────────────────────────────
+
+BACKEND GATE : [ ] build clean [ ] spec extended [ ] TS generated [ ] types match
+BRIDGE SYNC  : [ ] all error codes handled [ ] correlationId present [ ] zero PII in logs
+HAPPY PATH   : [ ] verified end-to-end
+ERROR PATH   : [ ] every Contract ② error code tested
+ISOLATION    : [ ] cross-tenant IDOR verified
+PERFORMANCE  : [ ] FCP<1.5s [ ] CLS=0 [ ] N+1 eliminated [ ] budgets confirmed
+TS ANY       : [ ] zero — confirmed in all layers
+\`\`\``
+  },
+
+  // ── PRODUCT GENESIS ────────────────────────────────────────
+  {
+    num:'14',name:'Product Genesis',desc:'Bootstrap any new product from zero',
+    hint:'The only prompt that exists to build something that does not exist yet. Defines architecture, makes irreversible decisions consciously, scaffolds all foundation layers, and produces a sprint-zero execution plan.',
+    tags:['zero-to-one','architecture decisions','scaffold','sprint zero','foundation'],
+    genesis:true,
+    body:`# MODE: PRODUCT-GENESIS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PURPOSE  : Bootstrap a new product from absolute zero.
+# THIS MODE : Makes architecture decisions consciously and permanently.
+#             Scaffolds every foundation layer correctly, once, in the right order.
+#             Produces a sprint-zero execution plan with no ambiguity.
+#
+# ⚠ ARCHITECTURE DECISIONS MADE IN THIS MODE ARE DIFFICULT TO REVERSE.
+# Do not proceed until every decision in Phase 1 is explicitly confirmed.
+# An hour spent here saves weeks of painful migration later.
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 0 — PRODUCT DEFINITION  (your answers drive everything below)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### IDENTITY
+PRODUCT NAME          : [name]
+ONE-LINE DESCRIPTION  : [what it does — for a 5-year-old]
+CORE PROBLEM          : [the specific pain it eliminates — measurable if possible]
+PRIMARY PERSONAS      : [who uses it, how often, from what device]
+MONETISATION          : [how it makes money — or why it doesn't need to]
+SUCCESS IN 90 DAYS    : [what does "working" look like — the minimum that matters]
+
+### CONSTRAINTS (non-negotiable — state them now or pay for them later)
+REGULATORY            : [GDPR / HIPAA / PCI-DSS / RBI / none / TBD]
+GEOGRAPHIC            : [India-only / global / specific regions]
+PERFORMANCE           : [concurrent users at launch | at 6 months | at 2 years]
+TEAM SIZE             : [solo / 2-3 / team — affects complexity budget]
+TIMELINE TO MVP       : [weeks]
+HARD DEPENDENCIES     : [must integrate with X from day one]
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 1 — ARCHITECTURE DECISION RECORD  (ADR)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Each decision below includes the OPTIONS, the CHOSEN option,
+# the REASON, and the REVERSAL COST if chosen wrongly.
+# You must confirm or override each decision before Phase 2.
+
+### ADR-01: MONOLITH vs SERVICES
+Options   : [A] Monolith — one deployable, maximum velocity
+            [B] Modular Monolith — single deploy, clean internal boundaries
+            [C] Microservices — maximum flexibility, maximum operational complexity
+Decision  : [B] Modular Monolith (recommended for teams < 5 engineers)
+Reason    : Full-service independence is earned, not assumed. Start modular,
+            extract services only when a module has genuinely different
+            scaling or deployment requirements — not before.
+Reversal  : Moderate — extracting a well-bounded module is feasible.
+            Splitting a tangled monolith is a quarter-long project.
+CONFIRM OR OVERRIDE: ___
+
+### ADR-02: ARCHITECTURE PATTERN (backend)
+Options   : [A] Vertical Slice — feature folders, minimal abstraction, fast iteration
+            [B] Clean Architecture + CQRS + MediatR — max structure, max testability
+            [C] Layered (controllers → services → repos) — familiar, gets messy fast
+Decision  : [A] Vertical Slice for MVP, migrate to [B] when >10 features exist
+Reason    : Vertical Slice eliminates ceremony at speed. Clean Arch adds ceremony
+            that pays off at scale — not at sprint zero.
+Reversal  : Low (VSA) → Medium (Clean Arch) migration is additive refactor.
+CONFIRM OR OVERRIDE: ___
+
+### ADR-03: DATABASE STRATEGY
+Options   : [A] PostgreSQL — relational, ACID, proven, excellent for SaaS
+            [B] MongoDB — document, schema-flexible, good for unstructured data
+            [C] SQLite — zero-ops dev experience, not for production multi-user
+Decision  : [A] PostgreSQL on Railway
+Reason    : Relational integrity eliminates an entire class of data bugs.
+            Schema migrations are predictable. Tooling is mature.
+Reversal  : HIGH — database migrations are painful. Choose once and commit.
+CONFIRM OR OVERRIDE: ___
+
+### ADR-04: MULTI-TENANCY MODEL  (skip if single-tenant product)
+Options   : [A] Row-level (tenant_id on every table) — simple, single DB, lower cost
+            [B] Schema-level (one schema per tenant) — clean isolation, complex migrations
+            [C] Database-level (one DB per tenant) — max isolation, max cost
+Decision  : [A] Row-level isolation for SaaS MVP
+Reason    : Schema and database-level are operationally expensive and only justified
+            for enterprise compliance (SOC2, HIPAA). Row-level with RLS or
+            application-enforced filtering covers 95% of SaaS use cases.
+Reversal  : VERY HIGH — changing tenancy model on live data is a migration project.
+CONFIRM OR OVERRIDE: ___
+
+### ADR-05: AUTH STRATEGY
+Options   : [A] Zentra (FBT internal OAuth 2.0/OIDC) — shared identity across FBT products
+            [B] NextAuth.js v5 — rapid setup, social + credential providers
+            [C] Clerk — zero-config, managed, costs money at scale
+            [D] Custom JWT — full control, full responsibility
+Decision  : [A or B — based on whether product needs FBT SSO or is standalone]
+Reason    : If this product must share identity with other FBT products → A.
+            If it is fully standalone with no FBT SSO requirement → B.
+Reversal  : HIGH — auth provider migration forces all users to re-authenticate.
+CONFIRM OR OVERRIDE: ___
+
+### ADR-06: FRONTEND RENDERING STRATEGY
+Options   : [A] SSR (default) — SEO + dynamic data, higher server cost
+            [B] SSG + ISR — static with incremental updates, excellent performance
+            [C] CSR only — SPA, good for authenticated dashboards
+            [D] PPR (Partial Prerendering, Next.js 15) — best of SSG + SSR per-component
+Decision  : [D] PPR for authenticated product | [B] for marketing/public pages
+Reason    : Static shell with dynamic islands = FCP < 1.5s with full dynamism.
+Reversal  : Low — rendering strategy can change per-route without rearchitecting.
+CONFIRM OR OVERRIDE: ___
+
+### ADR-07: API CONTRACT VERSIONING
+Options   : [A] Semver URL versioning (/v1/, /v2/) — explicit, easy to deprecate
+            [B] Header versioning (Accept: application/vnd.api+v2+json) — clean URLs
+            [C] No versioning (extend-only forever) — simple, works until it doesn't
+Decision  : [C] Extend-only for MVP, add [A] URL versioning when a breaking change is needed
+Reason    : Premature versioning adds overhead with zero benefit until the first
+            breaking change. Extend-only with disciplined field management is sufficient.
+Reversal  : Low — adding versioning later is additive.
+CONFIRM OR OVERRIDE: ___
+
+⛔ STOP. Present all 7 ADRs with your chosen decisions and wait for confirmation.
+Do not proceed to Phase 2 until every ADR is marked CONFIRMED.
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 2 — REPOSITORY SCAFFOLD
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Produce the complete, runnable scaffold in this exact order.
+Each step must be runnable before the next begins.
+
+### STEP 2.1 — REPOSITORY STRUCTURE
+\`\`\`
+[product-name]/
+├── apps/
+│   ├── web/                    # Next.js 15 — frontend
+│   │   ├── app/                # App Router
+│   │   ├── components/         # Shared UI components
+│   │   ├── lib/                # BFF utilities, API client, auth
+│   │   └── public/
+│   └── api/                    # Backend (.NET 8 or Node)
+│       ├── src/
+│       │   ├── Features/       # Vertical slice feature folders
+│       │   ├── Common/         # Shared: auth, middleware, extensions
+│       │   ├── Infrastructure/ # DB, external services
+│       │   └── Program.cs
+│       └── [product].API.sln
+├── packages/
+│   ├── api-client/             # Generated TypeScript client from OpenAPI spec
+│   ├── ui/                     # Shared design tokens and base components
+│   └── config/                 # Shared ESLint, TypeScript, Tailwind config
+├── docs/
+│   ├── ADR/                    # Architecture Decision Records (this file goes here)
+│   ├── API/                    # OpenAPI spec
+│   └── SETUP.md
+├── .env.example                # ALL required env vars — no secrets, just keys + comments
+├── package.json                # pnpm workspaces root
+└── pnpm-workspace.yaml
+\`\`\`
+
+### STEP 2.2 — INITIAL DB SCHEMA  (migrations, not CREATE TABLE directly)
+For each entity the MVP needs:
+\`\`\`sql
+-- Migration 001: Foundation tables
+-- Additive-only discipline starts NOW, from the first migration.
+
+CREATE TABLE IF NOT EXISTS [entity] (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  [tenant_id] UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,  -- if multi-tenant
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  -- Add domain columns here
+);
+
+CREATE INDEX IF NOT EXISTS idx_[entity]_[tenant_id]
+  ON [entity]([tenant_id]);  -- mandatory if multi-tenant
+\`\`\`
+
+### STEP 2.3 — ENVIRONMENT VARIABLE MANIFEST
+\`\`\`
+# .env.example — [product name]
+# ALL variables required. App MUST fail to start if any are missing.
+# Never commit .env — only .env.example
+
+# APP
+NODE_ENV=development
+PORT=3000
+APP_URL=http://localhost:3000
+
+# DATABASE
+DATABASE_URL=postgresql://user:pass@localhost:5432/[product]
+
+# AUTH
+[AUTH_PROVIDER]_CLIENT_ID=
+[AUTH_PROVIDER]_CLIENT_SECRET=
+[AUTH_PROVIDER]_ISSUER=
+JWT_SECRET=                    # min 32 chars, cryptographically random
+
+# EXTERNAL SERVICES (add per integration)
+# PAYMENT_GATEWAY_KEY=
+# STORAGE_BUCKET=
+# EMAIL_API_KEY=
+
+# OBSERVABILITY
+LOG_LEVEL=info                 # debug | info | warn | error
+\`\`\`
+
+### STEP 2.4 — STARTUP VALIDATION  (fail fast — never silently misconfigured)
+\`\`\`typescript
+// lib/validateEnv.ts — runs at app startup, BEFORE first request
+const REQUIRED = [
+  'DATABASE_URL',
+  '[AUTH]_CLIENT_ID',
+  '[AUTH]_CLIENT_SECRET',
+  'JWT_SECRET',
+] as const;
+
+export function validateEnv() {
+  const missing = REQUIRED.filter(k => !process.env[k]);
+  if (missing.length > 0) {
+    throw new Error(\`Missing required environment variables: \${missing.join(', ')}\`);
+  }
+}
+// Called in app/layout.tsx server component and in API Program.cs
+\`\`\`
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 3 — FOUNDATION LAYERS  (in dependency order — no shortcuts)
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Implement each layer completely before moving to the next.
+Each layer is a dependency of everything above it.
+
+### LAYER 1: OBSERVABILITY  (build this first — you cannot debug what you cannot see)
+Required before any feature work:
+\`\`\`
+[ ] Structured logging (Pino / Serilog) with correlation ID on every log line
+[ ] Log levels: debug | info | warn | error — configurable by env var
+[ ] REDACT list configured: password, token, cookie, secret, authorization, x-api-key
+[ ] Error tracking (Sentry or equivalent) — never lose an uncaught exception
+[ ] Health check endpoint: GET /health → { status: "ok", version, uptime }
+[ ] Request logging middleware: method, path, status, duration on every request
+[ ] LOG FORMAT: { level, time, correlationId, service, message, ...context }
+\`\`\`
+
+### LAYER 2: AUTHENTICATION  (zero-trust from day one)
+\`\`\`
+[ ] Auth provider configured and integrated
+[ ] HttpOnly, Secure, SameSite=Lax cookies — NEVER localStorage for tokens
+[ ] PKCE enforced on OAuth flows
+[ ] Refresh token rotation: single-flight mutex to prevent race conditions
+[ ] Session invalidation: works immediately (not just token expiry)
+[ ] Protected route middleware: rejects unauthenticated requests with 401
+[ ] Auth error pages: clean UX for expired session, access denied, etc.
+[ ] NEVER log: accessToken, refreshToken, idToken, sessionId, cookie values
+\`\`\`
+
+### LAYER 3: MULTI-TENANCY GUARD  (only if multi-tenant product)
+\`\`\`
+[ ] tenantId extracted from JWT claim on every authenticated request
+[ ] Tenant isolation middleware: rejects cross-tenant data access with 403
+[ ] Base repository / query helper: automatically injects tenant_id filter
+[ ] IDOR check utility: CanAccessResourceAsync(tenantId, resourceId)
+[ ] Integration test: User A cannot see User B's data — this test must pass before launch
+\`\`\`
+
+### LAYER 4: ERROR HANDLING
+\`\`\`
+[ ] Global error handler: maps domain errors → HTTP status codes
+[ ] Problem Details (RFC 7807) for all API error responses:
+    { type, title, status, detail, instance, traceId }
+[ ] Error boundary in Next.js: error.tsx and global-error.tsx
+[ ] Every error log includes: full Error object, correlationId, userId (if authed)
+[ ] Production: no stack traces in HTTP responses — internal logging only
+\`\`\`
+
+### LAYER 5: DESIGN SYSTEM FOUNDATION  (if UI product)
+\`\`\`
+[ ] CSS variables / Tailwind tokens defined: color, spacing, typography
+[ ] Font loaded via next/font (not @import — performance)
+[ ] Base component library: Button, Input, Label, Card, Badge, Spinner/Skeleton
+[ ] EACH base component: WCAG 2.2 AA compliant, keyboard navigable, aria-labelled
+[ ] Skeleton loading component: matches final layout (CLS = 0)
+[ ] Error state component: clear message + recovery action
+[ ] Empty state component: context-appropriate (not generic "No data")
+[ ] Motion: Framer Motion configured with prefers-reduced-motion check
+\`\`\`
+
+### LAYER 6: API SKELETON  (contract-first — spec before code)
+\`\`\`
+[ ] OpenAPI spec created: docs/API/openapi.yaml (or openapi.json)
+[ ] Spec includes: all planned endpoints, request/response shapes, error codes
+[ ] TypeScript client generated from spec: pnpm openapi:generate
+[ ] API versioning strategy confirmed from ADR-07
+[ ] CORS configured: explicit allowed origins (never wildcard in production)
+[ ] Rate limiting configured: sensible defaults per endpoint type
+[ ] Input validation: request schema validated at the API boundary
+\`\`\`
+
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## PHASE 4 — SPRINT ZERO EXECUTION PLAN
+## ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Produce a prioritised, dependency-ordered task list for sprint zero.
+These are the only tasks that exist before the first feature is built.
+Sprint zero is done when ALL foundation layers are complete and deployed.
+
+\`\`\`
+SPRINT ZERO — [product name]
+Goal: Foundation complete. One feature deployed end-to-end. Zero tech debt.
+
+─── MILESTONE 1: REPO + ENVIRONMENT  (Day 1)
+  [ ] M1.1 — Create monorepo structure (Phase 2.1)
+  [ ] M1.2 — Configure pnpm workspaces + package.json scripts
+  [ ] M1.3 — Set up .env.example with all required variables
+  [ ] M1.4 — Configure TypeScript (strict: true) across all packages
+  [ ] M1.5 — Configure ESLint + Prettier with project rules
+  [ ] M1.6 — Configure git hooks (husky: lint + type-check on commit)
+
+─── MILESTONE 2: DATABASE  (Day 1–2)
+  [ ] M2.1 — Provision Railway PostgreSQL (or chosen DB)
+  [ ] M2.2 — Configure ORM / query builder
+  [ ] M2.3 — Create Migration 001: foundation tables (Phase 2.2)
+  [ ] M2.4 — Seed development data (enough to develop against)
+  [ ] M2.5 — Confirm connection string in all environments
+
+─── MILESTONE 3: AUTH  (Day 2–3)
+  [ ] M3.1 — Configure auth provider (ADR-05)
+  [ ] M3.2 — Implement login + logout + session refresh
+  [ ] M3.3 — Protect all non-public routes
+  [ ] M3.4 — Test: unauthenticated request → 401 (not 500, not redirect loop)
+  [ ] M3.5 — Test: expired token → clean refresh or redirect to login
+
+─── MILESTONE 4: OBSERVABILITY  (Day 3)
+  [ ] M4.1 — Structured logger configured with redact list
+  [ ] M4.2 — Correlation ID generated and attached to every request
+  [ ] M4.3 — Health check endpoint deployed and returning correct response
+  [ ] M4.4 — Error tracking (Sentry) configured in all environments
+  [ ] M4.5 — Confirm: zero token/secret values appear in any log output
+
+─── MILESTONE 5: CI/CD  (Day 3–4)
+  [ ] M5.1 — Railway service created for each app
+  [ ] M5.2 — Environment variables set in Railway dashboard (not hardcoded)
+  [ ] M5.3 — Deploy pipeline: push to main → auto deploy
+  [ ] M5.4 — Startup validation (Phase 2.4) passes on deploy
+  [ ] M5.5 — Health check endpoint returns 200 on deployed service
+
+─── MILESTONE 6: DESIGN SYSTEM  (Day 4–5, if UI product)
+  [ ] M6.1 — Tailwind config + CSS tokens defined
+  [ ] M6.2 — Base components (Button, Input, Card) — WCAG 2.2 AA confirmed
+  [ ] M6.3 — Loading, Error, and Empty state components
+  [ ] M6.4 — Lighthouse score ≥ 90 on placeholder home page
+
+─── MILESTONE 7: FIRST FEATURE  (Day 5–7)
+  [ ] M7.1 — OpenAPI spec written for Feature 1 endpoints
+  [ ] M7.2 — TypeScript client generated
+  [ ] M7.3 — Backend handler implemented (with IDOR check if applicable)
+  [ ] M7.4 — BFF route implemented
+  [ ] M7.5 — UI component implemented (with UX laws + WCAG 2.2 AA)
+  [ ] M7.6 — Full end-to-end test: happy path + error paths
+  [ ] M7.7 — Performance: FCP < 1.5s, CLS = 0 confirmed on Feature 1 page
+
+SPRINT ZERO DONE WHEN:
+  → All 7 milestones complete
+  → Product is deployed to Railway (or chosen host)
+  → One feature works end-to-end in production
+  → Zero known P0 gaps
+  → ADR document committed to /docs/ADR/
+\`\`\`
+
+## ONGOING ENGINEERING LAWS  (these never change, regardless of speed)
+
+  [ ] Every DB migration: additive only — nullable first, NOT NULL in separate deploy
+  [ ] Every API change: extend-only — never rename or remove existing fields
+  [ ] Every log statement: redact list enforced — zero credentials in output
+  [ ] Every authenticated endpoint: auth + authorisation check before data access
+  [ ] Every UI component: WCAG 2.2 AA + UX laws applied before shipping
+  [ ] Every feature: FCP < 1.5s, CLS = 0 confirmed — no regressions
+
+## OUTPUT CONTRACT
+\`\`\`
+ADR SUMMARY:
+  ADR-01 Monolith strategy   : [decision + reason]
+  ADR-02 Arch pattern        : [decision + reason]
+  ADR-03 Database            : [decision + reason]
+  ADR-04 Multi-tenancy       : [decision + reason — or N/A]
+  ADR-05 Auth                : [decision + reason]
+  ADR-06 Rendering           : [decision + reason]
+  ADR-07 API versioning      : [decision + reason]
+
+SCAFFOLD:
+  Repository structure       : [complete directory tree]
+  Initial schema             : [SQL — all foundation tables]
+  .env.example               : [all variables]
+  Startup validation         : [complete code]
+
+FOUNDATION LAYERS STATUS:
+  Layer 1 Observability      : [ ] complete
+  Layer 2 Auth               : [ ] complete
+  Layer 3 Multi-tenancy      : [ ] complete / N/A
+  Layer 4 Error handling     : [ ] complete
+  Layer 5 Design system      : [ ] complete / N/A
+  Layer 6 API skeleton       : [ ] complete
+
+SPRINT ZERO PLAN:
+  Milestone 1 Repo           : [tasks]
+  Milestone 2 Database       : [tasks]
+  Milestone 3 Auth           : [tasks]
+  Milestone 4 Observability  : [tasks]
+  Milestone 5 CI/CD          : [tasks]
+  Milestone 6 Design system  : [tasks / N/A]
+  Milestone 7 First feature  : [tasks]
+
+FIRST RISK TO WATCH:
+  [The most likely thing to delay this product — and how to prevent it]
+\`\`\``
+  }
+];
+
+// ═══════════════════════════════════════════════════════════
+// NEW PRODUCT DYNAMIC BUILDER
+// ═══════════════════════════════════════════════════════════
+function getNpValues(){
+  return {
+    name:      document.getElementById('np_name')?.value.trim()    || '',
+    category:  document.getElementById('np_category')?.value       || '',
+    frontend:  document.getElementById('np_frontend')?.value       || '',
+    backend:   document.getElementById('np_backend')?.value        || '',
+    db:        document.getElementById('np_db')?.value             || '',
+    arch:      document.getElementById('np_arch')?.value           || '',
+    auth:      document.getElementById('np_auth')?.value           || '',
+    hosting:   document.getElementById('np_hosting')?.value        || '',
+    design:    document.getElementById('np_design')?.value         || '',
+    tenant:    document.getElementById('np_tenant')?.value         || '',
+    money:     document.getElementById('np_money')?.value          || '',
+    phase:     document.getElementById('np_phase')?.value          || '',
+    personas:  document.getElementById('np_personas')?.value.trim()||'',
+    problem:   document.getElementById('np_problem')?.value.trim() || '',
+    rules:     document.getElementById('np_rules')?.value.trim()   || '',
+  };
+}
+
+function npReady(v){
+  return v.name && v.category && v.frontend && v.backend && v.problem;
+}
+
+function npChange(){
+  const v = getNpValues();
+  const ready = npReady(v);
+  const status = document.getElementById('npStatus');
+  if(ready){
+    status.textContent = `⬡ ${v.name} is defined — select a mode to generate prompt`;
+    status.className = 'npf-status ready';
+  } else {
+    const missing = [];
+    if(!v.name) missing.push('Product Name');
+    if(!v.category) missing.push('Category');
+    if(!v.frontend) missing.push('Frontend');
+    if(!v.backend) missing.push('Backend');
+    if(!v.problem) missing.push('Core Problem');
+    status.textContent = `Still needed: ${missing.join(' · ')}`;
+    status.className = 'npf-status warn';
+  }
+  if(selProj === 'newproduct' && selMode !== null) gen();
+}
+
+function buildNewProductHeader(v, mode, ctx){
+  const ts = new Date().toISOString().slice(0,16).replace('T',' ');
+  const stack = [v.frontend, v.backend, v.db].filter(Boolean).join(' | ') || 'Not yet defined';
+  const ctxBlock = ctx.trim()
+    ? `\n## ◉ TASK CONTEXT (provided by engineer — read this first)\n${ctx.trim()}\n`
+    : '';
+  const rulesBlock = v.rules
+    ? v.rules.split('\n').filter(Boolean).map((r,i)=>`  ${String(i+1).padStart(2,'0')}. ${r}`).join('\n')
+    : '  01. No special rules defined — apply universal FBT engineering laws';
+  return `# ══════════════════════════════════════════════════════════════
+# FBT COWORK — ${(v.name||'NEW PRODUCT').toUpperCase()} — MODE ${mode.num}: ${mode.name.toUpperCase()}
+# Future Beyond Technology (FBT) · ${v.category || 'New Product'}
+# Session started: ${ts}
+# ══════════════════════════════════════════════════════════════
+${ctxBlock}
+## PROJECT PROFILE
+PRODUCT     : ${v.name || '[Product Name Not Set]'} — ${v.category || '[Category Not Set]'}
+PROBLEM     : ${v.problem || '[Core Problem Not Defined]'}
+PERSONAS    : ${v.personas || '[Not defined]'}
+STACK       : ${stack}
+ARCH        : ${v.arch || 'Not yet decided — use Mode 14 to decide'}
+AUTH        : ${v.auth || 'Not yet decided'}
+DB          : ${v.db || 'Not yet decided'}
+HOSTING     : ${v.hosting || 'Not yet decided'}
+DESIGN      : ${v.design || 'Not yet decided'}
+TENANCY     : ${v.tenant || 'Not yet decided'}
+MONETISE    : ${v.money || 'Not yet decided'}
+PHASE       : ${v.phase || 'Not specified'}
+CURRENT     : ${v.phase || 'Idea / early scaffold'}
+
+## ⛔ ANTI-HALLUCINATION PROTOCOL — MANDATORY, NO EXCEPTIONS
+
+You have ZERO prior knowledge of this codebase.
+EVERY file path, function name, variable, column, endpoint, and component
+in your output MUST come from a file you ACTUALLY READ in this session.
+If no files exist yet (new scaffold) — state "NO FILES EXIST YET — scaffolding from zero."
+
+BEFORE READING ANY FILE:
+  [ ] LIST every file you intend to read — before opening any of them
+  [ ] VERIFY each path exists — state "FILE NOT FOUND — searched: [terms]" if missing
+  [ ] READ each file top-to-bottom, completely — no partial reads
+  [ ] NEVER describe, reference, or paraphrase an unread file
+
+## ⚙ ENGINEERING LAWS — ALL CODE, ALL MODES
+
+SOLID     : Single responsibility · Open/closed · Liskov · Interface segregation · Dependency inversion
+KISS      : Simplest correct implementation — if a comment is needed to explain it, simplify the code
+DRY       : One source of truth per piece of logic — zero duplication
+YAGNI     : Build only what is needed now — no speculative features
+SEC-FIRST : Validate all inputs · never log tokens, cookies, PII, or secrets
+TS-STRICT : Zero TypeScript any — every variable, prop, parameter, and return type must be explicit
+API-LOCK  : Extend-only contracts — add fields, NEVER rename or remove existing fields
+NO-DEAD   : Remove all unreachable branches, unused imports, and commented-out code
+
+## 🎯 UX LAWS — ALL UI COMPONENTS (WCAG 2.2 AA NON-NEGOTIABLE)
+
+Jakob's Law       → Match existing mental models. New patterns only when strictly necessary.
+Fitts's Law       → Primary CTAs bottom 33% mobile · Full card = tap target · All targets ≥ 44px
+Hick's Law        → Minimise choices · Progressive disclosure for multi-step flows
+Miller's Law      → Max 7±2 items per list/nav · Paginate or filter beyond that
+Doherty Threshold → Every action → visible feedback ≤ 400ms · Optimistic updates · Skeleton screens
+Aesthetic-Usability → Polished UI is perceived as more trustworthy and functional
+Consistency       → Identical element types look and behave identically across all surfaces
+A11Y (mandatory)  → aria-label · aria-describedby · aria-invalid · aria-live
+                    Contrast ≥ 4.5:1 text / ≥ 3:1 UI · Keyboard navigable · Focus always visible
+
+## 📊 PERFORMANCE BUDGETS — NON-NEGOTIABLE
+
+FCP < 1.5s  |  LCP < 2.5s  |  CLS = 0  |  INP < 200ms
+Server response P95 < 200ms  |  DB query P95 < 50ms
+
+## 🏗 PRODUCT-SPECIFIC RULES — ${(v.name || 'NEW PRODUCT').toUpperCase()}
+
+${rulesBlock}
+
+## 🌀 MOTION SYSTEM — FRAMER MOTION (UI only · Spring physics ONLY · Never ease-in-out)
+
+  Standard : { type: "spring", stiffness: 400, damping: 30, mass: 1 }
+  Fast     : { type: "spring", stiffness: 600, damping: 35, mass: 0.8 }
+  Bounce   : { type: "spring", stiffness: 300, damping: 20, mass: 1 }
+  RULE     : Every animation MUST check prefers-reduced-motion → fallback: duration: 0
+
+## 📤 OUTPUT CONTRACT (all modes)
+
+  → No workarounds. No "for now" patches. No TODOs. Production-grade only.
+  → State: what changed | what did NOT change | why each decision was made
+  → Every code block must be complete, syntactically correct, and immediately runnable
+`;
+}
+
+function buildNewProductFooter(v){
+  const stack = [v.frontend, v.backend, v.db, v.hosting].filter(Boolean).join(' | ') || 'Stack TBD';
+  return `
+## ✅ COMPLETION CHECKLIST — CONFIRM BEFORE DECLARING DONE
+
+  [ ] Zero TypeScript any in all new and modified files
+  [ ] All new API response fields are optional with sensible defaults
+  [ ] DB migrations: additive only — nullable column first
+  [ ] Logs contain ZERO tokens, cookies, passwords, or PII
+  [ ] Every error log includes the full Error object
+  [ ] WCAG 2.2 AA confirmed on all new interactive elements
+  [ ] Performance budgets not regressed (FCP/LCP/CLS/INP)
+
+# Product : ${v.name || 'New Product'} · ${v.category || 'FBT'}
+# Company : Future Beyond Technology (FBT) · FIROSE Enterprises · Chennai, India
+# Stack   : ${stack}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE + LOGIC
+// ═══════════════════════════════════════════════════════════
+let selProj = null, selMode = null;
+
+function renderProjects(){
+  const grid = document.getElementById('pg');
+  Object.values(P).forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'pc' + (p.isNew ? ' newprod' : '');
+    c.id = 'p-'+p.id;
+    if(p.isNew){
+      c.innerHTML = `<span class="newprod-icon">⬡</span><div class="pt">${p.type}</div><div class="pn">${p.name}</div><div class="ps">${p.stack}</div>`;
+    } else {
+      c.innerHTML = `<div class="pt">${p.type}</div><div class="pn">${p.name}</div><div class="ps">${p.stack}</div>`;
+    }
+    c.onclick = () => pickProject(p.id);
+    grid.appendChild(c);
+  });
+}
+
+function renderModes(){
+  const grid = document.getElementById('mg');
+  MODES.forEach((m,i) => {
+    const c = document.createElement('div');
+    c.className = 'mc' + (m.bridge ? ' bridge' : '') + (m.genesis ? ' bridge' : '');
+    c.id = 'm-'+i;
+    let pill = '';
+    if(m.bridge) pill = '<div class="bridge-pill">Frontend + Backend</div>';
+    if(m.genesis) pill = '<div class="bridge-pill" style="background:rgba(45,212,160,.12);color:var(--green);border-color:rgba(45,212,160,.25)">Zero → Launched</div>';
+    c.innerHTML = `<div class="mn">${m.num}</div><div class="mname">${m.name}</div><div class="mdesc">${m.desc}</div>${pill}`;
+    c.onclick = () => pickMode(i);
+    grid.appendChild(c);
+  });
+}
+
+function pickProject(id){
+  if(selProj) document.getElementById('p-'+selProj).classList.remove('active');
+  selProj = id;
+  document.getElementById('p-'+id).classList.add('active');
+  document.getElementById('sl1').classList.add('done');
+  document.getElementById('npForm').style.display = (id === 'newproduct') ? 'block' : 'none';
+  const name = P[id].isNew ? '⬡ New Product' : P[id].name;
+  document.getElementById('pstat').innerHTML = `Product: <span>${name}</span>`;
+  gen();
+}
+
+function pickMode(i){
+  if(selMode!==null) document.getElementById('m-'+selMode).classList.remove('active');
+  selMode = i;
+  document.getElementById('m-'+i).classList.add('active');
+  document.getElementById('sl3').classList.add('done');
+  gen();
+}
+
+function gen(){
+  if(!selProj || selMode===null) return;
+  const m = MODES[selMode];
+
+  let prompt;
+  if(selProj === 'newproduct'){
+    const v = getNpValues();
+    if(!npReady(v)){
+      document.getElementById('po').value = '[ Fill in Product Name, Category, Frontend Stack, Backend Stack, and Core Problem above to generate prompt ]';
+      document.getElementById('cbtn').disabled = true;
+      document.getElementById('otitle').innerHTML = `⬡ New Product <span>→ Mode ${m.num}: ${m.name}</span>`;
+      document.getElementById('hint').textContent = m.hint;
+      document.getElementById('tagRow').innerHTML = m.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+      return;
+    }
+    const ctx = document.getElementById('ctxIn').value;
+    prompt = buildNewProductHeader(v, m, ctx) + '\n' + m.body + '\n' + buildNewProductFooter(v);
+    document.getElementById('otitle').innerHTML = `⬡ ${v.name} <span>→ Mode ${m.num}: ${m.name}</span>`;
+  } else {
+    const p = P[selProj];
+    const ctx = document.getElementById('ctxIn').value;
+    prompt = buildHeader(selProj, m, ctx) + '\n' + m.body + '\n' + buildFooter(selProj);
+    document.getElementById('otitle').innerHTML = `${p.name} <span>→ Mode ${m.num}: ${m.name}</span>`;
+  }
+
+  document.getElementById('po').value = prompt;
+  document.getElementById('hint').textContent = m.hint;
+  document.getElementById('tagRow').innerHTML = m.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+  document.getElementById('cbtn').disabled = false;
+  document.getElementById('sl4').classList.add('done');
+  const chars = prompt.length, lines = prompt.split('\n').length, words = prompt.split(/\s+/).filter(Boolean).length;
+  document.getElementById('sc').textContent = chars.toLocaleString();
+  document.getElementById('lc').textContent = lines.toLocaleString();
+  document.getElementById('wc').textContent = words.toLocaleString();
+}
+
+function doCopy(){
+  const t = document.getElementById('po').value;
+  if(!t || t.startsWith('[')) return;
+  navigator.clipboard.writeText(t).then(()=>{
+    const el = document.getElementById('copied');
+    el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),2500);
+  });
+}
+
+document.getElementById('ctxIn').addEventListener('input',()=>{
+  if(selProj && selMode!==null) gen();
+  if(document.getElementById('ctxIn').value.trim()){
+    document.getElementById('sl2').classList.add('done');
+  } else {
+    document.getElementById('sl2').classList.remove('done');
+  }
+});
+
+renderProjects();
+renderModes();
+</script>
+</body>
+</html>
