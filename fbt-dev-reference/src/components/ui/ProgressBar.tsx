@@ -15,8 +15,8 @@ export function ProgressBar() {
   }, []);
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '2px', zIndex: 9999, background: 'var(--void)' }}>
-      <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #512BD4, #00E5CC)', transition: 'width 0.1s', boxShadow: '0 0 10px rgba(0,229,204,0.5)' }} />
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '2px', zIndex: 9999, background: 'var(--progress-bg)', transition: 'background-color 0.2s' }}>
+      <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, var(--fbt), var(--cyan))', transition: 'width 0.1s, background 0.2s', boxShadow: '0 0 10px var(--fbt-glow)' }} />
     </div>
   );
 }

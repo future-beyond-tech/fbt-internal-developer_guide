@@ -21,13 +21,13 @@ const accentColors: Record<string, string> = {
 };
 
 const pillColors: Record<string, { bg: string; color: string; border: string }> = {
-  dotnet: { bg: 'rgba(81,43,212,0.25)', color: '#A080FF', border: 'rgba(81,43,212,0.4)' },
-  python: { bg: 'rgba(255,184,48,0.2)', color: '#FFD080', border: 'rgba(255,184,48,0.35)' },
-  rust: { bg: 'rgba(255,71,87,0.2)', color: '#FF9090', border: 'rgba(255,71,87,0.35)' },
+  dotnet: { bg: 'rgba(81,43,212,0.15)', color: '#A080FF', border: 'rgba(81,43,212,0.3)' },
+  python: { bg: 'rgba(255,184,48,0.15)', color: '#FFD080', border: 'rgba(255,184,48,0.3)' },
+  rust: { bg: 'rgba(255,71,87,0.15)', color: '#FF9090', border: 'rgba(255,71,87,0.3)' },
   all: { bg: 'rgba(0,245,212,0.15)', color: '#00F5D4', border: 'rgba(0,245,212,0.3)' },
-  tag: { bg: 'rgba(255,255,255,0.06)', color: '#5555AA', border: 'rgba(255,255,255,0.06)' },
+  tag: { bg: 'var(--tag-bg)', color: 'var(--tag-color)', border: 'var(--tag-border)' },
   react: { bg: 'rgba(56,189,248,0.12)', color: '#38BDF8', border: 'rgba(56,189,248,0.3)' },
-  nextjs: { bg: 'rgba(255,255,255,0.08)', color: '#EEEEFF', border: 'rgba(255,255,255,0.15)' },
+  nextjs: { bg: 'var(--tag-bg)', color: 'var(--t1)', border: 'var(--tag-border)' },
   typescript: { bg: 'rgba(56,189,248,0.12)', color: '#38BDF8', border: 'rgba(56,189,248,0.3)' },
   tailwind: { bg: 'rgba(0,229,204,0.12)', color: '#00E5CC', border: 'rgba(0,229,204,0.25)' },
   tool: { bg: 'rgba(255,176,32,0.12)', color: '#FFB020', border: 'rgba(255,176,32,0.25)' },
@@ -36,8 +36,8 @@ const pillColors: Record<string, { bg: string; color: string; border: string }> 
 export function Card({ icon, title, subtitle, description, accent = 'purple', pills, meta, children, lang }: CardProps) {
   return (
     <div
-      style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '18px', position: 'relative', overflow: 'hidden', transition: 'border-color 0.15s, transform 0.15s', cursor: 'default' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(124,77,255,0.3)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '18px', position: 'relative', overflow: 'hidden', transition: 'background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.15s', cursor: 'default' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--hover-border)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: accentColors[accent] || accentColors.purple }} />

@@ -8,8 +8,8 @@ interface PatternRowProps {
 export function PatternRow({ name, family, description, when }: PatternRowProps) {
   return (
     <div
-      style={{ display: 'grid', gridTemplateColumns: '180px 1fr auto', alignItems: 'start', gap: '16px', padding: '11px 14px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '6px', marginBottom: '7px', transition: 'border-color 0.15s' }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(124,77,255,0.3)')}
+      style={{ display: 'grid', gridTemplateColumns: '180px 1fr auto', alignItems: 'start', gap: '16px', padding: '11px 14px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '6px', marginBottom: '7px', transition: 'border-color 0.15s, background-color 0.2s' }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--hover-border)')}
       onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
     >
       <div>

@@ -18,7 +18,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
   const [activeTab, setActiveTab] = useState(0);
 
   const sectionIcon = section.icon || '📋';
-  const sectionIconBg = section.iconBg || 'rgba(124,77,255,0.15)';
+  const sectionIconBg = section.iconBg || 'rgba(var(--fbt-hi-rgb),0.15)';
 
   // Detect cards array — either section.cards or section.data when type is 'cards'
   const cards = section.cards || (section.type === 'cards' && Array.isArray(section.data) ? section.data : null);
@@ -45,30 +45,31 @@ export function SectionRenderer({ section }: SectionRendererProps) {
         position: 'relative',
       }}>
         <div style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '8px',
+          width: '42px',
+          height: '42px',
+          borderRadius: '10px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '19px',
+          fontSize: '21px',
           flexShrink: 0,
           border: '1px solid var(--border)',
           background: sectionIconBg,
+          boxShadow: 'var(--shadow-sm)',
         }}>
           {sectionIcon}
         </div>
         <div>
           <h2 style={{
             fontFamily: 'var(--font-display)',
-            fontSize: '26px',
+            fontSize: '30px',
             letterSpacing: '0.06em',
             color: 'var(--t1)',
           }}>
             {section.title}
           </h2>
           {section.module && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#7C4DFF', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--fbt-hi)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
               {section.module} {section.subtitle && `· ${section.subtitle}`}
             </span>
           )}
@@ -91,19 +92,19 @@ export function SectionRenderer({ section }: SectionRendererProps) {
           left: 0,
           width: '60px',
           height: '1px',
-          background: '#7C4DFF',
-          boxShadow: '0 0 8px #7C4DFF',
+          background: 'var(--fbt-hi)',
+          boxShadow: '0 0 8px var(--fbt-hi)',
         }} />
       </div>
 
       {/* Description */}
       {section.description && (
         <p style={{
-          fontSize: '13px',
+          fontSize: '14px',
           color: 'var(--t2)',
-          marginBottom: '24px',
-          maxWidth: '750px',
-          lineHeight: 1.7,
+          marginBottom: '28px',
+          maxWidth: '780px',
+          lineHeight: 1.75,
         }}>
           {section.description}
         </p>
@@ -125,8 +126,8 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                   borderRadius: '4px',
                   cursor: 'pointer',
                   border: '1px solid',
-                  background: langFilter === val ? '#512BD4' : 'var(--raised)',
-                  borderColor: langFilter === val ? '#512BD4' : 'var(--border)',
+                  background: langFilter === val ? 'var(--fbt)' : 'var(--raised)',
+                  borderColor: langFilter === val ? 'var(--fbt)' : 'var(--border)',
                   color: langFilter === val ? '#fff' : 'var(--t2)',
                   transition: 'all 0.15s',
                   userSelect: 'none',
@@ -187,14 +188,14 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                   <div style={{
                     marginTop: '10px',
                     padding: '10px 12px',
-                    background: 'rgba(124,77,255,0.06)',
-                    border: '1px solid rgba(124,77,255,0.15)',
+                    background: 'rgba(var(--fbt-hi-rgb),0.06)',
+                    border: '1px solid rgba(var(--fbt-hi-rgb),0.15)',
                     borderRadius: '4px',
                     fontSize: '11px',
                     color: 'var(--t2)',
                     lineHeight: 1.6,
                   }}>
-                    <span style={{ color: '#7C4DFF', fontFamily: 'var(--font-mono)', fontSize: '9px', letterSpacing: '0.1em' }}>FBT APPLICATION</span>
+                    <span style={{ color: 'var(--fbt-hi)', fontFamily: 'var(--font-mono)', fontSize: '9px', letterSpacing: '0.1em' }}>FBT APPLICATION</span>
                     <br />
                     {card.fbtApplication}
                   </div>
@@ -219,7 +220,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
           {section.data.map((item: any, i: number) => (
             <div key={i} style={{
               background: 'var(--card)',
-              border: `1px solid ${expandedAccordion === i ? 'rgba(124,77,255,0.3)' : 'var(--border)'}`,
+              border: `1px solid ${expandedAccordion === i ? 'rgba(var(--fbt-hi-rgb),0.3)' : 'var(--border)'}`,
               borderRadius: '8px',
               overflow: 'hidden',
               transition: 'border-color 0.2s',
@@ -238,7 +239,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                   textAlign: 'left',
                 }}
               >
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#7C4DFF', minWidth: '28px' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--fbt-hi)', minWidth: '28px' }}>
                   {item.number}
                 </span>
                 <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--t1)', flex: 1 }}>
@@ -250,9 +251,9 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                     fontSize: '9px',
                     padding: '2px 8px',
                     borderRadius: '3px',
-                    background: item.priority === 'Critical' ? 'rgba(255,64,64,0.15)' : 'rgba(124,77,255,0.1)',
-                    color: item.priority === 'Critical' ? '#ff6464' : '#7C4DFF',
-                    border: `1px solid ${item.priority === 'Critical' ? 'rgba(255,64,64,0.3)' : 'rgba(124,77,255,0.2)'}`,
+                    background: item.priority === 'Critical' ? 'rgba(var(--red-rgb),0.15)' : 'rgba(var(--fbt-hi-rgb),0.1)',
+                    color: item.priority === 'Critical' ? 'var(--red)' : 'var(--fbt-hi)',
+                    border: `1px solid ${item.priority === 'Critical' ? 'rgba(var(--red-rgb),0.3)' : 'rgba(var(--fbt-hi-rgb),0.2)'}`,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                   }}>
@@ -279,7 +280,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                             fontFamily: 'var(--font-mono)',
                             fontSize: '10px',
                             fontWeight: 600,
-                            color: proj.color === 'cyan' ? '#00E5CC' : proj.color === 'purple' ? '#7C4DFF' : proj.color === 'pink' ? '#FF6090' : '#FFB020',
+                            color: proj.color === 'cyan' ? 'var(--cyan)' : proj.color === 'purple' ? 'var(--fbt-hi)' : proj.color === 'pink' ? 'var(--pink)' : 'var(--amber)',
                             letterSpacing: '0.05em',
                           }}>
                             {proj.name}
@@ -313,10 +314,10 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                     fontFamily: 'var(--font-mono)',
                     fontSize: '11px',
                     padding: '3px 10px',
-                    background: 'rgba(124,77,255,0.15)',
-                    border: '1px solid rgba(124,77,255,0.3)',
+                    background: 'rgba(var(--fbt-hi-rgb),0.15)',
+                    border: '1px solid rgba(var(--fbt-hi-rgb),0.3)',
                     borderRadius: '4px',
-                    color: '#7C4DFF',
+                    color: 'var(--fbt-hi)',
                     letterSpacing: '0.1em',
                     fontWeight: 700,
                   }}>
@@ -348,7 +349,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                       borderRadius: '4px',
                       border: '1px solid var(--border)',
                     }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#7C4DFF', minWidth: '22px', fontWeight: 600 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fbt-hi)', minWidth: '22px', fontWeight: 600 }}>
                         {sub.num || `0${si + 1}`}
                       </span>
                       <span style={{ fontSize: '12px', color: 'var(--t2)', lineHeight: 1.5, flex: 1 }}>
@@ -359,10 +360,10 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                           fontFamily: 'var(--font-mono)',
                           fontSize: '9px',
                           padding: '2px 6px',
-                          background: 'rgba(0,229,204,0.1)',
-                          border: '1px solid rgba(0,229,204,0.2)',
+                          background: 'rgba(var(--cyan-rgb),0.1)',
+                          border: '1px solid rgba(var(--cyan-rgb),0.2)',
                           borderRadius: '3px',
-                          color: '#00E5CC',
+                          color: 'var(--cyan)',
                           whiteSpace: 'nowrap',
                         }}>
                           {sub.tag}
@@ -474,7 +475,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
               gap: '16px',
             }}>
               <div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#00E5CC', letterSpacing: '0.1em', textTransform: 'uppercase' }}>ARTICLE CONCEPT</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cyan)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>ARTICLE CONCEPT</span>
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--t1)', marginTop: '4px', letterSpacing: '0.04em' }}>
                   {c.concept}
                 </h3>
@@ -483,7 +484,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                 </p>
               </div>
               <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: '16px' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#7C4DFF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>FBT TRANSLATION</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--fbt-hi)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>FBT TRANSLATION</span>
                 <p style={{ fontSize: '12px', color: 'var(--t2)', marginTop: '8px', lineHeight: 1.6 }}>
                   {c.fbtTranslation || c.fbtMapping}
                 </p>
@@ -495,9 +496,9 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                         fontSize: '9px',
                         padding: '2px 6px',
                         borderRadius: '2px',
-                        background: 'rgba(124,77,255,0.1)',
-                        border: '1px solid rgba(124,77,255,0.2)',
-                        color: '#7C4DFF',
+                        background: 'rgba(var(--fbt-hi-rgb),0.1)',
+                        border: '1px solid rgba(var(--fbt-hi-rgb),0.2)',
+                        color: 'var(--fbt-hi)',
                       }}>
                         {p}
                       </span>
@@ -531,9 +532,9 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                     fontSize: '9px',
                     padding: '2px 8px',
                     borderRadius: '3px',
-                    background: proj.priority === 'critical' ? 'rgba(255,64,64,0.12)' : 'rgba(124,77,255,0.1)',
-                    color: proj.priority === 'critical' ? '#ff6464' : '#7C4DFF',
-                    border: `1px solid ${proj.priority === 'critical' ? 'rgba(255,64,64,0.3)' : 'rgba(124,77,255,0.2)'}`,
+                    background: proj.priority === 'critical' ? 'rgba(var(--red-rgb),0.12)' : 'rgba(var(--fbt-hi-rgb),0.1)',
+                    color: proj.priority === 'critical' ? 'var(--red)' : 'var(--fbt-hi)',
+                    border: `1px solid ${proj.priority === 'critical' ? 'rgba(var(--red-rgb),0.3)' : 'rgba(var(--fbt-hi-rgb),0.2)'}`,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                   }}>
@@ -545,8 +546,8 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                 {proj.description || proj.strategy}
               </p>
               {proj.hostApi && (
-                <div style={{ padding: '10px 12px', borderRadius: '4px', background: 'rgba(0,229,204,0.06)', border: '1px solid rgba(0,229,204,0.15)', marginBottom: '10px' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#00E5CC', letterSpacing: '0.1em' }}>HOST API EXPOSES</span>
+                <div style={{ padding: '10px 12px', borderRadius: '4px', background: 'rgba(var(--cyan-rgb),0.06)', border: '1px solid rgba(var(--cyan-rgb),0.15)', marginBottom: '10px' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cyan)', letterSpacing: '0.1em' }}>HOST API EXPOSES</span>
                   <p style={{ fontSize: '11.5px', color: 'var(--t2)', marginTop: '4px', lineHeight: 1.5 }}>{proj.hostApi}</p>
                 </div>
               )}
@@ -579,9 +580,9 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                       fontSize: '9px',
                       padding: '2px 7px',
                       borderRadius: '3px',
-                      background: 'rgba(124,77,255,0.08)',
-                      border: '1px solid rgba(124,77,255,0.2)',
-                      color: '#7C4DFF',
+                      background: 'rgba(var(--fbt-hi-rgb),0.08)',
+                      border: '1px solid rgba(var(--fbt-hi-rgb),0.2)',
+                      color: 'var(--fbt-hi)',
                     }}>
                       {c}
                     </span>
@@ -607,8 +608,8 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                   padding: '8px 16px',
                   background: activeTab === i ? 'var(--card)' : 'transparent',
                   border: 'none',
-                  borderBottom: activeTab === i ? '2px solid #7C4DFF' : '2px solid transparent',
-                  color: activeTab === i ? '#7C4DFF' : 'var(--t3)',
+                  borderBottom: activeTab === i ? '2px solid var(--fbt-hi)' : '2px solid transparent',
+                  color: activeTab === i ? 'var(--fbt-hi)' : 'var(--t3)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
@@ -625,33 +626,33 @@ export function SectionRenderer({ section }: SectionRendererProps) {
       {section.type === 'before-after' && section.beforeAfter && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div style={{
-            background: 'rgba(255,64,64,0.04)',
-            border: '1px solid rgba(255,64,64,0.2)',
+            background: 'rgba(var(--red-rgb),0.04)',
+            border: '1px solid rgba(var(--red-rgb),0.2)',
             borderRadius: '8px',
             padding: '20px',
           }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#ff6464', letterSpacing: '0.15em', marginBottom: '14px', textTransform: 'uppercase' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--red)', letterSpacing: '0.15em', marginBottom: '14px', textTransform: 'uppercase' }}>
               ✗ BEFORE (Monolith)
             </div>
             {section.beforeAfter.before.map((item: string, i: number) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ color: '#ff6464', fontSize: '12px', flexShrink: 0, marginTop: '2px' }}>✗</span>
+                <span style={{ color: 'var(--red)', fontSize: '12px', flexShrink: 0, marginTop: '2px' }}>✗</span>
                 <span style={{ fontSize: '12px', color: 'var(--t2)', lineHeight: 1.5 }}>{item}</span>
               </div>
             ))}
           </div>
           <div style={{
-            background: 'rgba(0,229,204,0.04)',
-            border: '1px solid rgba(0,229,204,0.2)',
+            background: 'rgba(var(--cyan-rgb),0.04)',
+            border: '1px solid rgba(var(--cyan-rgb),0.2)',
             borderRadius: '8px',
             padding: '20px',
           }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#00E5CC', letterSpacing: '0.15em', marginBottom: '14px', textTransform: 'uppercase' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--cyan)', letterSpacing: '0.15em', marginBottom: '14px', textTransform: 'uppercase' }}>
               ✓ AFTER (Plugin Architecture)
             </div>
             {section.beforeAfter.after.map((item: string, i: number) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ color: '#00E5CC', fontSize: '12px', flexShrink: 0, marginTop: '2px' }}>✓</span>
+                <span style={{ color: 'var(--cyan)', fontSize: '12px', flexShrink: 0, marginTop: '2px' }}>✓</span>
                 <span style={{ fontSize: '12px', color: 'var(--t2)', lineHeight: 1.5 }}>{item}</span>
               </div>
             ))}
@@ -663,7 +664,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
       {section.type === 'roadmap' && section.roadmapSteps && (
         <div style={{ position: 'relative', paddingLeft: '24px' }}>
           {/* Vertical line */}
-          <div style={{ position: 'absolute', left: '8px', top: '8px', bottom: '8px', width: '2px', background: 'rgba(124,77,255,0.2)' }} />
+          <div style={{ position: 'absolute', left: '8px', top: '8px', bottom: '8px', width: '2px', background: 'rgba(var(--fbt-hi-rgb),0.2)' }} />
           {section.roadmapSteps.map((step: any, i: number) => (
             <div key={i} style={{ position: 'relative', marginBottom: '20px' }}>
               <div style={{
@@ -673,14 +674,14 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                 width: '18px',
                 height: '18px',
                 borderRadius: '50%',
-                background: '#7C4DFF',
+                background: 'var(--fbt-hi)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '9px',
                 color: '#fff',
                 fontWeight: 700,
-                boxShadow: '0 0 8px rgba(124,77,255,0.4)',
+                boxShadow: '0 0 8px rgba(var(--fbt-hi-rgb),0.4)',
               }}>
                 {step.step}
               </div>
@@ -693,7 +694,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: '16px', color: 'var(--t1)', letterSpacing: '0.04em' }}>{step.title}</span>
                   {step.timeline && (
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#00E5CC', padding: '2px 6px', background: 'rgba(0,229,204,0.1)', borderRadius: '3px', border: '1px solid rgba(0,229,204,0.2)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--cyan)', padding: '2px 6px', background: 'rgba(var(--cyan-rgb),0.1)', borderRadius: '3px', border: '1px solid rgba(var(--cyan-rgb),0.2)' }}>
                       {step.timeline}
                     </span>
                   )}
@@ -727,24 +728,24 @@ export function SectionRenderer({ section }: SectionRendererProps) {
           {section.edgeCases.map((ec: any, i: number) => (
             <div key={i} style={{
               background: 'var(--card)',
-              border: '1px solid rgba(255,176,32,0.2)',
+              border: '1px solid rgba(var(--amber-rgb),0.2)',
               borderRadius: '8px',
               padding: '16px 18px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '14px' }}>⚠️</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '15px', color: '#FFB020', letterSpacing: '0.04em' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '15px', color: 'var(--amber)', letterSpacing: '0.04em' }}>
                   {ec.warning}
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--t2)', lineHeight: 1.6, marginBottom: '8px' }}>{ec.applies}</p>
               <div style={{
                 padding: '8px 12px',
-                background: 'rgba(124,77,255,0.06)',
+                background: 'rgba(var(--fbt-hi-rgb),0.06)',
                 borderRadius: '4px',
-                border: '1px solid rgba(124,77,255,0.15)',
+                border: '1px solid rgba(var(--fbt-hi-rgb),0.15)',
               }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#7C4DFF', letterSpacing: '0.1em' }}>FBT VERDICT</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--fbt-hi)', letterSpacing: '0.1em' }}>FBT VERDICT</span>
                 <p style={{ fontSize: '11.5px', color: 'var(--t2)', marginTop: '4px', lineHeight: 1.5 }}>{ec.verdict}</p>
               </div>
             </div>

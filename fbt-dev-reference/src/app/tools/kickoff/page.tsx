@@ -9,17 +9,20 @@ import {
   KickoffFormData,
 } from '@/data/kickoff';
 
-const CYAN = '#00E5CC';
-const CYAN_DIM = 'rgba(0,229,204,0.15)';
-const VOID = '#05050F';
-const PANEL = '#0C0C22';
-const CARD = '#10102A';
-const RAISED = '#151535';
-const BORDER = 'rgba(255,255,255,0.06)';
-const BORDER_HI = 'rgba(124,77,255,0.5)';
-const T1 = '#EEEEFF';
-const T2 = '#9999CC';
-const T3 = '#5555AA';
+// Using CSS variables for theming support
+const getCSSVar = (varName: string) => `var(${varName})`;
+
+const CYAN = 'var(--cyan)';
+const CYAN_DIM = 'rgba(var(--cyan-rgb), 0.15)';
+const VOID = 'var(--void)';
+const PANEL = 'var(--panel)';
+const CARD = 'var(--card)';
+const RAISED = 'var(--raised)';
+const BORDER = 'rgba(var(--white-rgb), 0.06)';
+const BORDER_HI = 'rgba(var(--fbt-hi-rgb), 0.5)';
+const T1 = 'var(--t1)';
+const T2 = 'var(--t2)';
+const T3 = 'var(--t3)';
 
 export default function KickoffPage() {
   // Form state
@@ -463,7 +466,7 @@ export default function KickoffPage() {
                   top: '1rem',
                   right: '1rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: copied ? '#00D68F' : CYAN,
+                  backgroundColor: copied ? 'var(--green)' : CYAN,
                   color: VOID,
                   border: 'none',
                   borderRadius: '0.375rem',

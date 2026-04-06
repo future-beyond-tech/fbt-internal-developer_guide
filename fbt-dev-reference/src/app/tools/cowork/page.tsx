@@ -136,7 +136,7 @@ END OF PROMPT`;
             letterSpacing: '0.05em',
             color: 'var(--fbt-hi)',
             marginBottom: '0.5rem',
-            textShadow: `0 0 20px rgba(124, 77, 255, 0.4)`,
+            textShadow: `0 0 20px rgba(var(--fbt-hi-rgb), 0.4)`,
           }}
         >
           FBT COWORK COMMAND CENTER
@@ -204,7 +204,7 @@ END OF PROMPT`;
                     cursor: 'pointer',
                     boxShadow:
                       selectedProduct === p.id
-                        ? `0 0 12px rgba(124, 77, 255, 0.4), inset 0 0 8px rgba(124, 77, 255, 0.2)`
+                        ? `0 0 12px rgba(var(--fbt-hi-rgb), 0.4), inset 0 0 8px rgba(var(--fbt-hi-rgb), 0.2)`
                         : 'none',
                     transition: 'all 200ms ease',
                   }}
@@ -284,7 +284,7 @@ END OF PROMPT`;
                     cursor: 'pointer',
                     boxShadow:
                       selectedMode === m.num
-                        ? `0 0 12px rgba(124, 77, 255, 0.4), inset 0 0 8px rgba(124, 77, 255, 0.2)`
+                        ? `0 0 12px rgba(var(--fbt-hi-rgb), 0.4), inset 0 0 8px rgba(var(--fbt-hi-rgb), 0.2)`
                         : 'none',
                     transition: 'all 150ms ease',
                     textAlign: 'center',
@@ -449,8 +449,8 @@ END OF PROMPT`;
                     cursor: 'pointer',
                     transition: 'all 200ms ease',
                     boxShadow: copied
-                      ? `0 0 12px rgba(0, 214, 143, 0.4)`
-                      : `0 0 12px rgba(124, 77, 255, 0.3)`,
+                      ? `0 0 12px rgba(var(--green-rgb), 0.4)`
+                      : `0 0 12px rgba(var(--fbt-hi-rgb), 0.3)`,
                   }}
                 >
                   {copied ? '✓ Copied to Clipboard' : 'Copy Full Prompt'}
@@ -478,7 +478,7 @@ END OF PROMPT`;
             cursor: canGenerate ? 'pointer' : 'not-allowed',
             transition: 'all 200ms ease',
             boxShadow: canGenerate
-              ? `0 0 20px rgba(124, 77, 255, 0.4)`
+              ? `0 0 20px rgba(var(--fbt-hi-rgb), 0.4)`
               : 'inset 0 0 8px rgba(0, 0, 0, 0.3)',
             opacity: canGenerate ? 1 : 0.5,
           }}

@@ -17,9 +17,9 @@ export function Table({ headers, rows, highlightFirst = true }: TableProps) {
         </thead>
         <tbody>
           {rows.map((row, ri) => (
-            <tr key={ri} style={{ transition: 'background 0.1s' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,77,255,0.04)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <tr key={ri} style={{ transition: 'background 0.1s', background: ri % 2 === 0 ? 'transparent' : 'var(--table-stripe)' }} onMouseEnter={e => (e.currentTarget.style.background = 'var(--table-hover)')} onMouseLeave={e => (e.currentTarget.style.background = ri % 2 === 0 ? 'transparent' : 'var(--table-stripe)')}>
               {row.map((cell, ci) => (
-                <td key={ci} style={{ padding: '10px 13px', borderBottom: '1px solid rgba(255,255,255,0.04)', color: ci === 0 && highlightFirst ? 'var(--cyan-accent)' : ci === 1 && highlightFirst ? 'var(--t1)' : 'var(--t2)', fontFamily: ci === 0 && highlightFirst ? 'var(--font-mono)' : 'inherit', fontSize: ci === 0 && highlightFirst ? '11px' : '12px', fontWeight: ci <= 1 && highlightFirst ? 500 : 400, verticalAlign: 'top', whiteSpace: ci === 0 ? 'nowrap' : 'normal' }}>{cell}</td>
+                <td key={ci} style={{ padding: '10px 13px', borderBottom: '1px solid var(--border)', color: ci === 0 && highlightFirst ? 'var(--cyan-accent)' : ci === 1 && highlightFirst ? 'var(--t1)' : 'var(--t2)', fontFamily: ci === 0 && highlightFirst ? 'var(--font-mono)' : 'inherit', fontSize: ci === 0 && highlightFirst ? '11px' : '12px', fontWeight: ci <= 1 && highlightFirst ? 500 : 400, verticalAlign: 'top', whiteSpace: ci === 0 ? 'nowrap' : 'normal' }}>{cell}</td>
               ))}
             </tr>
           ))}

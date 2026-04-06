@@ -280,7 +280,7 @@ ${selectedLawsData
     },
     inputFocus: {
       borderColor: 'var(--amber)',
-      boxShadow: '0 0 0 2px rgba(255, 176, 32, 0.1)',
+      boxShadow: '0 0 0 2px rgba(var(--amber-rgb), 0.1)',
     },
     textarea: {
       padding: '0.75rem',
@@ -313,7 +313,7 @@ ${selectedLawsData
     },
     card: (selected: boolean) => ({
       padding: '1rem',
-      backgroundColor: selected ? 'rgba(255, 176, 32, 0.1)' : 'var(--card)',
+      backgroundColor: selected ? 'rgba(var(--amber-rgb), 0.1)' : 'var(--card)',
       border: selected ? '2px solid var(--amber)' : '1px solid var(--border)',
       borderRadius: '0.375rem',
       cursor: 'pointer',
@@ -372,7 +372,7 @@ ${selectedLawsData
       height: '100%',
       backgroundColor: 'var(--amber)',
       transition: 'width 0.4s ease',
-      boxShadow: '0 0 8px rgba(255, 176, 32, 0.6)',
+      boxShadow: '0 0 8px rgba(var(--amber-rgb), 0.6)',
     }),
     buttonContainer: {
       display: 'flex',
@@ -395,9 +395,9 @@ ${selectedLawsData
       fontFamily: 'var(--font-sans)',
     },
     buttonHover: {
-      backgroundColor: '#FFC840',
+      backgroundColor: 'var(--amber)',
       transform: 'translateY(-1px)',
-      boxShadow: '0 4px 12px rgba(255, 176, 32, 0.3)',
+      boxShadow: '0 4px 12px rgba(var(--amber-rgb), 0.3)',
     },
     outputSection: {
       padding: '2rem',
@@ -434,7 +434,7 @@ ${selectedLawsData
     },
     copyButtonHover: {
       borderColor: 'var(--amber)',
-      boxShadow: '0 0 8px rgba(255, 176, 32, 0.2)',
+      boxShadow: '0 0 8px rgba(var(--amber-rgb), 0.2)',
     },
     outputText: {
       fontFamily: 'var(--font-mono)',

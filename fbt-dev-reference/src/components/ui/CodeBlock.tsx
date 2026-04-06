@@ -19,7 +19,7 @@ export function CodeBlock({ code, language, showLineNumbers = false }: CodeBlock
 
   return (
     <div
-      style={{ position: 'relative', background: 'var(--void)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#B8C4FF', overflowX: 'auto', margin: '8px 0', lineHeight: '1.6' }}
+      style={{ position: 'relative', background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: '6px', padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--code-text)', overflowX: 'auto', margin: '8px 0', lineHeight: '1.6' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -28,7 +28,7 @@ export function CodeBlock({ code, language, showLineNumbers = false }: CodeBlock
       )}
       <button
         onClick={handleCopy}
-        style={{ position: 'absolute', top: '6px', right: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '3px', padding: '2px 8px', fontSize: '9px', color: copied ? 'var(--green)' : 'var(--t3)', cursor: 'pointer', fontFamily: 'var(--font-mono)', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
+        style={{ position: 'absolute', top: '6px', right: '10px', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '3px', padding: '2px 8px', fontSize: '9px', color: copied ? 'var(--green)' : 'var(--t3)', cursor: 'pointer', fontFamily: 'var(--font-mono)', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}
       >
         {copied ? '✓ Copied' : 'Copy'}
       </button>

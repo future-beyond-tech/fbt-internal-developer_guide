@@ -91,7 +91,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
       <SearchModal items={searchItems} />
       <Header onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 52px)' }}>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)' }}>
         <Sidebar nav={nav} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main content */}
@@ -101,7 +101,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
             position: 'relative',
             background: 'var(--deep)',
             borderBottom: '1px solid var(--border)',
-            padding: '48px 52px 44px',
+            padding: '52px 56px 48px',
             overflow: 'hidden',
           }}>
             {/* Grid bg */}
@@ -120,7 +120,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
               left: '-80px',
               width: '400px',
               height: '400px',
-              background: 'radial-gradient(circle, rgba(81,43,212,0.25) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(var(--fbt-rgb),0.25) 0%, transparent 70%)',
               pointerEvents: 'none',
             }} />
             <div style={{
@@ -129,16 +129,17 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
               right: '80px',
               width: '300px',
               height: '300px',
-              background: `radial-gradient(circle, ${isFrontend ? 'rgba(0,229,204,0.12)' : 'rgba(81,43,212,0.15)'} 0%, transparent 70%)`,
+              background: `radial-gradient(circle, ${isFrontend ? 'rgba(var(--cyan-rgb),0.12)' : 'rgba(var(--fbt-rgb),0.15)'} 0%, transparent 70%)`,
               pointerEvents: 'none',
             }} />
 
             {/* Eyebrow */}
             <div style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '10px',
+              fontSize: '11px',
+              fontWeight: 600,
               letterSpacing: '0.2em',
-              color: '#00E5CC',
+              color: 'var(--cyan)',
               textTransform: 'uppercase',
               marginBottom: '14px',
               position: 'relative',
@@ -149,7 +150,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
             {/* Title */}
             <h1 style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '56px',
+              fontSize: '60px',
               lineHeight: 0.95,
               letterSpacing: '0.04em',
               position: 'relative',
@@ -159,7 +160,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
               {hero.subtitle && (
                 <span style={{
                   display: 'block',
-                  WebkitTextStroke: '1px #7C4DFF',
+                  WebkitTextStroke: '1px var(--fbt-hi)',
                   color: 'transparent',
                 }}>
                   {hero.subtitle}
@@ -196,7 +197,7 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
                     fontSize: '36px',
                     letterSpacing: '0.05em',
                     lineHeight: 1,
-                    color: '#7C4DFF',
+                    color: 'var(--fbt-hi)',
                   }}>
                     {stat.value}
                   </span>
@@ -228,9 +229,9 @@ export function ReferencePage({ nav, sections, hero, variant }: ReferencePagePro
                     fontSize: '9.5px',
                     padding: '3px 9px',
                     borderRadius: '2px',
-                    border: i < 3 ? '1px solid rgba(124,77,255,0.4)' : '1px solid var(--border)',
-                    color: i < 3 ? '#7C4DFF' : 'var(--t3)',
-                    background: i < 3 ? 'rgba(124,77,255,0.08)' : 'transparent',
+                    border: i < 3 ? 'rgba(var(--fbt-hi-rgb),0.4)' : '1px solid var(--border)',
+                    color: i < 3 ? 'var(--fbt-hi)' : 'var(--t3)',
+                    background: i < 3 ? 'rgba(var(--fbt-hi-rgb),0.08)' : 'transparent',
                   }}>
                     {tag}
                   </span>

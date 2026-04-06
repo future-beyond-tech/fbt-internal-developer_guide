@@ -46,7 +46,6 @@ export function Sidebar({ nav, isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile overlay */}
       <div
         className={`ref-mobile-overlay${isOpen ? ' show' : ''}`}
         onClick={onClose}
@@ -57,12 +56,12 @@ export function Sidebar({ nav, isOpen, onClose }: SidebarProps) {
           <div key={si}>
             <div style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '8.5px',
-              fontWeight: 500,
-              letterSpacing: '0.22em',
+              fontSize: '9px',
+              fontWeight: 600,
+              letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: 'var(--t4)',
-              padding: si === 0 ? '6px 16px 5px' : '14px 16px 5px',
+              color: 'var(--t3)',
+              padding: si === 0 ? '8px 20px 6px' : '18px 20px 6px',
             }}>
               {section.label}
             </div>
@@ -81,27 +80,55 @@ export function Sidebar({ nav, isOpen, onClose }: SidebarProps) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '9px',
-                    padding: '6px 16px',
-                    color: isActive ? 'var(--t1)' : 'var(--t3)',
+                    gap: '10px',
+                    padding: '7px 20px',
+                    color: isActive ? 'var(--t1)' : 'var(--t2)',
+                    fontWeight: isActive ? 600 : 400,
                     textDecoration: 'none',
-                    fontSize: '12px',
-                    transition: 'all 0.12s',
-                    borderLeft: `2px solid ${isActive ? '#7C4DFF' : 'transparent'}`,
-                    background: isActive ? 'rgba(124,77,255,0.08)' : 'transparent',
+                    fontSize: '12.5px',
+                    transition: 'all 0.15s ease',
+                    borderLeft: `2.5px solid ${isActive ? 'var(--fbt-hi)' : 'transparent'}`,
+                    background: isActive ? 'rgba(var(--fbt-hi-rgb),0.08)' : 'transparent',
                     whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'var(--hover-bg)';
+                      e.currentTarget.style.color = 'var(--t1)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--t2)';
+                    }
                   }}
                 >
                   <span style={{
-                    width: '4px',
-                    height: '4px',
+                    width: '5px',
+                    height: '5px',
                     borderRadius: '50%',
-                    background: isActive ? '#7C4DFF' : 'currentColor',
+                    background: isActive ? 'var(--fbt-hi)' : 'var(--t4)',
                     flexShrink: 0,
-                    opacity: isActive ? 1 : 0.5,
-                    boxShadow: isActive ? '0 0 6px #7C4DFF' : 'none',
+                    boxShadow: isActive ? '0 0 8px var(--fbt-hi)' : 'none',
+                    transition: 'all 0.2s ease',
                   }} />
-                  {getItemTitle(item)}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {getItemTitle(item)}
+                  </span>
+                  {item.label && !item.title && (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '8px',
+                      color: 'var(--t4)',
+                      marginLeft: 'auto',
+                      flexShrink: 0,
+                    }}>
+                      {item.label}
+                    </span>
+                  )}
                 </a>
               );
             })}
