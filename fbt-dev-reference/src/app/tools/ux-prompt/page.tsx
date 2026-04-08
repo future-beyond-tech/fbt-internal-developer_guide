@@ -1,11 +1,52 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { uxPromptUxLaws, uxPromptProductGoals } from '@/data/ux-prompt';
+import {
+  uxPromptUxLaws,
+  uxPromptProductGoals,
+  generateUxPrompt,
+  getMissingUxPromptFields,
+  uxPromptRequiredFields,
+  type UxPromptInput,
+} from '@/data/ux-prompt';
+import { safeCopy, downloadText, slugify } from '@/lib/prompt-io';
+import { loadState, saveState } from '@/lib/persist';
 
-type UxLaw = (typeof uxPromptUxLaws)[0];
-type ProductGoal = (typeof uxPromptProductGoals)[0];
+const UX_SLOT = 'ux-prompt';
+
+interface UxPromptPersisted {
+  projectName: string;
+  projectSlug: string;
+  projectDesc: string;
+  targetUsers: string;
+  coreProblem: string;
+  businessModel: string;
+  targetMarket: string;
+  frontend: string;
+  backend: string;
+  database: string;
+  deployment: string;
+  selectedLaws: string[];
+  selectedGoals: string[];
+}
+
+const REQUIRED_LABELS_UX: Record<keyof UxPromptInput, string> = {
+  projectName: 'Project Name',
+  projectSlug: 'Slug',
+  projectDesc: 'Description',
+  targetUsers: 'Primary Users',
+  coreProblem: 'Core Problem',
+  businessModel: 'Business Model',
+  targetMarket: 'Target Market',
+  frontend: 'Frontend',
+  backend: 'Backend',
+  database: 'Database',
+  deployment: 'Deployment',
+  selectedLaws: 'UX Laws',
+  selectedGoals: 'Product Goals',
+  score: 'Score',
+};
 
 export default function UxPromptGeneratorPage() {
   // ═══ FORM STATE ═══
@@ -13,7 +54,7 @@ export default function UxPromptGeneratorPage() {
   const [projectSlug, setProjectSlug] = useState('');
   const [projectDesc, setProjectDesc] = useState('');
   const [targetUsers, setTargetUsers] = useState('');
-  const [coreProblem, setCoreProblems] = useState('');
+  const [coreProblem, setCoreProblem] = useState('');
   const [businessModel, setBusinessModel] = useState('');
   const [targetMarket, setTargetMarket] = useState('');
 
@@ -34,6 +75,68 @@ export default function UxPromptGeneratorPage() {
   // ═══ OUTPUT & UI STATE ═══
   const [output, setOutput] = useState('');
   const [copied, setCopied] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate from localStorage once on mount (SSR-safe).
+  // setState-in-effect is the canonical SSR hydration boundary: the server
+  // renders defaults to avoid hydration mismatch, then the client swaps in
+  // persisted state on mount.
+  /* eslint-disable react-hooks/set-state-in-effect -- SSR hydration boundary */
+  useEffect(() => {
+    const p = loadState<UxPromptPersisted | null>(UX_SLOT, null);
+    if (p) {
+      setProjectName(p.projectName);
+      setProjectSlug(p.projectSlug);
+      setProjectDesc(p.projectDesc);
+      setTargetUsers(p.targetUsers);
+      setCoreProblem(p.coreProblem);
+      setBusinessModel(p.businessModel);
+      setTargetMarket(p.targetMarket);
+      setFrontend(p.frontend);
+      setBackend(p.backend);
+      setDatabase(p.database);
+      setDeployment(p.deployment);
+      setSelectedLaws(new Set(p.selectedLaws));
+      setSelectedGoals(new Set(p.selectedGoals));
+    }
+    setHydrated(true);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const snapshot: UxPromptPersisted = {
+      projectName,
+      projectSlug,
+      projectDesc,
+      targetUsers,
+      coreProblem,
+      businessModel,
+      targetMarket,
+      frontend,
+      backend,
+      database,
+      deployment,
+      selectedLaws: [...selectedLaws],
+      selectedGoals: [...selectedGoals],
+    };
+    saveState(UX_SLOT, snapshot);
+  }, [
+    hydrated,
+    projectName,
+    projectSlug,
+    projectDesc,
+    targetUsers,
+    coreProblem,
+    businessModel,
+    targetMarket,
+    frontend,
+    backend,
+    database,
+    deployment,
+    selectedLaws,
+    selectedGoals,
+  ]);
 
   // ═══ TOGGLE HANDLERS ═══
   const toggleLaw = (lawId: string) => {
@@ -104,78 +207,67 @@ export default function UxPromptGeneratorPage() {
     selectedGoals,
   ]);
 
+  // ═══ VALIDATION ═══
+  const promptInput: UxPromptInput = useMemo(
+    () => ({
+      projectName,
+      projectSlug,
+      projectDesc,
+      targetUsers,
+      coreProblem,
+      businessModel,
+      targetMarket,
+      frontend,
+      backend,
+      database,
+      deployment,
+      selectedLaws: [...selectedLaws],
+      selectedGoals: [...selectedGoals],
+      score,
+    }),
+    [
+      projectName,
+      projectSlug,
+      projectDesc,
+      targetUsers,
+      coreProblem,
+      businessModel,
+      targetMarket,
+      frontend,
+      backend,
+      database,
+      deployment,
+      selectedLaws,
+      selectedGoals,
+      score,
+    ]
+  );
+
+  const missingFields = useMemo(
+    () => getMissingUxPromptFields(promptInput),
+    [promptInput]
+  );
+  const canGenerate = missingFields.length === 0;
+
   // ═══ PROMPT GENERATION ═══
   const generatePrompt = () => {
-    const selectedLawsData = uxPromptUxLaws.filter((law) => selectedLaws.has(law.id));
-    const selectedGoalsData = uxPromptProductGoals.filter((goal) => selectedGoals.has(goal.id));
-
-    const prompt = `# UX-FIRST NEXT.JS PROMPT BUILDER
-
-## PROJECT DEFINITION
-**Project Name:** ${projectName || '(not specified)'}
-**Codename/Slug:** ${projectSlug || '(not specified)'}
-**Description:** ${projectDesc || '(not specified)'}
-**Primary Users:** ${targetUsers || '(not specified)'}
-**Core Problem:** ${coreProblem || '(not specified)'}
-**Business Model:** ${businessModel || '(not specified)'}
-**Target Market:** ${targetMarket || '(not specified)'}
-
-## TECH STACK
-**Frontend:** ${frontend}
-**Backend:** ${backend || '(not specified)'}
-**Database:** ${database || '(not specified)'}
-**Deployment:** ${deployment || '(not specified)'}
-
-## PRODUCT GOALS DIRECTIVES
-${selectedGoalsData
-  .map((goal) => `### ${goal.emoji} ${goal.name}\n${goal.directive}`)
-  .join('\n\n')}
-
-## UX LAWS & PRINCIPLES
-The following UX laws must be implemented as explicit directives in all component design:
-
-${selectedLawsData
-  .map(
-    (law) =>
-      `### ${law.name}
-**Category:** ${law.category}
-**Description:** ${law.description}
-**Implementation:** ${law.implementation}`
-  )
-  .join('\n\n')}
-
-## GENERATION DIRECTIVES
-1. **Cyberpunk Dark Theme:** Use the FBT design system with --fbt (#512BD4), --cyan (#00E5CC), --amber (#FFB020) for accent.
-2. **Component-First:** Build reusable, modular components. Every interactive element is tested in isolation.
-3. **Accessibility-First:** ${selectedLaws.has('wcag') ? 'WCAG 2.2 AA is mandatory.' : 'Accessibility standards should be considered.'} All interactive elements are keyboard navigable.
-4. **Performance:** ${selectedLaws.has('doherty') ? 'Target <100ms perceived response for all interactions.' : 'Optimize for fast perceived performance.'}
-5. **Mobile-Responsive:** ${selectedGoals.has('goal-mobile') ? 'Mobile-first design from 320px up.' : 'Responsive design across all breakpoints.'}
-6. **Type-Safe:** Use TypeScript strict mode. No \`any\` types.
-
-## IMPLEMENTATION CHECKLIST
-- [ ] Project structure set up
-- [ ] Design tokens defined
-- [ ] Component library scaffolded
-- [ ] Form validation patterns
-- [ ] Error handling & recovery flows
-- [ ] Loading and empty states
-- [ ] Analytics instrumentation${selectedGoals.has('goal-analytics') ? ' (PostHog/Mixpanel)' : ''}
-- [ ] Accessibility testing (axe-core)
-- [ ] Mobile testing on real devices
-- [ ] Launch checklist
-
----
-**Generated by:** UX-First Prompt Builder
-**Quality Score:** ${score}/100
-`;
-
-    setOutput(prompt);
+    if (!canGenerate) return;
+    setOutput(generateUxPrompt(promptInput));
+    setCopied(false);
   };
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(output);
+    const ok = await safeCopy(output);
+    if (!ok) return;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadPrompt = () => {
+    if (!output) return;
+    const slug = slugify(projectSlug || projectName, 'project');
+    const date = new Date().toISOString().slice(0, 10);
+    downloadText(output, `ux-prompt-${slug}-${date}.md`);
   };
 
   // ═══ STYLES ═══
@@ -276,7 +368,9 @@ ${selectedLawsData
       fontFamily: 'var(--font-sans)',
       fontSize: '0.875rem',
       transition: 'all 0.2s',
-      outline: 'none' as const,
+      // A11Y: focus ring MUST remain visible. We use an amber boxShadow as
+      // the focus indicator on :focus-within/:focus (applied via inputFocus).
+      outlineOffset: '2px',
     },
     inputFocus: {
       borderColor: 'var(--amber)',
@@ -292,7 +386,9 @@ ${selectedLawsData
       fontSize: '0.875rem',
       minHeight: '100px',
       transition: 'all 0.2s',
-      outline: 'none' as const,
+      // A11Y: focus ring MUST remain visible. We use an amber boxShadow as
+      // the focus indicator on :focus-within/:focus (applied via inputFocus).
+      outlineOffset: '2px',
       resize: 'vertical' as const,
     },
     select: {
@@ -304,7 +400,9 @@ ${selectedLawsData
       fontFamily: 'var(--font-sans)',
       fontSize: '0.875rem',
       transition: 'all 0.2s',
-      outline: 'none' as const,
+      // A11Y: focus ring MUST remain visible. We use an amber boxShadow as
+      // the focus indicator on :focus-within/:focus (applied via inputFocus).
+      outlineOffset: '2px',
     },
     cardGrid: {
       display: 'grid',
@@ -461,7 +559,7 @@ ${selectedLawsData
             ← Back to Home
           </Link>
           <div style={styles.title}>NEXT.JS UX-FIRST PROMPT BUILDER</div>
-          <div style={styles.subtitle}>// Generate structured prompts for AI-assisted development</div>
+          <div style={styles.subtitle}>{'// Generate structured prompts for AI-assisted development'}</div>
         </div>
 
         {/* QUALITY SCORE */}
@@ -526,7 +624,7 @@ ${selectedLawsData
                 type="text"
                 placeholder="What pain point does this solve?"
                 value={coreProblem}
-                onChange={(e) => setCoreProblems(e.target.value)}
+                onChange={(e) => setCoreProblem(e.target.value)}
                 style={styles.input}
               />
             </div>
@@ -740,13 +838,53 @@ ${selectedLawsData
           </div>
         </div>
 
+        {/* VALIDATION STATUS */}
+        {!canGenerate && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              marginTop: '2rem',
+              padding: '0.75rem 1rem',
+              borderLeft: '3px solid var(--amber)',
+              backgroundColor: 'rgba(var(--amber-rgb), 0.06)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.8rem',
+              color: 'var(--t2)',
+              borderRadius: '0.25rem',
+            }}
+          >
+            Missing required:{' '}
+            <span style={{ color: 'var(--amber)' }}>
+              {missingFields.map((k) => REQUIRED_LABELS_UX[k]).join(' · ')}
+            </span>{' '}
+            <span style={{ color: 'var(--t3)' }}>
+              ({uxPromptRequiredFields.length - missingFields.length}/
+              {uxPromptRequiredFields.length})
+            </span>
+          </div>
+        )}
+
         {/* GENERATE BUTTON */}
         <div style={styles.buttonContainer}>
           <button
             onClick={generatePrompt}
-            style={styles.button}
-            onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.buttonHover)}
-            onMouseLeave={(e) => Object.assign(e.currentTarget.style, { backgroundColor: 'var(--amber)', transform: 'translateY(0)' })}
+            disabled={!canGenerate}
+            aria-disabled={!canGenerate}
+            style={{
+              ...styles.button,
+              opacity: canGenerate ? 1 : 0.45,
+              cursor: canGenerate ? 'pointer' : 'not-allowed',
+            }}
+            onMouseEnter={(e) => {
+              if (canGenerate) Object.assign(e.currentTarget.style, styles.buttonHover);
+            }}
+            onMouseLeave={(e) =>
+              Object.assign(e.currentTarget.style, {
+                backgroundColor: 'var(--amber)',
+                transform: 'translateY(0)',
+              })
+            }
           >
             Generate Prompt
           </button>
@@ -757,14 +895,39 @@ ${selectedLawsData
           <div style={styles.outputSection}>
             <div style={styles.outputHeader}>
               <div style={styles.outputTitle}>Generated Prompt</div>
-              <button
-                onClick={copyToClipboard}
-                style={styles.copyButton}
-                onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.copyButtonHover)}
-                onMouseLeave={(e) => Object.assign(e.currentTarget.style, { borderColor: 'var(--border)', boxShadow: 'none' })}
-              >
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={downloadPrompt}
+                  title="Download as Markdown"
+                  style={styles.copyButton}
+                  onMouseEnter={(e) =>
+                    Object.assign(e.currentTarget.style, styles.copyButtonHover)
+                  }
+                  onMouseLeave={(e) =>
+                    Object.assign(e.currentTarget.style, {
+                      borderColor: 'var(--border)',
+                      boxShadow: 'none',
+                    })
+                  }
+                >
+                  ↓ .md
+                </button>
+                <button
+                  onClick={copyToClipboard}
+                  style={styles.copyButton}
+                  onMouseEnter={(e) =>
+                    Object.assign(e.currentTarget.style, styles.copyButtonHover)
+                  }
+                  onMouseLeave={(e) =>
+                    Object.assign(e.currentTarget.style, {
+                      borderColor: 'var(--border)',
+                      boxShadow: 'none',
+                    })
+                  }
+                >
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
             <div style={styles.outputText}>{output}</div>
           </div>

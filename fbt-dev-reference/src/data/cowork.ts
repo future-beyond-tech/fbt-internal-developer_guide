@@ -1594,6 +1594,129 @@ export const coworkMotionSystem = {
 };
 
 /* ─────────────────────────────────────────────────────────────
+   PROMPT GENERATOR
+   ───────────────────────────────────────────────────────────── */
+
+export interface GeneratedCoworkPrompt {
+  product: string;
+  mode: string;
+  modeBody: string;
+  context: string;
+  standards: string;
+  uxLaws: string;
+  performanceBudgets: string;
+  fullPrompt: string;
+}
+
+export interface CoworkGenerateInput {
+  productId: string;
+  modeNum: string;
+  context: string;
+}
+
+/** Returns the resolved product + mode if both exist. */
+export function resolveCoworkSelection(input: CoworkGenerateInput): {
+  product: CoworkProduct | null;
+  mode: CoworkMode | null;
+} {
+  return {
+    product: coworkProducts.find((p) => p.id === input.productId) ?? null,
+    mode: coworkModes.find((m) => m.num === input.modeNum) ?? null,
+  };
+}
+
+/**
+ * Pure prompt builder for the Cowork Command Center. Returns null if the
+ * product or mode cannot be resolved — caller should gate the UI on that.
+ */
+export function generateCoworkPrompt(
+  input: CoworkGenerateInput
+): GeneratedCoworkPrompt | null {
+  const { product, mode } = resolveCoworkSelection(input);
+  if (!product || !mode) return null;
+
+  const standards = Object.values(coworkEngineeringStandards)
+    .map(
+      (s) =>
+        `${s.code}: ${s.title}\n${s.principles.map((p) => `  • ${p}`).join('\n')}`
+    )
+    .join('\n\n');
+
+  const uxLaws = coworkUxLaws
+    .map(
+      (law) =>
+        `${law.shortName}: ${law.description}\n${law.implementation
+          .map((impl) => `  • ${impl}`)
+          .join('\n')}`
+    )
+    .join('\n\n');
+
+  const performanceBudgets = coworkPerformanceBudgets
+    .map((b) => `${b.abbreviation} (${b.layer}): ${b.budget} — ${b.description}`)
+    .join('\n');
+
+  const fullPrompt = `# FBT COWORK COMMAND CENTER
+
+## SELECTED PRODUCT
+${product.name}
+Type: ${product.type}
+Stack: ${product.stack}
+
+## SELECTED MODE
+Mode ${mode.num}: ${mode.name}
+Description: ${mode.desc}
+
+## TASK CONTEXT
+${input.context || '[No additional context provided]'}
+
+---
+
+## MODE INSTRUCTIONS
+${mode.body}
+
+---
+
+## ENGINEERING STANDARDS
+${standards}
+
+---
+
+## UX LAWS & IMPLEMENTATION
+${uxLaws}
+
+---
+
+## PERFORMANCE BUDGETS (Non-Negotiable)
+${performanceBudgets}
+
+---
+
+## PRODUCT ARCHITECTURE REFERENCE
+Architecture: ${product.arch}
+Auth: ${product.auth}
+Database: ${product.db}
+Design System: ${product.design}
+
+### Critical Rules for ${product.name}:
+${product.rules.map((rule) => `• ${rule}`).join('\n')}
+
+---
+
+END OF PROMPT`;
+
+  return {
+    product: product.name,
+    mode: `${mode.num}: ${mode.name}`,
+    modeBody: mode.body,
+    context: input.context,
+    standards,
+    uxLaws,
+    performanceBudgets,
+    fullPrompt,
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────
    EXPORT SUMMARY
    ───────────────────────────────────────────────────────────── */
 

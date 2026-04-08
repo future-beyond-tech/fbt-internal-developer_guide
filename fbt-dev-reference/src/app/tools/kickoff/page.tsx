@@ -1,17 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  kickoffFormSections,
   kickoffScaffoldFlags,
   generateKickoffPrompt,
+  getMissingKickoffFields,
+  kickoffRequiredFields,
   KickoffFormData,
 } from '@/data/kickoff';
+import { safeCopy, downloadText, slugify } from '@/lib/prompt-io';
+import { loadState, saveState, clearState } from '@/lib/persist';
+
+const KICKOFF_SLOT = 'kickoff';
+
+const REQUIRED_LABELS: Record<string, string> = {
+  name: 'Project Name',
+  desc: 'Description',
+  user: 'Primary User',
+  problem: 'Core Problem',
+  fe: 'Frontend',
+  be: 'Backend',
+};
 
 // Using CSS variables for theming support
-const getCSSVar = (varName: string) => `var(${varName})`;
-
 const CYAN = 'var(--cyan)';
 const CYAN_DIM = 'rgba(var(--cyan-rgb), 0.15)';
 const VOID = 'var(--void)';
@@ -24,32 +36,46 @@ const T1 = 'var(--t1)';
 const T2 = 'var(--t2)';
 const T3 = 'var(--t3)';
 
+const EMPTY_FORM = (): KickoffFormData => ({
+  name: '',
+  slug: '',
+  desc: '',
+  user: '',
+  problem: '',
+  fe: '',
+  be: '',
+  db: '',
+  auth: '',
+  infra: '',
+  repo: '',
+  modules: '',
+  integrations: '',
+  timeline: '',
+  team: '',
+  avoid: '',
+  activeFlags: kickoffScaffoldFlags.filter((f) => f.defaultOn).map((f) => f.id),
+});
+
 export default function KickoffPage() {
-  // Form state
-  const [formData, setFormData] = useState<KickoffFormData>({
-    name: '',
-    slug: '',
-    desc: '',
-    user: '',
-    problem: '',
-    fe: '',
-    be: '',
-    db: '',
-    auth: '',
-    infra: '',
-    repo: '',
-    modules: '',
-    integrations: '',
-    timeline: '',
-    team: '',
-    avoid: '',
-    activeFlags: kickoffScaffoldFlags
-      .filter((f) => f.defaultOn)
-      .map((f) => f.id),
-  });
+  // Form state — hydrated from localStorage on mount (SSR-safe)
+  const [formData, setFormData] = useState<KickoffFormData>(EMPTY_FORM);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR hydration boundary
+    setFormData(loadState<KickoffFormData>(KICKOFF_SLOT, EMPTY_FORM()));
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (hydrated) saveState(KICKOFF_SLOT, formData);
+  }, [formData, hydrated]);
 
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
+
+  const missing = useMemo(() => getMissingKickoffFields(formData), [formData]);
+  const canGenerate = missing.length === 0;
 
   // Handle form input changes
   const handleInputChange = (
@@ -74,46 +100,34 @@ export default function KickoffPage() {
 
   // Generate kickoff prompt
   const handleGenerate = () => {
+    if (!canGenerate) return;
     const prompt = generateKickoffPrompt(formData);
     setGeneratedPrompt(prompt);
+    setCopied(false);
   };
 
   // Clear form
   const handleClear = () => {
-    setFormData({
-      name: '',
-      slug: '',
-      desc: '',
-      user: '',
-      problem: '',
-      fe: '',
-      be: '',
-      db: '',
-      auth: '',
-      infra: '',
-      repo: '',
-      modules: '',
-      integrations: '',
-      timeline: '',
-      team: '',
-      avoid: '',
-      activeFlags: kickoffScaffoldFlags
-        .filter((f) => f.defaultOn)
-        .map((f) => f.id),
-    });
+    setFormData(EMPTY_FORM());
     setGeneratedPrompt('');
     setCopied(false);
+    clearState(KICKOFF_SLOT);
   };
 
   // Copy to clipboard
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedPrompt);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
+    const ok = await safeCopy(generatedPrompt);
+    if (!ok) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Download generated prompt as a Markdown file
+  const handleDownload = () => {
+    if (!generatedPrompt) return;
+    const slug = slugify(formData.slug || formData.name, 'project');
+    const date = new Date().toISOString().slice(0, 10);
+    downloadText(generatedPrompt, `kickoff-${slug}-${date}.md`);
   };
 
   return (
@@ -375,24 +389,35 @@ export default function KickoffPage() {
         >
           <button
             onClick={handleGenerate}
+            disabled={!canGenerate}
+            aria-disabled={!canGenerate}
+            title={
+              canGenerate
+                ? 'Generate the kickoff prompt'
+                : `Fill in required fields first: ${missing
+                    .map((k) => REQUIRED_LABELS[k] ?? String(k))
+                    .join(', ')}`
+            }
             style={{
               padding: '0.875rem 2rem',
-              backgroundColor: CYAN,
-              color: VOID,
-              border: 'none',
+              backgroundColor: canGenerate ? CYAN : 'transparent',
+              color: canGenerate ? VOID : T3,
+              border: canGenerate ? 'none' : `1px solid ${BORDER_HI}`,
               borderRadius: '0.5rem',
               fontWeight: '600',
               fontSize: '0.95rem',
-              cursor: 'pointer',
+              cursor: canGenerate ? 'pointer' : 'not-allowed',
               transition: 'all 0.2s',
               fontFamily: "'Instrument Sans', sans-serif",
-              boxShadow: `0 0 20px ${CYAN}33`,
+              boxShadow: canGenerate ? `0 0 20px ${CYAN}33` : 'none',
             }}
             onMouseEnter={(e) => {
+              if (!canGenerate) return;
               e.currentTarget.style.boxShadow = `0 0 30px ${CYAN}66`;
               e.currentTarget.style.transform = 'scale(1.02)';
             }}
             onMouseLeave={(e) => {
+              if (!canGenerate) return;
               e.currentTarget.style.boxShadow = `0 0 20px ${CYAN}33`;
               e.currentTarget.style.transform = 'scale(1)';
             }}
@@ -427,6 +452,31 @@ export default function KickoffPage() {
           </button>
         </div>
 
+        {/* Required-field feedback (Doherty: give live validation signal) */}
+        {!canGenerate && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              marginTop: '-1.5rem',
+              marginBottom: '2rem',
+              textAlign: 'center',
+              fontSize: '0.8rem',
+              color: T3,
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: '0.04em',
+            }}
+          >
+            Missing required:{' '}
+            <span style={{ color: 'var(--amber)' }}>
+              {missing.map((k) => REQUIRED_LABELS[k] ?? String(k)).join(' · ')}
+            </span>{' '}
+            <span style={{ color: T3 }}>
+              ({kickoffRequiredFields.length - missing.length}/{kickoffRequiredFields.length})
+            </span>
+          </div>
+        )}
+
         {/* Output Section */}
         {generatedPrompt && (
           <Section
@@ -459,36 +509,67 @@ export default function KickoffPage() {
                 }}
               />
 
-              <button
-                onClick={handleCopy}
+              <div
                 style={{
                   position: 'absolute',
                   top: '1rem',
                   right: '1rem',
-                  padding: '0.5rem 1rem',
-                  backgroundColor: copied ? 'var(--green)' : CYAN,
-                  color: VOID,
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.85rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  fontFamily: "'Instrument Sans', sans-serif",
-                }}
-                onMouseEnter={(e) => {
-                  if (!copied) {
-                    e.currentTarget.style.boxShadow = `0 0 15px ${CYAN}66`;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!copied) {
-                    e.currentTarget.style.boxShadow = 'none';
-                  }
+                  display: 'flex',
+                  gap: '0.5rem',
                 }}
               >
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
+                <button
+                  onClick={handleDownload}
+                  title="Download as Markdown"
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    color: CYAN,
+                    border: `1px solid ${CYAN}`,
+                    borderRadius: '0.375rem',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontFamily: "'Instrument Sans', sans-serif",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = `0 0 15px ${CYAN}66`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  ↓ .md
+                </button>
+                <button
+                  onClick={handleCopy}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: copied ? 'var(--green)' : CYAN,
+                    color: VOID,
+                    border: 'none',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontFamily: "'Instrument Sans', sans-serif",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!copied) {
+                      e.currentTarget.style.boxShadow = `0 0 15px ${CYAN}66`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!copied) {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }
+                  }}
+                >
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
           </Section>
         )}
@@ -607,7 +688,6 @@ function FormField({
   placeholder,
   value,
   onChange,
-  fullWidth,
   isTextarea,
 }: FormFieldProps) {
   const Element = isTextarea ? 'textarea' : 'input';

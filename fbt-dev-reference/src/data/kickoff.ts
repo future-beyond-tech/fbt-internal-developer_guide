@@ -284,8 +284,56 @@ export const kickoffOutputFormat: string[] = [
 ];
 
 /**
- * Generates the complete kickoff prompt based on form data
- * This is the core of the New Project Kickoff tool
+ * Single source of truth for scaffold flag detail lines.
+ * Derived from `kickoffScaffoldFlags` to guarantee zero drift between the
+ * toggle UI labels and the lines that get pasted into the generated prompt.
+ */
+export const kickoffScaffoldFlagDetailMap: Record<string, string> =
+  Object.fromEntries(kickoffScaffoldFlags.map((f) => [f.id, `→ ${f.detail}`]));
+
+/** Labels paired 1:1 with `kickoffStandards` entries. */
+const KICKOFF_STANDARD_LABELS = [
+  'Architecture ',
+  'TypeScript   ',
+  'Accessibility',
+  'Performance  ',
+  'API contracts',
+  'Security     ',
+  'Naming       ',
+];
+
+/** Fixed column width for the header ASCII box. */
+const HEADER_COL_WIDTH = 46;
+
+function fitBoxCol(text: string): string {
+  const max = HEADER_COL_WIDTH;
+  const trimmed = text.length > max ? text.slice(0, max - 1) + '…' : text;
+  return trimmed.padEnd(max);
+}
+
+/** Which kickoff fields are required before a prompt can be generated. */
+export const kickoffRequiredFields: Array<keyof KickoffFormData> = [
+  'name',
+  'desc',
+  'user',
+  'problem',
+  'fe',
+  'be',
+];
+
+/** Returns the list of missing required field ids for a form state. */
+export function getMissingKickoffFields(data: KickoffFormData): Array<keyof KickoffFormData> {
+  return kickoffRequiredFields.filter((k) => {
+    const v = data[k];
+    return typeof v !== 'string' || !v.trim();
+  });
+}
+
+/**
+ * Generates the complete kickoff prompt based on form data.
+ * Callers should run `getMissingKickoffFields` first and block generation if
+ * any are missing — this function still produces output with placeholders if
+ * called unchecked, to keep it pure and side-effect free.
  */
 export function generateKickoffPrompt(data: KickoffFormData): string {
   const name = data.name || '[PROJECT]';
@@ -305,36 +353,32 @@ export function generateKickoffPrompt(data: KickoffFormData): string {
   const team = data.team || 'Solo (Claude Code)';
   const avoid = data.avoid || '(none)';
 
-  // Get current date in ISO format
   const now = new Date().toISOString().slice(0, 10);
-
-  // Build flag details from active flags
-  const flagDetailMap: Record<string, string> = {
-    docker: '→ Docker Compose dev environment with hot reload for all services',
-    ci: '→ GitHub Actions: lint + test + build on PR, deploy on merge to main',
-    lint: '→ ESLint (strict), Prettier, .editorconfig — zero warnings policy',
-    env: '→ .env.example with all required keys documented and typed',
-    makefile: '→ Makefile with: make dev, make build, make test, make migrate, make deploy',
-    readme: '→ README.md with: project overview, setup guide, architecture diagram placeholder, env vars table',
-    storybook: '→ Storybook 8 for all shared UI components',
-    openapi: '→ openapi.json spec scaffolded and kept in sync with controllers',
-    healthcheck: '→ /health and /ready endpoints on all services (no auth required)',
-    sentry: '→ Sentry SDK initialised for error tracking + performance monitoring',
-  };
 
   const flagLines =
     data.activeFlags.length > 0
       ? data.activeFlags
-          .map((f) => flagDetailMap[f] || f)
+          .map((f) => kickoffScaffoldFlagDetailMap[f] || `→ ${f}`)
           .join('\n  ')
       : '(no flags selected)';
 
-  // Build the complete prompt template
-  const prompt = `╔══════════════════════════════════════════════════════════╗
+  const standardsBlock = kickoffStandards
+    .map((line, i) => `${KICKOFF_STANDARD_LABELS[i] ?? 'Standard     '} : ${line}`)
+    .join('\n');
+
+  const antiHallucinationBlock = kickoffAntiHallucinationDirectives
+    .map((line) => `→ ${line}`)
+    .join('\n');
+
+  const outputFormatBlock = kickoffOutputFormat
+    .map((line, i) => `${i + 1}. ${line}`)
+    .join('\n');
+
+  return `╔══════════════════════════════════════════════════════════╗
 ║  FBT NEW PROJECT KICKOFF                                 ║
-║  Project : ${name.padEnd(46)}║
-║  Slug    : ${slug.padEnd(46)}║
-║  Date    : ${now.padEnd(46)}║
+║  Project : ${fitBoxCol(name)}║
+║  Slug    : ${fitBoxCol(slug)}║
+║  Date    : ${fitBoxCol(now)}║
 ╚══════════════════════════════════════════════════════════╝
 
 ━━ PRODUCT IDENTITY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -384,44 +428,13 @@ Team     : ${team}
 Avoid    : ${avoid}
 
 ━━ NON-NEGOTIABLE ENGINEERING STANDARDS ━━━━━━━━━━━━━━━━━━
-Architecture  : ${kickoffStandards[0]}
-TypeScript    : ${kickoffStandards[1]}
-Accessibility : ${kickoffStandards[2]}
-Performance   : ${kickoffStandards[3]}
-API contracts : ${kickoffStandards[4]}
-Security      : ${kickoffStandards[5]}
-Naming        : ${kickoffStandards[6]}
+${standardsBlock}
 
 ━━ ANTI-HALLUCINATION DIRECTIVE ━━━━━━━━━━━━━━━━━━━━━━━━━━
-→ ${kickoffAntiHallucinationDirectives[0]}
-→ ${kickoffAntiHallucinationDirectives[1]}
-→ ${kickoffAntiHallucinationDirectives[2]}
-→ ${kickoffAntiHallucinationDirectives[3]}
+${antiHallucinationBlock}
 
 ━━ OUTPUT FORMAT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. ${kickoffOutputFormat[0]}
-2. ${kickoffOutputFormat[1]}
-3. ${kickoffOutputFormat[2]}
-4. ${kickoffOutputFormat[3]}
-5. ${kickoffOutputFormat[4]}
+${outputFormatBlock}
 
 BEGIN SCAFFOLD FOR: ${name.toUpperCase()}`;
-
-  return prompt;
 }
-
-/**
- * Export type for the full scaffold flag detail map
- */
-export const scaffoldFlagDetails: Record<string, string> = {
-  docker: '→ Docker Compose dev environment with hot reload for all services',
-  ci: '→ GitHub Actions: lint + test + build on PR, deploy on merge to main',
-  lint: '→ ESLint (strict), Prettier, .editorconfig — zero warnings policy',
-  env: '→ .env.example with all required keys documented and typed',
-  makefile: '→ Makefile with: make dev, make build, make test, make migrate, make deploy',
-  readme: '→ README.md with: project overview, setup guide, architecture diagram placeholder, env vars table',
-  storybook: '→ Storybook 8 for all shared UI components',
-  openapi: '→ openapi.json spec scaffolded and kept in sync with controllers',
-  healthcheck: '→ /health and /ready endpoints on all services (no auth required)',
-  sentry: '→ Sentry SDK initialised for error tracking + performance monitoring',
-};

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   coworkProducts,
@@ -8,121 +8,81 @@ import {
   coworkEngineeringStandards,
   coworkUxLaws,
   coworkPerformanceBudgets,
+  generateCoworkPrompt,
+  type GeneratedCoworkPrompt,
 } from '@/data/cowork';
+import { safeCopy, downloadText, slugify } from '@/lib/prompt-io';
+import { loadState, saveState } from '@/lib/persist';
 
-interface GeneratedPrompt {
-  product: string;
-  mode: string;
-  modeBody: string;
+const COWORK_SLOT = 'cowork';
+
+interface CoworkPersisted {
+  selectedProduct: string | null;
+  selectedMode: string | null;
   context: string;
-  standards: string;
-  uxLaws: string;
-  performanceBudgets: string;
-  fullPrompt: string;
 }
 
 export default function CoworkCommandCenter() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [context, setContext] = useState('');
-  const [generatedPrompt, setGeneratedPrompt] = useState<GeneratedPrompt | null>(null);
+  const [generatedPrompt, setGeneratedPrompt] = useState<GeneratedCoworkPrompt | null>(null);
   const [copied, setCopied] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  const product = selectedProduct ? coworkProducts.find((p) => p.id === selectedProduct) : null;
-  const mode = selectedMode ? coworkModes.find((m) => m.num === selectedMode) : null;
+  useEffect(() => {
+    const p = loadState<CoworkPersisted | null>(COWORK_SLOT, null);
+    if (p) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR hydration boundary
+      setSelectedProduct(p.selectedProduct);
+      setSelectedMode(p.selectedMode);
+      setContext(p.context);
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    saveState<CoworkPersisted>(COWORK_SLOT, { selectedProduct, selectedMode, context });
+  }, [hydrated, selectedProduct, selectedMode, context]);
+
+  const product = useMemo(
+    () =>
+      selectedProduct ? coworkProducts.find((p) => p.id === selectedProduct) ?? null : null,
+    [selectedProduct]
+  );
+  const mode = useMemo(
+    () => (selectedMode ? coworkModes.find((m) => m.num === selectedMode) ?? null : null),
+    [selectedMode]
+  );
 
   const generatePrompt = () => {
     if (!product || !mode) return;
-
-    const standardsList = Object.values(coworkEngineeringStandards)
-      .map((s) => `${s.code}: ${s.title}\n${s.principles.map((p) => `  • ${p}`).join('\n')}`)
-      .join('\n\n');
-
-    const uxLawsList = coworkUxLaws
-      .map(
-        (law) =>
-          `${law.shortName}: ${law.description}\n${law.implementation.map((impl) => `  • ${impl}`).join('\n')}`
-      )
-      .join('\n\n');
-
-    const budgetsList = coworkPerformanceBudgets
-      .map((b) => `${b.abbreviation} (${b.layer}): ${b.budget} — ${b.description}`)
-      .join('\n');
-
-    const fullPrompt = `# FBT COWORK COMMAND CENTER
-
-## SELECTED PRODUCT
-${product.name}
-Type: ${product.type}
-Stack: ${product.stack}
-
-## SELECTED MODE
-Mode ${mode.num}: ${mode.name}
-Description: ${mode.desc}
-
-## TASK CONTEXT
-${context || '[No additional context provided]'}
-
----
-
-## MODE INSTRUCTIONS
-${mode.body}
-
----
-
-## ENGINEERING STANDARDS
-${standardsList}
-
----
-
-## UX LAWS & IMPLEMENTATION
-${uxLawsList}
-
----
-
-## PERFORMANCE BUDGETS (Non-Negotiable)
-${budgetsList}
-
----
-
-## PRODUCT ARCHITECTURE REFERENCE
-Architecture: ${product.arch}
-Auth: ${product.auth}
-Database: ${product.db}
-Design System: ${product.design}
-
-### Critical Rules for ${product.name}:
-${product.rules.map((rule) => `• ${rule}`).join('\n')}
-
----
-
-END OF PROMPT`;
-
-    setGeneratedPrompt({
-      product: product.name,
-      mode: `${mode.num}: ${mode.name}`,
-      modeBody: mode.body,
+    const result = generateCoworkPrompt({
+      productId: product.id,
+      modeNum: mode.num,
       context,
-      standards: standardsList,
-      uxLaws: uxLawsList,
-      performanceBudgets: budgetsList,
-      fullPrompt,
     });
+    setGeneratedPrompt(result);
+    setCopied(false);
   };
 
   const handleCopy = async () => {
-    if (generatedPrompt) {
-      try {
-        await navigator.clipboard.writeText(generatedPrompt.fullPrompt);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
-      }
-    }
+    if (!generatedPrompt) return;
+    const ok = await safeCopy(generatedPrompt.fullPrompt);
+    if (!ok) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const canGenerate = selectedProduct && selectedMode && context.trim();
+  const handleDownload = () => {
+    if (!generatedPrompt) return;
+    const slug = slugify(generatedPrompt.product, 'cowork');
+    const date = new Date().toISOString().slice(0, 10);
+    downloadText(generatedPrompt.fullPrompt, `cowork-${slug}-${date}.md`);
+  };
+
+  const canGenerate = Boolean(selectedProduct && selectedMode && context.trim());
 
   return (
     <div style={{ backgroundColor: 'var(--void)', color: 'var(--t1)', minHeight: '100vh', padding: '2rem' }}>
@@ -435,26 +395,47 @@ END OF PROMPT`;
                   {generatedPrompt.fullPrompt}
                 </div>
 
-                <button
-                  onClick={handleCopy}
-                  style={{
-                    padding: '0.875rem 1rem',
-                    backgroundColor: copied ? 'var(--green)' : 'var(--fbt-hi)',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    color: copied ? 'var(--deep)' : 'var(--void)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease',
-                    boxShadow: copied
-                      ? `0 0 12px rgba(var(--green-rgb), 0.4)`
-                      : `0 0 12px rgba(var(--fbt-hi-rgb), 0.3)`,
-                  }}
-                >
-                  {copied ? '✓ Copied to Clipboard' : 'Copy Full Prompt'}
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={handleCopy}
+                    style={{
+                      flex: 1,
+                      padding: '0.875rem 1rem',
+                      backgroundColor: copied ? 'var(--green)' : 'var(--fbt-hi)',
+                      border: 'none',
+                      borderRadius: '0.375rem',
+                      color: copied ? 'var(--deep)' : 'var(--void)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 200ms ease',
+                      boxShadow: copied
+                        ? `0 0 12px rgba(var(--green-rgb), 0.4)`
+                        : `0 0 12px rgba(var(--fbt-hi-rgb), 0.3)`,
+                    }}
+                  >
+                    {copied ? '✓ Copied to Clipboard' : 'Copy Full Prompt'}
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    title="Download as Markdown"
+                    style={{
+                      padding: '0.875rem 1.25rem',
+                      backgroundColor: 'transparent',
+                      border: '1px solid var(--fbt-hi)',
+                      borderRadius: '0.375rem',
+                      color: 'var(--fbt-hi)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 200ms ease',
+                    }}
+                  >
+                    ↓ .md
+                  </button>
+                </div>
               </>
             )}
           </div>

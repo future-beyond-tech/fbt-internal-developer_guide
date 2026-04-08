@@ -103,6 +103,15 @@ interface ToolCard {
 
 const toolCards: ToolCard[] = [
   {
+    href: '/tools/forge',
+    icon: '🔥',
+    title: 'PROMPT FORGE',
+    description: 'Composable block-based prompt lab — stack sections, toggle FBT ingredients (SEC-FIRST, API-LOCK, WCAG, etc.), watch tokens and a 5-axis quality score update live. Share via URL. New.',
+    accent: 'var(--amber)',
+    accentDim: 'rgba(255,176,32,0.12)',
+    hoverBorder: 'rgba(255,176,32,0.45)',
+  },
+  {
     href: '/tools/cowork',
     icon: '⚡',
     title: 'COWORK COMMAND CENTER',
@@ -158,7 +167,7 @@ export default function Home() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
           {[
             { label: '4 REFERENCES', color: 'var(--fbt-hi)' },
-            { label: '3 TOOLS', color: 'var(--cyan)' },
+            { label: '4 TOOLS', color: 'var(--cyan)' },
           ].map((b, i) => (
             <span key={i} style={{ fontFamily: mono, fontSize: '8px', padding: '2px 8px', borderRadius: '2px', background: `${b.color}15`, color: b.color, border: `1px solid ${b.color}40`, letterSpacing: '0.08em' }}>{b.label}</span>
           ))}
@@ -179,7 +188,7 @@ export default function Home() {
             <span style={{ display: 'block', color: 'var(--cyan)', textShadow: `0 0 30px rgba(var(--cyan-rgb),${isDark ? '0.4' : '0.25'})` }}>HUB</span>
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--t2)', maxWidth: '600px', margin: '0 auto', lineHeight: 1.7, position: 'relative' }}>
-            Every principle, pattern, architecture, and tool for building production-grade systems — 4 reference guides, 3 interactive tools, all FBT-grade.
+            Every principle, pattern, architecture, and tool for building production-grade systems — 4 reference guides, 4 interactive tools, all FBT-grade.
           </p>
         </div>
 
