@@ -66,13 +66,14 @@ export function Sidebar({ nav, isOpen, onClose }: SidebarProps) {
               {section.label}
             </div>
             {section.items.map((item, ii) => {
+              const isExternalLink = item.href && !item.href.startsWith('#');
               const itemId = getItemId(item);
               const isActive = activeId === itemId;
               return (
                 <a
                   key={ii}
-                  href={`#${itemId}`}
-                  onClick={(e) => {
+                  href={isExternalLink ? item.href : `#${itemId}`}
+                  onClick={isExternalLink ? undefined : (e) => {
                     e.preventDefault();
                     document.getElementById(itemId)?.scrollIntoView({ behavior: 'smooth' });
                     onClose();

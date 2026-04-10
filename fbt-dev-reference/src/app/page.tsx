@@ -26,8 +26,8 @@ const referenceCards: HubCard[] = [
     eyebrow: 'Backend Reference',
     eyebrowColor: 'var(--fbt-hi)',
     title: 'BACKEND DEVELOPMENT',
-    description: '.NET, Python, Rust — patterns, architecture, CQRS, security, testing, deployment, and 80+ documented approaches.',
-    stats: [{ v: '21', l: 'Sections' }, { v: '80+', l: 'Patterns' }, { v: '3', l: 'Languages' }],
+    description: '.NET, Python, Rust — patterns, architecture, CQRS, security, caching, distributed systems, testing, deployment, and 130+ documented approaches.',
+    stats: [{ v: '27', l: 'Sections' }, { v: '130+', l: 'Patterns' }, { v: '3', l: 'Languages' }],
     statColor: 'var(--fbt-hi)',
     gradient: 'linear-gradient(90deg, var(--fbt), var(--fbt-hi), var(--fbt))',
     glow: 'radial-gradient(circle, rgba(var(--fbt-rgb),0.1) 0%, transparent 70%)',
@@ -36,6 +36,23 @@ const referenceCards: HubCard[] = [
       { label: '.NET', bg: 'rgba(var(--fbt-rgb),0.3)', color: '#9B72FF', border: 'rgba(var(--fbt-rgb),0.5)' },
       { label: 'PYTHON', bg: 'rgba(255,176,32,0.12)', color: '#FFB020', border: 'rgba(255,176,32,0.3)' },
       { label: 'RUST', bg: 'rgba(255,64,96,0.12)', color: '#FF6080', border: 'rgba(255,64,96,0.3)' },
+    ],
+  },
+  {
+    href: '/backend/techniques-map',
+    eyebrow: 'Backend Technique Map',
+    eyebrowColor: 'var(--fbt-hi)',
+    title: 'TECHNIQUE MASTER MAP',
+    description: '18 domains · 200+ backend techniques — searchable, filterable navigator with gap analysis linking to the deep reference.',
+    stats: [{ v: '18', l: 'Domains' }, { v: '314', l: 'Techniques' }, { v: '61%', l: 'Coverage' }],
+    statColor: 'var(--amber)',
+    gradient: 'linear-gradient(90deg, var(--amber), var(--fbt-hi), var(--amber))',
+    glow: 'radial-gradient(circle, rgba(var(--amber-rgb),0.08) 0%, transparent 70%)',
+    hoverBorder: 'rgba(var(--amber-rgb),0.35)',
+    tags: [
+      { label: '18 DOMAINS', bg: 'rgba(var(--fbt-rgb),0.2)', color: '#9B72FF', border: 'rgba(var(--fbt-rgb),0.4)' },
+      { label: 'GAP ANALYSIS', bg: 'rgba(var(--amber-rgb),0.12)', color: '#FFB020', border: 'rgba(var(--amber-rgb),0.3)' },
+      { label: 'NAVIGATOR', bg: 'rgba(var(--cyan-rgb),0.10)', color: 'var(--cyan)', border: 'rgba(var(--cyan-rgb),0.25)' },
     ],
   },
   {
@@ -150,7 +167,7 @@ const toolCards: ToolCard[] = [
 ];
 
 export default function Home() {
-  const { isDark } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--void)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
@@ -173,13 +190,60 @@ export default function Home() {
         <span style={{ fontFamily: mono, fontSize: '10.5px', color: 'var(--t3)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
           Developer Hub
         </span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
-          {[
-            { label: '4 REFERENCES', color: 'var(--fbt-hi)' },
-            { label: '5 TOOLS', color: 'var(--cyan)' },
-          ].map((b, i) => (
-            <span key={i} style={{ fontFamily: mono, fontSize: '8px', padding: '2px 8px', borderRadius: '2px', background: `${b.color}15`, color: b.color, border: `1px solid ${b.color}40`, letterSpacing: '0.08em' }}>{b.label}</span>
-          ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+            style={{
+              position: 'relative',
+              width: '52px',
+              height: '28px',
+              borderRadius: '14px',
+              border: `1.5px solid ${isDark ? 'rgba(var(--fbt-hi-rgb),0.35)' : 'rgba(var(--amber-rgb),0.30)'}`,
+              background: isDark
+                ? 'linear-gradient(135deg, rgba(var(--fbt-hi-rgb),0.18), rgba(var(--cyan-rgb),0.08))'
+                : 'linear-gradient(135deg, rgba(var(--amber-rgb),0.15), rgba(255,160,50,0.08))',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'all 0.35s ease',
+              overflow: 'hidden',
+              boxShadow: isDark
+                ? '0 0 12px rgba(var(--fbt-hi-rgb),0.15), inset 0 1px 0 rgba(255,255,255,0.05)'
+                : '0 0 8px rgba(var(--amber-rgb),0.1), inset 0 1px 0 rgba(255,255,255,0.5)',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{
+              position: 'absolute',
+              top: '3px',
+              left: isDark ? '3px' : '25px',
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              background: isDark
+                ? 'linear-gradient(135deg, #7C4DFF, #9B72FF)'
+                : 'linear-gradient(135deg, #FFB840, #FFD060)',
+              boxShadow: isDark
+                ? '0 0 10px rgba(var(--fbt-hi-rgb),0.6), 0 2px 6px rgba(0,0,0,0.3)'
+                : '0 0 10px rgba(var(--amber-rgb),0.5), 0 2px 6px rgba(0,0,0,0.15)',
+              transition: 'left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease, box-shadow 0.35s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11px',
+            }}>
+              {isDark ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
+            </div>
+          </button>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { label: '5 REFERENCES', color: 'var(--fbt-hi)' },
+              { label: '5 TOOLS', color: 'var(--cyan)' },
+            ].map((b, i) => (
+              <span key={i} style={{ fontFamily: mono, fontSize: '8px', padding: '2px 8px', borderRadius: '2px', background: `${b.color}15`, color: b.color, border: `1px solid ${b.color}40`, letterSpacing: '0.08em' }}>{b.label}</span>
+            ))}
+          </div>
         </div>
       </header>
 
